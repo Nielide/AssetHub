@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="">
+<html lang="zh-CN">
 <head>
-    <link rel="icon" href="logo.png" type="png">
+    <link rel="icon" href="logo.png" type="image/png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AssetHub</title>
+    <title>AssetHub - 个人资产仪表盘</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,16 +12,18 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
     <script>
         tailwind.config = {
-            darkMode: 'class',
+            darkMode: 'class', // 启用基于 class 的暗黑模式
             theme: {
                 extend: {
                     fontFamily: {
                         sans: ['"Google Sans"', 'Roboto', 'sans-serif'],
                         mono: ['"Roboto Mono"', 'monospace'],
                     },
+                    // 定义 Google 风格的品牌颜色
                     colors: {
                         googleBlue: '#1a73e8',
                         googleRed: '#ea4335',
@@ -39,6 +41,7 @@
     </script>
 
     <style>
+        /* --- CSS 变量定义：便于统一管理颜色 --- */
         :root {
             --bg-body: #f8f9fa;
             --bg-card: #ffffff;
@@ -49,6 +52,7 @@
             --input-focus-bg: #ffffff;
         }
 
+        /* 暗黑模式下的变量覆盖 */
         html.dark {
             --bg-body: #202124;
             --bg-card: #303134;
@@ -63,11 +67,13 @@
         body { 
             background-color: var(--bg-body); 
             color: var(--text-primary); 
-            transition: background-color 0.3s, color 0.3s;
+            transition: background-color 0.3s, color 0.3s; /* 主题切换时的平滑过渡 */
         }
         
+        /* 移除数字输入框右侧的微调箭头 */
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
+        /* 卡片通用样式 */
         .g-card-static {
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -76,6 +82,7 @@
             transition: background-color 0.3s, border-color 0.3s;
         }
 
+        /* 输入框样式：平时透明，悬停或聚焦时显示背景 */
         .input-google {
             background-color: transparent;
             border: 1px solid transparent;
@@ -93,33 +100,36 @@
             box-shadow: 0 1px 2px rgba(26,115,232,0.1);
         }
 
-        .btn-add {
-            color: #1a73e8;
-            cursor: pointer;
-            font-size: 0.75rem; 
-            font-weight: 500;
+        /* 按钮通用样式 */
+        .btn-add, .btn-action {
             display: flex;
             align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        
+        /* 列表头部的操作按钮 */
+        .btn-add {
+            color: #1a73e8;
+            font-size: 0.75rem; 
+            font-weight: 500;
             gap: 0.25rem;
             padding: 0.3rem 0.6rem;
             border-radius: 0.25rem;
-            transition: background 0.2s;
         }
         .btn-add:hover { background-color: rgba(26, 115, 232, 0.1); }
 
+        /* 顶部导航栏的功能按钮 */
         .btn-action {
-            cursor: pointer;
             font-size: 0.75rem;
             font-weight: 500;
-            display: flex;
-            align-items: center;
             gap: 0.4rem;
             padding: 0.4rem 0.8rem;
             border-radius: 2rem;
             border: 1px solid var(--border-color);
             background-color: var(--bg-card);
             color: var(--text-secondary);
-            transition: all 0.2s;
         }
         .btn-action:hover {
             background-color: var(--input-hover);
@@ -129,25 +139,40 @@
 
         .icon-glass { width: 1.2rem; height: 1.2rem; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 
+        /* --- 表格布局 --- */
+        /* 使用 CSS Grid 实现对齐，第一列(30px)预留给拖拽手柄 */
         .pro-grid-header, .pro-grid-row {
             display: grid;
-            grid-template-columns: 1.2fr 1fr 1fr 1fr 1.5fr 2fr 0.8fr 40px;
+            grid-template-columns: 30px 1.2fr 1fr 1fr 1fr 1.5fr 2fr 0.8fr 40px;
             gap: 12px;
             align-items: center;
         }
         
         .cash-grid-header, .cash-grid-row {
             display: grid;
-            grid-template-columns: 1.4fr 1fr 1.3fr 0.8fr 40px;
+            grid-template-columns: 30px 1.4fr 1fr 1.3fr 0.8fr 40px;
             gap: 12px;
             align-items: center;
         }
 
+        /* 拖拽手柄样式 */
+        .drag-handle {
+            cursor: grab;
+            color: #dadce0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .drag-handle:active { cursor: grabbing; }
+        html.dark .drag-handle { color: #5f6368; }
+        .drag-handle:hover { color: #1a73e8; }
+
+        /* 删除确认弹窗的动画 */
         #delete-popover {
             transition: opacity 0.1s ease-in-out, transform 0.1s ease-in-out;
         }
         
-        /* Transition for sync panel */
+        /* 设置面板的折叠动画 */
         #sync-panel {
             transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, padding 0.3s;
             overflow: hidden;
@@ -195,47 +220,47 @@
                     <input type="file" id="file-import" style="display: none;" accept=".json" onchange="importData(this)">
                 </div>
 
-                        <div class="flex items-center gap-2 px-3 py-1.5 rounded-full border border-borderSubtle dark:border-darkBorder bg-white dark:bg-darkSurface shadow-sm transition-colors">
-                            <svg onclick="fetchLiveRate()" class="w-3.5 h-3.5 text-textSecondary dark:text-darkTextSec cursor-pointer hover:text-googleBlue transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" title="最新汇率">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                            <span class="text-xs font-medium text-textSecondary dark:text-darkTextSec whitespace-nowrap">汇率</span>
-                            <input type="number" id="fx-rate" value="7.25" step="0.0001" class="w-16 text-right font-mono text-sm font-bold text-googleBlue bg-transparent focus:outline-none p-0 m-0 border-none appearance-none">
-                        </div>
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-full border border-borderSubtle dark:border-darkBorder bg-white dark:bg-darkSurface shadow-sm transition-colors">
+                    <svg onclick="fetchLiveRate()" class="w-3.5 h-3.5 text-textSecondary dark:text-darkTextSec cursor-pointer hover:text-googleBlue transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" title="点击刷新最新汇率">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    <span class="text-xs font-medium text-textSecondary dark:text-darkTextSec whitespace-nowrap">汇率</span>
+                    <input type="number" id="fx-rate" value="7.25" step="0.0001" class="w-16 text-right font-mono text-sm font-bold text-googleBlue bg-transparent focus:outline-none p-0 m-0 border-none appearance-none">
+                </div>
             </div>
         </header>
 
         <div id="sync-panel" class="hidden-panel mb-6 p-5 g-card-static">
-    <div class="flex justify-between items-center mb-4">
-        <h3 class="text-sm font-bold text-googleBlue uppercase tracking-wide flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-            系统设置
-        </h3>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-        <div>
-            <label class="text-[0.65rem] font-bold text-textSecondary dark:text-darkTextSec uppercase tracking-wider block mb-1">GitHub Token</label>
-            <input type="password" id="gh-token" class="input-google w-full text-sm font-mono border-b border-borderSubtle dark:border-darkBorder focus:border-googleBlue" placeholder="TOKEN">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-sm font-bold text-googleBlue uppercase tracking-wide flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    系统设置
+                </h3>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                <div>
+                    <label class="text-[0.65rem] font-bold text-textSecondary dark:text-darkTextSec uppercase tracking-wider block mb-1">GitHub Token</label>
+                    <input type="password" id="gh-token" class="input-google w-full text-sm font-mono border-b border-borderSubtle dark:border-darkBorder focus:border-googleBlue" placeholder="TOKEN">
+                </div>
+                <div>
+                    <label class="text-[0.65rem] font-bold text-textSecondary dark:text-darkTextSec uppercase tracking-wider block mb-1">仓库</label>
+                    <input type="text" id="gh-repo" class="input-google w-full text-sm font-mono border-b border-borderSubtle dark:border-darkBorder focus:border-googleBlue" placeholder="user/repo">
+                </div>
+                <div>
+                    <label class="text-[0.65rem] font-bold text-textSecondary dark:text-darkTextSec uppercase tracking-wider block mb-1">数据路径</label>
+                    <input type="text" id="gh-path" class="input-google w-full text-sm font-mono border-b border-borderSubtle dark:border-darkBorder focus:border-googleBlue" placeholder="data.json">
+                </div>
+                <div>
+                    <label class="text-[0.65rem] font-bold text-googleBlue uppercase tracking-wider block mb-1">Finnhub Key</label>
+                    <input type="password" id="finnhub-token" class="input-google w-full text-sm font-mono border-b border-borderSubtle dark:border-darkBorder focus:border-googleBlue" placeholder="KEY">
+                </div>
+            </div>
+            <div class="flex gap-3 justify-end">
+                <button onclick="saveSyncSettings()" class="btn-action hover:bg-gray-100 dark:hover:bg-gray-700">保存配置</button>
+                <button onclick="pullFromGithub()" class="btn-action text-googleGreen border-googleGreen hover:bg-green-50 dark:hover:bg-green-900/20">同步数据</button>
+                <button onclick="pushToGithub()" class="btn-action text-white bg-googleBlue border-transparent hover:bg-blue-600 shadow-sm">备份数据</button>
+            </div>
         </div>
-        <div>
-            <label class="text-[0.65rem] font-bold text-textSecondary dark:text-darkTextSec uppercase tracking-wider block mb-1">仓库</label>
-            <input type="text" id="gh-repo" class="input-google w-full text-sm font-mono border-b border-borderSubtle dark:border-darkBorder focus:border-googleBlue" placeholder="user/repo">
-        </div>
-        <div>
-            <label class="text-[0.65rem] font-bold text-textSecondary dark:text-darkTextSec uppercase tracking-wider block mb-1">数据路径</label>
-            <input type="text" id="gh-path" class="input-google w-full text-sm font-mono border-b border-borderSubtle dark:border-darkBorder focus:border-googleBlue" placeholder="data.json">
-        </div>
-        <div>
-            <label class="text-[0.65rem] font-bold text-googleBlue uppercase tracking-wider block mb-1">Finnhub Key</label>
-            <input type="password" id="finnhub-token" class="input-google w-full text-sm font-mono border-b border-borderSubtle dark:border-darkBorder focus:border-googleBlue" placeholder="KEY">
-        </div>
-    </div>
-    <div class="flex gap-3 justify-end">
-        <button onclick="saveSyncSettings()" class="btn-action hover:bg-gray-100 dark:hover:bg-gray-700">保存配置</button>
-        <button onclick="pullFromGithub()" class="btn-action text-googleGreen border-googleGreen hover:bg-green-50 dark:hover:bg-green-900/20">同步数据</button>
-        <button onclick="pushToGithub()" class="btn-action text-white bg-googleBlue border-transparent hover:bg-blue-600 shadow-sm">备份数据</button>
-    </div>
-</div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
 
@@ -251,9 +276,9 @@
                             <svg id="eye-closed" class="w-4 h-4 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
                             </svg>
-                     </button>
-                   </div>
-                    <h2 class="text-3xl lg:text-4xl font-normal text-textPrimary dark:text-darkText font-mono tracking-tight mb-2 truncate" id="total-nw-cny">¥0</h2>
+                        </button>
+                    </div>
+                    <h2 class="text-3xl lg:text-3xl font-bold text-textPrimary dark:text-darkText font-mono tracking-tight mb-2 truncate" id="total-nw-cny">¥0</h2>
                 </div>
 
                 <div class="g-card-static overflow-hidden flex-shrink-0">
@@ -261,7 +286,7 @@
                         <span class="text-sm text-textSecondary dark:text-darkTextSec">USD</span>
                         <div class="text-left xl:text-right">
                             <div class="text-2xl font-normal text-googleBlue font-mono" id="total-usd-assets">$0</div>
-                            <div id="total-usd-cny-equiv" style="display: none;">0</div>
+                            <div id="total-usd-cny-equiv" style="display: none;">≈ ¥0</div>
                         </div>
                     </div>
                     <div class="p-4 flex flex-col xl:flex-row xl:justify-between xl:items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition">
@@ -326,20 +351,31 @@
             </div>
 
             <div class="lg:col-span-6 flex flex-col gap-4">
+                
                 <div class="g-card-static overflow-hidden">
                     <div class="px-5 py-3 border-b border-borderSubtle dark:border-darkBorder bg-gray-50 dark:bg-gray-800 flex justify-between items-center">
-    <div class="flex items-center gap-2">
-        <div class="w-1 h-4 bg-googleBlue rounded-full"></div>
-        <h2 class="text-sm font-bold text-textPrimary dark:text-darkText uppercase tracking-wide">USD</h2>
-        <svg onclick="updateUsStockPrices()" class="w-3.5 h-3.5 text-textSecondary cursor-pointer hover:text-googleBlue transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" title="更新股价">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-        </svg>
-    </div>
-    <div class="btn-add" onclick="addItem('usd')"><svg class="icon-glass w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg> ADD</div>
-</div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-1 h-4 bg-googleBlue rounded-full"></div>
+                            <h2 class="text-sm font-bold text-textPrimary dark:text-darkText uppercase tracking-wide">USD</h2>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="btn-add text-googleGreen" onclick="updateUsStockPrices()">
+                                <svg id="refresh-icon" class="icon-glass w-4 h-4 text-googleGreen" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg> 
+                                NEW
+                            </div>
+                            <div class="btn-add" onclick="addItem('usd')">
+                                <svg class="icon-glass w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                </svg> 
+                                ADD
+                            </div>
+                        </div>
+                    </div>
                     <div class="bg-white dark:bg-darkSurface transition-colors">
                         <div class="pro-grid-header px-4 py-2 border-b border-borderSubtle dark:border-darkBorder text-[0.6rem] font-bold text-textSecondary dark:text-darkTextSec uppercase tracking-wider">
-                            <div>代码</div>
+                            <div></div> <div>代码</div>
                             <div class="text-right">持仓</div>
                             <div class="text-right">成本</div>
                             <div class="text-right">现价</div>
@@ -355,11 +391,22 @@
                 <div class="g-card-static overflow-hidden">
                     <div class="px-5 py-3 border-b border-borderSubtle dark:border-darkBorder bg-gray-50 dark:bg-gray-800 flex justify-between items-center">
                         <div class="flex items-center gap-2"><div class="w-1 h-4 bg-googleYellow rounded-full"></div><h2 class="text-sm font-bold text-textPrimary dark:text-darkText uppercase tracking-wide">CNY</h2></div>
-                        <div class="btn-add" onclick="addItem('cn')"><svg class="icon-glass w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg> ADD</div>
+                        <div class="flex items-center gap-2">
+                             <div class="btn-add text-googleGreen" onclick="updateCnStockPrices()">
+                                <svg id="refresh-icon-cn" class="icon-glass w-4 h-4 text-googleGreen" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg> 
+                                NEW
+                            </div>
+                            <div class="btn-add" onclick="addItem('cn')">
+                                <svg class="icon-glass w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg> 
+                                ADD
+                            </div>
+                        </div>
                     </div>
                     <div class="bg-white dark:bg-darkSurface transition-colors">
                         <div class="pro-grid-header px-4 py-2 border-b border-borderSubtle dark:border-darkBorder text-[0.6rem] font-bold text-textSecondary dark:text-darkTextSec uppercase tracking-wider">
-                            <div>名称</div>
+                            <div></div> <div>名称</div>
                             <div class="text-right">持仓</div>
                             <div class="text-right">成本</div>
                             <div class="text-right">现价</div>
@@ -379,7 +426,7 @@
                     </div>
                     <div class="bg-white dark:bg-darkSurface transition-colors">
                         <div class="cash-grid-header px-4 py-2 border-b border-borderSubtle dark:border-darkBorder text-[0.6rem] font-bold text-textSecondary dark:text-darkTextSec uppercase tracking-wider">
-                            <div>类型</div>
+                            <div></div> <div>类型</div>
                             <div class="text-right">金额</div>
                             <div class="text-right">RMB估值</div>
                             <div class="text-right">占比</div>
@@ -401,44 +448,476 @@
     </div>
 
     <script>
+        // ==============================================
+        // 1. 初始化与数据管理模块
+function animateNumber(element, start, end, duration = 500, prefix = '', decimals = 2) {
+    let startTime = null;
+    function step(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const progress = Math.min((timestamp - startTime) / duration, 1);
+        const current = progress * (end - start) + start;
+        
+        // 关键：强制控制小数位数
+        element.innerText = prefix + current.toFixed(decimals);
+
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        }
+    }
+    window.requestAnimationFrame(step);
+}
+        // 默认数据结构，防止 localStorage 为空时报错
         const defaultState = {
             usd: [
-                { id: '1', ticker: 'VOO', shares: 88888, cost: 88888, price: 88888 },
-                { id: '2', ticker: 'QQQ', shares: 88888, cost: 88888, price: 88888 },
+                { id: '1', ticker: 'VOO', shares: 0, cost: 0, price: 0 },
+                { id: '2', ticker: 'QQQ', shares: 0, cost: 0, price: 0 },
             ],
             cn: [
-                { id: '5', ticker: 'ETF', shares: 88888, cost: 8, price: 8 },
-                { id: '6', ticker: 'ETF', shares: 88888, cost: 8, price: 8 }
+                { id: '5', ticker: 'sh600036', shares: 0, cost: 0, price: 0 },
+                { id: '6', ticker: 'sz000001', shares: 0, cost: 0, price: 0 }
             ],
             cash: [
-                { id: '7', ticker: 'USD', amount: 88889, currency: 'USD' },
-                { id: '8', ticker: 'CNY', amount: 88888, currency: 'CNY' }
+                { id: '7', ticker: 'USD', amount: 0, currency: 'USD' },
+                { id: '8', ticker: 'CNY', amount: 0, currency: 'CNY' }
             ],
-            fxRate: 7
+            fxRate: 7.25 // 默认美元兑人民币汇率
         };
 
+        // 从浏览器本地存储加载数据
         let savedState = localStorage.getItem('portfolioData');
-        let state = savedState ? JSON.parse(savedState) : defaultState;
-        if(state.fxRate) document.getElementById('fx-rate').value = state.fxRate;
-
-        // Privacy Mode State
-        let isPrivacyMode = localStorage.getItem('portfolio_privacy') === 'true';
-
-        let charts = {};
-        let itemToDelete = null;
-
-   function formatMoney(num, currency) {
-    const symbol = currency === 'USD' ? '$' : '¥';
-    // 直接拼接符号和整数部分，彻底杜绝多余字母
-    return `${symbol}${Math.round(num)}`;
-}
-        
-        function saveData() { 
-            state.fxRate = parseFloat(document.getElementById('fx-rate').value) || 7.25; 
-            localStorage.setItem('portfolioData', JSON.stringify(state)); 
+        let state;
+        try {
+            state = savedState ? JSON.parse(savedState) : defaultState;
+            // 鲁棒性检查：如果旧数据缺失某些字段，补全为空数组
+            if(!state.usd) state.usd = [];
+            if(!state.cn) state.cn = [];
+            if(!state.cash) state.cash = [];
+        } catch(e) {
+            state = defaultState;
         }
 
-        // --- GitHub Sync Logic ---
+        if(state.fxRate) document.getElementById('fx-rate').value = state.fxRate;
+
+        // 隐私模式状态 (是否隐藏金额)
+        let isPrivacyMode = localStorage.getItem('portfolio_privacy') === 'true';
+
+        // 全局图表实例对象
+        let charts = {};
+        // 暂存待删除的项目信息
+        let itemToDelete = null;
+
+        // 保存数据到本地存储
+        function saveData() {
+            state.fxRate = parseFloat(document.getElementById('fx-rate').value) || 7.25;
+            localStorage.setItem('portfolioData', JSON.stringify(state));
+        }
+
+        // ==============================================
+        // 2. 核心计算模块
+        // ==============================================
+
+        // 格式化金额显示 (例如: $1,234 或 ¥5,678)
+        function formatMoney(num, currency) {
+            const symbol = currency === 'USD' ? '$' : '¥';
+           return `${symbol}${Math.round(num)}`;
+        }
+
+        // 主计算函数：重新计算所有总额、占比并更新UI
+        function calculate() {
+            const fx = parseFloat(document.getElementById('fx-rate').value) || 7.25;
+            
+            const usdItems = state.usd || [];
+            const cnItems = state.cn || [];
+            const cashItems = state.cash || [];
+            
+            // 计算各部分总市值
+            const totalUsdStockVal = usdItems.reduce((a, i) => a + (i.shares * i.price), 0);
+            const totalCnStockVal = cnItems.reduce((a, i) => a + (i.shares * i.price), 0);
+            
+            let totalUsdCashVal = 0, totalRmbCashVal = 0;
+            cashItems.forEach(i => { 
+                if(i.currency === 'USD') totalUsdCashVal += i.amount; 
+                else totalRmbCashVal += i.amount; 
+            });
+            
+            // 汇总计算 (统一转换为人民币)
+            const totalCashValRmb = (totalUsdCashVal * fx) + totalRmbCashVal;
+            const totalUsdAssets = totalUsdStockVal + totalUsdCashVal;
+            const totalRmbAssets = totalCnStockVal + totalRmbCashVal;
+            const grandTotal = (totalUsdAssets * fx) + totalRmbAssets;
+            const cashRatio = grandTotal > 0 ? (totalCashValRmb / grandTotal) * 100 : 0;
+
+            // 更新页面顶部的总金额显示
+            // 1. 更新：账户总净值 (grandTotal)
+const totalNwEl = document.getElementById('total-nw-cny');
+if (totalNwEl) {
+    if (isPrivacyMode) {
+        totalNwEl.innerText = '******';
+    } else {
+        // 过滤掉符号提取当前值，若失败则默认为 0
+        const currentVal = parseFloat(totalNwEl.innerText.replace(/[¥\s,]/g, '')) || 0;
+        // 整数动画
+        animateNumber(totalNwEl, currentVal, grandTotal, 500, '¥', 2);
+    }
+}
+
+// 2. 更新：USD 总额 (totalUsdAssets)
+const totalUsdEl = document.getElementById('total-usd-assets');
+if (totalUsdEl) {
+    if (isPrivacyMode) {
+        totalUsdEl.innerText = '******'; // 如果是 formatMoney 生成的，这里需对应
+    } else {
+        const currentVal = parseFloat(totalUsdEl.innerText.replace(/[\$\s,]/g, '')) || 0;
+        // 整数动画
+        animateNumber(totalUsdEl, currentVal, totalUsdAssets, 600, '$', 2);
+    }
+}
+
+// 3. 更新：等值人民币 (totalUsdAssets * fx)
+// --- 找到 calculate 函数中处理 CNY 总额的地方并替换 ---
+const totalCnyEl = document.getElementById('total-cny-assets');
+if (totalCnyEl) {
+    if (isPrivacyMode) {
+        totalCnyEl.innerText = '******';
+    } else {
+        const currentVal = parseFloat(totalCnyEl.innerText.replace(/[¥\s,]/g, '')) || 0;
+        animateNumber(totalCnyEl, currentVal, totalRmbAssets, 500, '¥', 2);
+    }
+}
+            // 更新现金占比进度条
+            const re = document.getElementById('cash-ratio');
+            if(re) {
+                re.innerText = cashRatio.toFixed(1) + '%';
+                // 如果现金低于 15%，显示为红色警告
+                re.className = `text-2xl font-bold font-mono ${cashRatio < 15 ? 'text-googleRed' : 'text-googleGreen'}`;
+            }
+            const bar = document.getElementById('cash-bar');
+            if(bar) {
+                bar.style.width = Math.min(cashRatio, 100) + '%';
+                bar.className = `h-full rounded-full transition-all duration-500 ${cashRatio < 15 ? 'bg-googleRed' : 'bg-googleGreen'}`;
+            }
+
+            // 更新主图表数据
+            if(charts.main) updateChart(charts.main, [(totalUsdStockVal * fx), totalCnStockVal, totalCashValRmb]);
+            
+            // 准备子图表数据
+            const usLabels = usdItems.map(i => i.ticker);
+            const usData = usdItems.map(i => i.shares * i.price);
+            const cnLabels = cnItems.map(i => i.ticker);
+            const cnData = cnItems.map(i => i.shares * i.price);
+            const cashLabels = cashItems.map(i => i.ticker);
+            const cashData = cashItems.map(i => i.currency === 'USD' ? i.amount * fx : i.amount);
+
+            // 更新子图表及图例
+            if(charts.usSub) {
+                const colors = generateShades('#1a73e8', usData.length);
+                updateSubChart(charts.usSub, usLabels, usData, colors);
+                updateCustomLegend('legend-us', usLabels, colors);
+            }
+
+            if(charts.cnSub) {
+                const colors = generateShades('#fbbc04', cnData.length);
+                updateSubChart(charts.cnSub, cnLabels, cnData, colors);
+                updateCustomLegend('legend-cn', cnLabels, colors);
+            }
+
+            if(charts.cashSub) { 
+                 const colors = generateShades('#34a853', cashData.length);
+                 updateSubChart(charts.cashSub, cashLabels, cashData, colors);
+            }
+
+            // 更新每行资产的具体数值 (盈亏、占比等)
+            updateRowValues('usd', usdItems, totalUsdStockVal, '$');
+            updateRowValues('cn', cnItems, totalCnStockVal, '¥');
+            updateCashRowValues(totalCashValRmb, fx);
+
+            saveData();
+        }
+
+        // 更新单行资产的计算结果
+        function updateRowValues(type, items, totalVal, symbol) {
+            items.forEach(item => {
+                const valEl = document.getElementById(`val-${type}-${item.id}`);
+                const plEl = document.getElementById(`pl-${type}-${item.id}`);
+                const allocEl = document.getElementById(`alloc-${type}-${item.id}`);
+                
+                if (!valEl) return;
+
+                const val = item.shares * item.price;
+                const costBasis = item.shares * item.cost;
+                const pl = val - costBasis;
+                const plPct = costBasis > 0 ? (pl / costBasis) * 100 : 0;
+                const allocPct = totalVal > 0 ? (val / totalVal) * 100 : 0;
+                
+                // 颜色逻辑：盈利绿，亏损红，持平灰
+                let color = 'text-gray-400 dark:text-gray-500';
+                if (pl > 0.01) color = 'text-googleGreen';
+                if (pl < -0.01) color = 'text-googleRed';
+
+                const sign = pl > 0 ? '+' : ''; 
+
+				valEl.innerText = `${symbol}${val.toFixed(2)}`;
+                
+                if(plEl) {
+                    plEl.className = `text-right font-mono font-medium ${color}`;
+                    // 显示格式: +100/+5.00%
+                    plEl.innerHTML = `${sign}${Math.round(pl)} / ${sign}${plPct.toFixed(2)}%`;
+                }
+                
+                if(allocEl) allocEl.innerText = `${allocPct.toFixed(1)}%`;
+            });
+        }
+
+        function updateCashRowValues(totalCashRmb, fx) {
+            state.cash.forEach(item => {
+                const valEl = document.getElementById(`val-cash-${item.id}`);
+                const allocEl = document.getElementById(`alloc-cash-${item.id}`);
+                
+                if(!valEl) return;
+
+                let rmbVal = item.currency === 'USD' ? item.amount * fx : item.amount;
+                let allocPct = totalCashRmb > 0 ? (rmbVal / totalCashRmb) * 100 : 0;
+
+                valEl.innerText = `¥${Math.round(rmbVal)}`;
+                allocEl.innerText = `${allocPct.toFixed(1)}%`;
+            });
+        }
+
+        // ==============================================
+        // 3. UI 渲染与交互模块
+        // ==============================================
+
+        // 新增资产项目
+        function addItem(type) {
+            const id = Date.now().toString(); // 生成唯一 ID
+            if (type === 'usd') {
+                state.usd.push({ id, ticker: 'New', shares: 0, cost: 0, price: 0 });
+            } else if (type === 'cn') {
+                state.cn.push({ id, ticker: 'New', shares: 0, cost: 0, price: 0 });
+            } else if (type === 'cash') {
+                state.cash.push({ id, ticker: 'New', amount: 0, currency: 'CNY' });
+            }
+            saveData();
+            renderAllRows(); // 重新渲染列表
+            calculate();
+            initSortable(); // 新增项目后需要重新绑定拖拽事件
+        }
+
+        // 渲染所有列表
+        function renderAllRows() {
+            renderRows('usd', state.usd, '$');
+            renderRows('cn', state.cn, '¥');
+            renderCashRows();
+        }
+
+        // 渲染股票列表 HTML (使用模板字符串)
+        function renderRows(type, items, symbol) {
+            const container = document.getElementById(type + '-inputs');
+            if(!container) return; 
+
+            container.innerHTML = items.map(item => {
+                return `
+                <div class="pro-grid-row px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border-b border-gray-50 dark:border-gray-800 last:border-0 text-sm">
+                    <div class="drag-handle">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+                        </svg>
+                    </div>
+                    <div><input type="text" class="input-google w-full font-bold text-textPrimary dark:text-darkText" data-type="${type}" data-id="${item.id}" data-field="ticker" value="${item.ticker}"></div>
+                    <div><input type="number" class="input-google w-full text-right font-mono text-textPrimary dark:text-darkText" data-type="${type}" data-id="${item.id}" data-field="shares" value="${item.shares}"></div>
+                    <div><input type="number" class="input-google w-full text-right font-mono text-textSecondary dark:text-darkTextSec" data-type="${type}" data-id="${item.id}" data-field="cost" value="${item.cost}"></div>
+                    <div><input type="number" class="input-google w-full text-right font-mono text-textPrimary dark:text-darkText" data-type="${type}" data-id="${item.id}" data-field="price" value="${item.price}"></div>
+                    
+                    <div class="text-right font-mono font-bold text-textPrimary dark:text-darkText" id="val-${type}-${item.id}">--</div>
+                    <div class="text-right font-mono font-medium" id="pl-${type}-${item.id}">--</div>
+                    <div class="text-right font-mono text-textSecondary dark:text-darkTextSec" id="alloc-${type}-${item.id}">--</div>
+                    
+                    <div class="flex justify-center"><svg onclick="toggleDeletePopover(event, '${type}', '${item.id}')" class="delete-trigger icon-glass btn-icon w-4 h-4 text-gray-300 dark:text-gray-600 cursor-pointer hover:text-red-500 transition-colors" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></div>
+                </div>`;
+            }).join('');
+            
+            // 为所有新生成的输入框绑定输入事件
+            container.querySelectorAll('input').forEach(i => i.addEventListener('input', e => handleInput(e.target)));
+        }
+
+        // 渲染现金列表 HTML
+        function renderCashRows() {
+            const container = document.getElementById('cash-inputs');
+            if(!container) return;
+
+            container.innerHTML = state.cash.map(item => {
+                return `
+                <div class="cash-grid-row px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border-b border-gray-50 dark:border-gray-800 last:border-0 text-sm">
+                    <div class="drag-handle">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" /></svg>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <select onchange="handleCurrencyChange('${item.id}', this.value)" class="bg-transparent text-xs border-none focus:ring-0 text-textSecondary dark:text-darkTextSec mr-1 cursor-pointer font-bold"><option value="USD" ${item.currency === 'USD'?'selected':''}>$</option><option value="CNY" ${item.currency === 'CNY'?'selected':''}>¥</option></select>
+                        <input type="text" class="input-google w-full font-medium text-textPrimary dark:text-darkText" data-type="cash" data-id="${item.id}" data-field="ticker" value="${item.ticker}">
+                    </div>
+                    <div><input type="number" class="input-google w-full text-right font-mono text-textPrimary dark:text-darkText font-bold" data-type="cash" data-id="${item.id}" data-field="amount" value="${item.amount}"></div>
+                    <div class="text-right font-mono font-medium text-textPrimary dark:text-darkText" id="val-cash-${item.id}">--</div>
+                    <div class="text-right font-mono text-textSecondary dark:text-darkTextSec" id="alloc-cash-${item.id}">--</div>
+                    <div class="flex justify-center"><svg onclick="toggleDeletePopover(event, 'cash', '${item.id}')" class="delete-trigger icon-glass btn-icon w-4 h-4 text-gray-300 dark:text-gray-600 cursor-pointer hover:text-red-500 transition-colors" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></div>
+                </div>`;
+            }).join('');
+            container.querySelectorAll('input').forEach(i => i.addEventListener('input', e => handleInput(e.target)));
+        }
+
+        // ==============================================
+        // 4. API 交互模块 (行情与同步)
+        // ==============================================
+
+        // 从 GitHub 拉取数据
+        async function pullFromGithub() {
+            const token = localStorage.getItem('gh_token');
+            const repo = localStorage.getItem('gh_repo');
+            const path = localStorage.getItem('gh_path');
+            if (!token || !repo) return alert('请先保存 GitHub 配置');
+
+            const url = `https://api.github.com/repos/${repo}/contents/${path}`;
+            try {
+                const res = await fetch(url, { headers: { Authorization: `token ${token}` } });
+                if (res.ok) {
+                    const data = await res.json();
+                    // GitHub API 返回的是 Base64 编码，需要解码
+                    const jsonStr = decodeURIComponent(escape(atob(data.content)));
+                    state = JSON.parse(jsonStr);
+                    if(state.fxRate) document.getElementById('fx-rate').value = state.fxRate;
+                    saveData();
+                    calculate();
+                    renderAllRows();
+                    initSortable(); // 重新加载数据后需要重新初始化拖拽
+                    alert('拉取成功！');
+                } else {
+                    alert('拉取失败，请检查配置或文件是否存在');
+                }
+            } catch (e) { alert('网络错误'); }
+        }
+
+        // 自动更新 A 股价格 (使用腾讯财经接口)
+        function updateCnStockPrices() {
+            const icon = document.getElementById('refresh-icon-cn');
+            if (icon) icon.classList.add('animate-spin'); // 图标旋转动画
+
+            // 1. 整理代码列表
+            // 必须加上前缀：上海加 sh (sh600519), 深圳加 sz (sz000001)
+            const rawSymbols = state.cn.map(item => item.ticker.toLowerCase()).filter(t => t && t !== 'new');
+            if (rawSymbols.length === 0) {
+                if (icon) icon.classList.remove('animate-spin');
+                return alert('请输入 A 股代码 (如 sh600000)');
+            }
+
+            // 2. 创建临时脚本标签请求数据 (JSONP 方式)
+            const script = document.createElement('script');
+            script.src = `https://qt.gtimg.cn/q=${rawSymbols.join(',')}`;
+            
+            script.onload = function() {
+                let updatedCount = 0;
+                rawSymbols.forEach(symbol => {
+                    // 腾讯返回的变量名格式是 v_sh600519
+                    const dataStr = window['v_' + symbol];
+                    if (dataStr) {
+                        const parts = dataStr.split('~');
+                        const price = parseFloat(parts[3]); // 第 4 位通常是现价
+                        
+                        const stock = state.cn.find(i => i.ticker.toLowerCase() === symbol);
+                        if (stock && price > 0) {
+                            stock.price = price;
+                            updatedCount++;
+                        }
+                    }
+                });
+
+                if (updatedCount > 0) {
+                    saveData();
+                    renderAllRows();
+                    calculate();
+                    console.log(`已成功更新 ${updatedCount} 只 A 股`);
+                } else {
+                    alert('获取失败，请确保代码格式正确 (如 sh600519)');
+                }
+
+                if (icon) icon.classList.remove('animate-spin');
+                document.body.removeChild(script); // 清理 DOM
+            };
+
+            script.onerror = function() {
+                alert('网络请求失败');
+                if (icon) icon.classList.remove('animate-spin');
+            };
+
+            document.body.appendChild(script);
+        }
+
+        // 自动更新美股价格 (Finnhub API)
+        async function updateUsStockPrices() {
+            const apiKey = localStorage.getItem('finnhub_key');
+            
+            if (!apiKey) {
+                alert('请先在配置面板填写 Finnhub API Key');
+                toggleSyncPanel(); 
+                return;
+            }
+
+            const icon = document.getElementById('refresh-icon');
+            if(icon) icon.classList.add('animate-spin');
+
+            let updatedCount = 0;
+
+            for (let item of state.usd) {
+                if (!item.ticker || item.ticker === 'New') continue;
+
+                try {
+                    const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${item.ticker}&token=${apiKey}`);
+                    const data = await res.json();
+                    if (data.c) {
+                        item.price = data.c; 
+                        updatedCount++;
+                    }
+                } catch (e) {
+                    console.error(`更新 ${item.ticker} 失败`, e);
+                }
+            }
+
+            if (updatedCount > 0) {
+                saveData();       
+                renderAllRows(); 
+                calculate();     
+                console.log(`已更新 ${updatedCount} 只股票`);
+            } else {
+                alert('未更新数据，请检查 Key 或网络');
+            }
+
+            if(icon) icon.classList.remove('animate-spin');
+        }
+
+        // 获取实时汇率 (API)
+        async function fetchLiveRate() {
+            const icon = document.querySelector('svg[onclick="fetchLiveRate()"]');
+            if(icon) icon.classList.add('animate-spin'); 
+            
+            try {
+                const response = await fetch('https://open.er-api.com/v6/latest/USD');
+                const data = await response.json();
+                const rate = data.rates.CNY;
+                
+                if (rate) {
+                    document.getElementById('fx-rate').value = rate.toFixed(4); 
+                    saveData();  
+                    calculate(); 
+                }
+            } catch (error) {
+                alert('获取失败，请检查网络');
+            } finally {
+                if(icon) icon.classList.remove('animate-spin'); 
+            }
+        }
+
+        // ==============================================
+        // 5. 辅助功能模块
+        // ==============================================
+
         function toggleSyncPanel() {
             const panel = document.getElementById('sync-panel');
             if (panel.classList.contains('hidden-panel')) {
@@ -450,22 +929,21 @@
         }
 
         function saveSyncSettings() {
-    localStorage.setItem('gh_token', document.getElementById('gh-token').value);
-    localStorage.setItem('gh_repo', document.getElementById('gh-repo').value);
-    localStorage.setItem('gh_path', document.getElementById('gh-path').value);
-    // 新增：保存 Finnhub Key
-    localStorage.setItem('finnhub_key', document.getElementById('finnhub-token').value);
-    alert('配置已保存 (本地)');
-}
+            localStorage.setItem('gh_token', document.getElementById('gh-token').value);
+            localStorage.setItem('gh_repo', document.getElementById('gh-repo').value);
+            localStorage.setItem('gh_path', document.getElementById('gh-path').value);
+            localStorage.setItem('finnhub_key', document.getElementById('finnhub-token').value);
+            alert('配置已保存 (本地)');
+        }
 
-function loadSyncSettings() {
-    document.getElementById('gh-token').value = localStorage.getItem('gh_token') || '';
-    document.getElementById('gh-repo').value = localStorage.getItem('gh_repo') || '';
-    document.getElementById('gh-path').value = localStorage.getItem('gh_path') || 'data.json';
-    // 新增：读取 Finnhub Key
-    document.getElementById('finnhub-token').value = localStorage.getItem('finnhub_key') || '';
-}
+        function loadSyncSettings() {
+            if(document.getElementById('gh-token')) document.getElementById('gh-token').value = localStorage.getItem('gh_token') || '';
+            if(document.getElementById('gh-repo')) document.getElementById('gh-repo').value = localStorage.getItem('gh_repo') || '';
+            if(document.getElementById('gh-path')) document.getElementById('gh-path').value = localStorage.getItem('gh_path') || 'data.json';
+            if(document.getElementById('finnhub-token')) document.getElementById('finnhub-token').value = localStorage.getItem('finnhub_key') || '';
+        }
 
+        // 推送数据到 GitHub
         async function pushToGithub() {
             const token = localStorage.getItem('gh_token');
             const repo = localStorage.getItem('gh_repo');
@@ -474,6 +952,7 @@ function loadSyncSettings() {
 
             const url = `https://api.github.com/repos/${repo}/contents/${path}`;
             let sha = '';
+            // 先获取文件的 SHA，用于覆盖更新
             try {
                 const res = await fetch(url, { headers: { Authorization: `token ${token}` } });
                 if (res.ok) {
@@ -499,51 +978,7 @@ function loadSyncSettings() {
             } catch(e) { alert('网络错误'); }
         }
 
-        async function pullFromGithub() {
-            const token = localStorage.getItem('gh_token');
-            const repo = localStorage.getItem('gh_repo');
-            const path = localStorage.getItem('gh_path');
-            if (!token || !repo) return alert('请先保存 GitHub 配置');
-
-            const url = `https://api.github.com/repos/${repo}/contents/${path}`;
-            try {
-                const res = await fetch(url, { headers: { Authorization: `token ${token}` } });
-                if (res.ok) {
-                    const data = await res.json();
-                    const jsonStr = decodeURIComponent(escape(atob(data.content)));
-                    state = JSON.parse(jsonStr);
-                    if(state.fxRate) document.getElementById('fx-rate').value = state.fxRate;
-                    saveData();
-                    calculate();
-                    renderAllRows();
-                    alert('拉取成功！');
-                } else {
-                    alert('拉取失败，请检查配置或文件是否存在');
-                }
-            } catch (e) { alert('网络错误'); }
-        }
-
-        // --- Privacy Logic ---
-        function togglePrivacy() {
-            isPrivacyMode = !isPrivacyMode;
-            localStorage.setItem('portfolio_privacy', isPrivacyMode);
-            updatePrivacyUI();
-            calculate();
-        }
-
-        function updatePrivacyUI() {
-            const openEye = document.getElementById('eye-open');
-            const closedEye = document.getElementById('eye-closed');
-            if (isPrivacyMode) {
-                openEye.classList.add('hidden');
-                closedEye.classList.remove('hidden');
-            } else {
-                openEye.classList.remove('hidden');
-                closedEye.classList.add('hidden');
-            }
-        }
-
-        // --- Data Logic ---
+        // 导出 JSON 文件
         function exportData() {
             saveData(); 
             const jsonStr = JSON.stringify(state, null, 2);
@@ -558,13 +993,62 @@ function loadSyncSettings() {
             URL.revokeObjectURL(url);
         }
 
+        // 导入 JSON 文件
         function importData(input) {
             const f = input.files[0]; if(!f) return;
             const r = new FileReader();
-            r.onload = e => { try { const d = JSON.parse(e.target.result); if(d.usd){ state = d; if(state.fxRate) document.getElementById('fx-rate').value = state.fxRate; saveData(); calculate(); renderAllRows(); alert('导入成功'); } } catch(e){alert('文件格式错误');} input.value=''; };
+            r.onload = e => { 
+                try { 
+                    const d = JSON.parse(e.target.result); 
+                    if(d.usd) { 
+                        state = d; 
+                        if(state.fxRate) document.getElementById('fx-rate').value = state.fxRate; 
+                        saveData(); 
+                        calculate(); 
+                        renderAllRows(); 
+                        initSortable();
+                        alert('导入成功'); 
+                    } 
+                } catch(e) {
+                    alert('文件格式错误');
+                } 
+                input.value=''; 
+            };
             r.readAsText(f);
         }
 
+        // 隐私模式切换
+        // --- 4. 修改隐私切换函数 ---
+function togglePrivacy() {
+    isPrivacyMode = !isPrivacyMode;
+    localStorage.setItem('portfolio_privacy', isPrivacyMode);
+    updatePrivacyUI();
+    
+    // 切换到显示模式时，重置所有起点为 0
+    if (!isPrivacyMode) {
+        document.getElementById('total-nw-cny').innerText = '¥0';
+        document.getElementById('total-usd-assets').innerText = '$0';
+        document.getElementById('total-cny-assets').innerText = '¥0';
+        const equivEl = document.getElementById('total-usd-cny-equiv');
+        if (equivEl) equivEl.innerText = '≈ ¥0';
+    }
+    
+    calculate(); // 触发动画
+}
+
+        function updatePrivacyUI() {
+            const openEye = document.getElementById('eye-open');
+            const closedEye = document.getElementById('eye-closed');
+            if (isPrivacyMode) {
+                openEye.classList.add('hidden');
+                closedEye.classList.remove('hidden');
+            } else {
+                openEye.classList.remove('hidden');
+                closedEye.classList.add('hidden');
+            }
+        }
+
+        // 主题切换
         function toggleTheme() {
             const html = document.documentElement;
             const isDark = html.classList.toggle('dark');
@@ -594,290 +1078,7 @@ function loadSyncSettings() {
             });
         }
 
-        function generateShades(baseHex, count) {
-            const p = { 'blue': ['#1a73e8','#4285f4','#669df6','#8ab4f8','#aecbfa','#d2e3fc'], 'yellow': ['#f9ab00','#fbbc04','#fcd965','#fdd663','#fde293','#feefc3'], 'green': ['#188038','#34a853','#5bb974','#81c995','#a8dab5','#ceead6'] };
-            let k = 'blue'; if(baseHex.includes('fbbc04')) k='yellow'; if(baseHex.includes('34a853')) k='green';
-            let c=[]; for(let i=0; i<count; i++) c.push(p[k][i%p[k].length]); return c;
-        }
-
-        function updateCustomLegend(id, labels, colors) {
-            const c = document.getElementById(id); if(!c) return;
-            let h = ''; labels.forEach((l,i)=>{ h+=`<div class="flex items-center gap-3"><span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background-color:${colors[i]}"></span><span class="text-xs font-bold text-gray-900 dark:text-gray-100 truncate tracking-tight">${l}</span></div>`; });
-            c.innerHTML = h;
-        }
-
-        const segmentLabelPlugin = {
-            id: 'segmentLabels',
-            afterDatasetsDraw(chart, args, pluginOptions) {
-                const { ctx, data } = chart;
-                ctx.save();
-                const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
-                
-                chart.getDatasetMeta(0).data.forEach((datapoint, index) => {
-                    const value = data.datasets[0].data[index];
-                    const percentage = total > 0 ? (value / total * 100) : 0;
-                    
-                    if (percentage > 5) { 
-                        const { x, y } = datapoint.tooltipPosition();
-                        ctx.font = 'bold 18px "Roboto Mono"';
-                        ctx.fillStyle = '#ffffff';
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillText(percentage.toFixed(0) + '%', x, y);
-                    }
-                });
-                ctx.restore();
-            }
-        };
-
-        // --- 新增：自动获取最新汇率 ---
-async function fetchLiveRate() {
-    const icon = document.querySelector('svg[onclick="fetchLiveRate()"]');
-    if(icon) icon.classList.add('animate-spin'); // 增加旋转动画
-    
-    try {
-        // 使用免费 API 获取汇率
-        const response = await fetch('https://open.er-api.com/v6/latest/USD');
-        const data = await response.json();
-        const rate = data.rates.CNY;
-        
-        if (rate) {
-            document.getElementById('fx-rate').value = rate.toFixed(4); // 更新输入框
-            saveData();  // 保存数据
-            calculate(); // 重新计算
-           // alert(`汇率已更新: 1 USD = ${rate} CNY`); // 这行已被注释，不再弹窗
-        }
-    } catch (error) {
-        console.error(error);
-        alert('获取失败，请检查网络'); // 建议保留错误弹窗，方便排查网络问题
-    } finally {
-        if(icon) icon.classList.remove('animate-spin'); // 停止旋转
-    }
-}
-// --- 自动更新美股价格 (Finnhub) ---
-async function updateUsStockPrices() {
-    const apiKey = localStorage.getItem('finnhub_key');
-    
-    // 安全检查：如果没填 Key，就不执行
-    if (!apiKey) {
-        alert('请先在配置面板(云朵图标)中填写 Finnhub API Key');
-        toggleSyncPanel(); // 自动打开面板方便用户填
-        return;
-    }
-
-    const icon = document.querySelector('svg[onclick="updateUsStockPrices()"]');
-    if(icon) icon.classList.add('animate-spin');
-
-    let updatedCount = 0;
-
-    // 遍历所有美股持仓
-    for (let item of state.usd) {
-        // 跳过没名字的或者 ticker 为空的
-        if (!item.ticker || item.ticker === 'New') continue;
-
-        try {
-            // 请求 Finnhub
-            const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${item.ticker}&token=${apiKey}`);
-            const data = await res.json();
-            
-            // data.c 是当前价格 (Current Price)
-            if (data.c) {
-                item.price = data.c; // 更新内存中的价格
-                updatedCount++;
-            }
-        } catch (e) {
-            console.error(`更新 ${item.ticker} 失败`, e);
-        }
-    }
-
-    if (updatedCount > 0) {
-        saveData();      // 保存到本地
-        calculate();     // 重新计算总资产
-        renderAllRows(); // 刷新界面显示
-        // 只有在全部更新完后，静默完成，不弹窗，只停止旋转
-    } else {
-        alert('未更新任何数据，请检查股票代码是否正确 (如 AAPL, TSLA)');
-    }
-
-    if(icon) icon.classList.remove('animate-spin');
-}
-        function calculate() {
-            const fx = parseFloat(document.getElementById('fx-rate').value) || 7;
-            
-            const totalUsdStockVal = state.usd.reduce((a, i) => a + (i.shares * i.price), 0);
-            const totalCnStockVal = state.cn.reduce((a, i) => a + (i.shares * i.price), 0);
-            
-            let totalUsdCashVal = 0, totalRmbCashVal = 0;
-            state.cash.forEach(i => { if(i.currency === 'USD') totalUsdCashVal += i.amount; else totalRmbCashVal += i.amount; });
-            const totalCashValRmb = (totalUsdCashVal * fx) + totalRmbCashVal;
-
-            const totalUsdAssets = totalUsdStockVal + totalUsdCashVal;
-            const totalRmbAssets = totalCnStockVal + totalRmbCashVal;
-            const grandTotal = (totalUsdAssets * fx) + totalRmbAssets;
-            const cashRatio = grandTotal > 0 ? (totalCashValRmb / grandTotal) * 100 : 0;
-
-            // Updated Privacy Logic
-            document.getElementById('total-nw-cny').innerText = isPrivacyMode ? '****' : formatMoney(grandTotal, 'CNY');
-            
-            document.getElementById('total-usd-assets').innerText = formatMoney(totalUsdAssets, 'USD');
-            document.getElementById('total-usd-cny-equiv').innerText = Math.round(totalUsdAssets * fx);
-            document.getElementById('total-cny-assets').innerText = formatMoney(totalRmbAssets, 'CNY');
-            
-            const re = document.getElementById('cash-ratio');
-            re.innerText = cashRatio.toFixed(1) + '%';
-            re.className = `text-2xl font-bold font-mono ${cashRatio < 15 ? 'text-googleRed' : 'text-googleGreen'}`;
-            document.getElementById('cash-bar').style.width = Math.min(cashRatio, 100) + '%';
-            document.getElementById('cash-bar').className = `h-full rounded-full transition-all duration-500 ${cashRatio < 15 ? 'bg-googleRed' : 'bg-googleGreen'}`;
-
-            updateChart(charts.main, [(totalUsdStockVal * fx), totalCnStockVal, totalCashValRmb]);
-            
-            const usLabels = state.usd.map(i => i.ticker);
-            const usData = state.usd.map(i => i.shares * i.price);
-            const cnLabels = state.cn.map(i => i.ticker);
-            const cnData = state.cn.map(i => i.shares * i.price);
-            const cashLabels = state.cash.map(i => i.ticker);
-            const cashData = state.cash.map(i => i.currency === 'USD' ? i.amount * fx : i.amount);
-
-            const uc = generateShades('#1a73e8', usData.length);
-            updateSubChart(charts.usSub, usLabels, usData, uc);
-            updateCustomLegend('legend-us', usLabels, uc);
-
-            const cc = generateShades('#fbbc04', cnData.length);
-            updateSubChart(charts.cnSub, cnLabels, cnData, cc);
-            updateCustomLegend('legend-cn', cnLabels, cc);
-
-            const kc = generateShades('#34a853', cashData.length);
-            updateSubChart(charts.cashSub, cashLabels, cashData, kc);
-            updateCustomLegend('legend-cash', cashLabels, kc);
-
-            updateRowValues('usd', state.usd, totalUsdStockVal, '$');
-            updateRowValues('cn', state.cn, totalCnStockVal, '¥');
-            updateCashRowValues(totalCashValRmb, fx);
-
-            saveData();
-        }
-
-        function renderAllRows() {
-            renderRows('usd', state.usd, '$');
-            renderRows('cn', state.cn, '¥');
-            renderCashRows();
-        }
-
-        function renderRows(type, items, symbol) {
-            const container = document.getElementById(type + '-inputs');
-            if(!container) return; 
-
-            container.innerHTML = items.map(item => {
-                return `
-                <div class="pro-grid-row px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border-b border-gray-50 dark:border-gray-800 last:border-0 text-sm">
-                    <div><input type="text" class="input-google w-full font-bold text-textPrimary dark:text-darkText" data-type="${type}" data-id="${item.id}" data-field="ticker" value="${item.ticker}"></div>
-                    <div><input type="number" class="input-google w-full text-right font-mono text-textPrimary dark:text-darkText" data-type="${type}" data-id="${item.id}" data-field="shares" value="${item.shares}"></div>
-                    <div><input type="number" class="input-google w-full text-right font-mono text-textSecondary dark:text-darkTextSec" data-type="${type}" data-id="${item.id}" data-field="cost" value="${item.cost}"></div>
-                    <div><input type="number" class="input-google w-full text-right font-mono text-textPrimary dark:text-darkText" data-type="${type}" data-id="${item.id}" data-field="price" value="${item.price}"></div>
-                    
-                    <div class="text-right font-mono font-bold text-textPrimary dark:text-darkText" id="val-${type}-${item.id}">--</div>
-                    <div class="text-right font-mono font-medium" id="pl-${type}-${item.id}">--</div>
-                    <div class="text-right font-mono text-textSecondary dark:text-darkTextSec" id="alloc-${type}-${item.id}">--</div>
-                    
-                    <div class="flex justify-center"><svg onclick="toggleDeletePopover(event, '${type}', '${item.id}')" class="delete-trigger icon-glass btn-icon w-4 h-4 text-gray-300 dark:text-gray-600 cursor-pointer hover:text-red-500 transition-colors" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></div>
-                </div>`;
-            }).join('');
-            
-            container.querySelectorAll('input').forEach(i => i.addEventListener('input', e => handleInput(e.target)));
-        }
-
-        function renderCashRows() {
-            const container = document.getElementById('cash-inputs');
-            if(!container) return;
-
-            container.innerHTML = state.cash.map(item => {
-                return `
-                <div class="cash-grid-row px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border-b border-gray-50 dark:border-gray-800 last:border-0 text-sm">
-                    <div class="flex items-center gap-1">
-                        <select onchange="handleCurrencyChange('${item.id}', this.value)" class="bg-transparent text-xs border-none focus:ring-0 text-textSecondary dark:text-darkTextSec mr-1 cursor-pointer font-bold"><option value="USD" ${item.currency === 'USD'?'selected':''}>$</option><option value="CNY" ${item.currency === 'CNY'?'selected':''}>¥</option></select>
-                        <input type="text" class="input-google w-full font-medium text-textPrimary dark:text-darkText" data-type="cash" data-id="${item.id}" data-field="ticker" value="${item.ticker}">
-                    </div>
-                    <div><input type="number" class="input-google w-full text-right font-mono text-textPrimary dark:text-darkText font-bold" data-type="cash" data-id="${item.id}" data-field="amount" value="${item.amount}"></div>
-                    <div class="text-right font-mono font-medium text-textPrimary dark:text-darkText" id="val-cash-${item.id}">--</div>
-                    <div class="text-right font-mono text-textSecondary dark:text-darkTextSec" id="alloc-cash-${item.id}">--</div>
-                    <div class="flex justify-center"><svg onclick="toggleDeletePopover(event, 'cash', '${item.id}')" class="delete-trigger icon-glass btn-icon w-4 h-4 text-gray-300 dark:text-gray-600 cursor-pointer hover:text-red-500 transition-colors" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></div>
-                </div>`;
-            }).join('');
-            container.querySelectorAll('input').forEach(i => i.addEventListener('input', e => handleInput(e.target)));
-        }
-
-        function updateRowValues(type, items, totalVal, symbol) {
-            items.forEach(item => {
-                const valEl = document.getElementById(`val-${type}-${item.id}`);
-                const plEl = document.getElementById(`pl-${type}-${item.id}`);
-                const allocEl = document.getElementById(`alloc-${type}-${item.id}`);
-                
-                if (!valEl) return;
-
-                const val = item.shares * item.price;
-                const costBasis = item.shares * item.cost;
-                const pl = val - costBasis;
-                const plPct = costBasis > 0 ? (pl / costBasis) * 100 : 0;
-                const allocPct = totalVal > 0 ? (val / totalVal) * 100 : 0;
-                
-                const color = pl >= 0 ? 'text-googleGreen' : 'text-googleRed';
-                const sign = pl >= 0 ? '+' : '';
-
-                valEl.innerText = `${symbol}${val.toFixed(2)}`;
-                
-                plEl.className = `text-right font-mono font-medium ${color}`;
-                plEl.innerHTML = `${sign}${pl.toFixed(2)}/${sign}${plPct.toFixed(2)}%`;
-                
-                allocEl.innerText = `${allocPct.toFixed(1)}%`;
-            });
-        }
-
-        function updateCashRowValues(totalCashRmb, fx) {
-            state.cash.forEach(item => {
-                const valEl = document.getElementById(`val-cash-${item.id}`);
-                const allocEl = document.getElementById(`alloc-cash-${item.id}`);
-                
-                if(!valEl) return;
-
-                let rmbVal = item.currency === 'USD' ? item.amount * fx : item.amount;
-                let allocPct = totalCashRmb > 0 ? (rmbVal / totalCashRmb) * 100 : 0;
-
-                valEl.innerText = `¥${Math.round(rmbVal)}`;
-                allocEl.innerText = `${allocPct.toFixed(1)}%`;
-            });
-        }
-
-        function initCharts() {
-            Chart.defaults.font.family = '"Google Sans", "Roboto", sans-serif';
-            const tooltipCallback = { label: function(c) { const v=c.raw, d=c.chart.data.datasets[0], s=d.data.reduce((a,b)=>a+b,0), p=s>0?((v/s)*100).toFixed(1)+'%':'0%'; return ` ${Math.round(v).toLocaleString()} (${p})`; } };
-            const opts = (cutout, plugins=[]) => ({ responsive: true, maintainAspectRatio: false, borderWidth: 0, cutout: cutout, layout: { padding: 0 }, plugins: { legend: { display: false }, tooltip: { enabled: true, borderWidth: 1, callbacks: tooltipCallback } } });
-            
-            charts.main = new Chart(document.getElementById('chart-main').getContext('2d'), { 
-                type: 'doughnut', 
-                data: { labels: ['美股', 'A股', '现金'], datasets: [{ data: [1,1,1], backgroundColor: ['#1a73e8', '#fbbc04', '#34a853'], hoverOffset: 4 }] }, 
-                options: opts('55%'),
-                plugins: [segmentLabelPlugin]
-            });
-
-            charts.usSub = new Chart(document.getElementById('chart-us-sub').getContext('2d'), { type: 'doughnut', data: { datasets: [{ data: [], backgroundColor: [] }] }, options: opts('70%') });
-            charts.cnSub = new Chart(document.getElementById('chart-cn-sub').getContext('2d'), { type: 'doughnut', data: { datasets: [{ data: [], backgroundColor: [] }] }, options: opts('70%') });
-            charts.cashSub = new Chart(document.getElementById('chart-cash-sub').getContext('2d'), { type: 'doughnut', data: { datasets: [{ data: [], backgroundColor: [] }] }, options: opts('70%') });
-        }
-
-        function updateChart(c, d) { c.data.datasets[0].data = d; c.update(); }
-        function updateSubChart(c, l, d, co) { c.data.labels = l; c.data.datasets[0].data = d; c.data.datasets[0].backgroundColor = co; c.update(); }
-        
-        function addItem(t) { 
-            const id=Date.now().toString(); 
-            if(t==='cash') state.cash.push({id, ticker:'新账户', amount:0, currency:'CNY'}); 
-            else state[t].push({id, ticker:'New', shares:0, cost:0, price:0}); 
-            
-            if(t==='cash') renderCashRows();
-            else renderRows(t, state[t], t==='usd'?'$':'¥');
-            
-            calculate(); 
-        }
-        
+        // 删除弹窗控制
         function toggleDeletePopover(event, type, id) {
             event.stopPropagation();
             const popover = document.getElementById('delete-popover');
@@ -931,11 +1132,7 @@ async function updateUsStockPrices() {
             }
         });
 
-        function handleCurrencyChange(id, v) { 
-            const i=state.cash.find(x=>x.id===id); 
-            if(i){ i.currency=v; calculate(); } 
-        }
-        
+        // 响应输入框变化
         function handleInput(t) { 
             if(t.id==='fx-rate'){calculate();return;} 
             const type=t.dataset.type, id=t.dataset.id, field=t.dataset.field; 
@@ -950,15 +1147,159 @@ async function updateUsStockPrices() {
             } 
         }
 
+        function handleCurrencyChange(id, v) { 
+            const i=state.cash.find(x=>x.id===id); 
+            if(i){ i.currency=v; calculate(); } 
+        }
+
+        // ==============================================
+        // 6. 图表与拖拽初始化
+        // ==============================================
+
+        function initCharts() {
+            Chart.defaults.font.family = '"Google Sans", "Roboto", sans-serif';
+            
+            // 自定义 Tooltip 显示逻辑
+            const tooltipCallback = { 
+			label: function(context) { 
+			// 1. 获取当前名称（美股、A股 或 现金）
+			const label = context.label || '';
+			// 2. 获取数值（使用 context.raw）
+			const value = context.raw; 
+			// 3. 计算百分比
+			const dataset = context.chart.data.datasets[0];
+			const total = dataset.data.reduce((a, b) => a + b, 0); 
+			const percentage = total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%'; 
+
+			// 4. 返回拼接后的字符串：名称: 数值 (百分比)
+			// 数值部分使用 toFixed(2) 满足你之前提出的不带逗号且保留两位小数的要求
+			return ` ${label}: ${value.toFixed(2)} (${percentage})`; 
+    } 
+};
+            
+            // 通用图表配置
+            const opts = (cutout) => ({ 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                borderWidth: 0, 
+                cutout: cutout, 
+                layout: { padding: 0 }, 
+                plugins: { 
+                    legend: { display: false }, 
+                    tooltip: { enabled: true, borderWidth: 1, callbacks: tooltipCallback } 
+                } 
+            });
+            
+            const chartMainEl = document.getElementById('chart-main');
+            if(chartMainEl) {
+                charts.main = new Chart(chartMainEl.getContext('2d'), { 
+                    type: 'doughnut', 
+                    data: { labels: ['美股', 'A股', '现金'], datasets: [{ data: [1,1,1], backgroundColor: ['#1a73e8', '#fbbc04', '#34a853'], hoverOffset: 4 }] }, 
+                    options: opts('55%'),
+                    plugins: [segmentLabelPlugin] // 注册自定义插件
+                });
+            }
+
+            const chartUsEl = document.getElementById('chart-us-sub');
+            if(chartUsEl) charts.usSub = new Chart(chartUsEl.getContext('2d'), { type: 'doughnut', data: { datasets: [{ data: [], backgroundColor: [] }] }, options: opts('70%') });
+            
+            const chartCnEl = document.getElementById('chart-cn-sub');
+            if(chartCnEl) charts.cnSub = new Chart(chartCnEl.getContext('2d'), { type: 'doughnut', data: { datasets: [{ data: [], backgroundColor: [] }] }, options: opts('70%') });
+            
+            const chartCashEl = document.getElementById('chart-cash-sub');
+            if(chartCashEl) charts.cashSub = new Chart(chartCashEl.getContext('2d'), { type: 'doughnut', data: { datasets: [{ data: [], backgroundColor: [] }] }, options: opts('70%') });
+        }
+
+        function updateChart(c, d) { if(c) { c.data.datasets[0].data = d; c.update(); } }
+        function updateSubChart(c, l, d, co) { if(c) { c.data.labels = l; c.data.datasets[0].data = d; c.data.datasets[0].backgroundColor = co; c.update(); } }
+        
+        // 生成同色系的不同深浅颜色，用于饼图
+        function generateShades(baseHex, count) {
+            const p = { 
+                'blue': ['#1a73e8','#4285f4','#669df6','#8ab4f8','#aecbfa','#d2e3fc'], 
+                'yellow': ['#f9ab00','#fbbc04','#fcd965','#fdd663','#fde293','#feefc3'], 
+                'green': ['#188038','#34a853','#5bb974','#81c995','#a8dab5','#ceead6'] 
+            };
+            let k = 'blue'; 
+            if(baseHex.includes('fbbc04')) k='yellow'; 
+            if(baseHex.includes('34a853')) k='green';
+            
+            let c=[]; 
+            for(let i=0; i<count; i++) c.push(p[k][i%p[k].length]); 
+            return c;
+        }
+
+        function updateCustomLegend(id, labels, colors) {
+            const c = document.getElementById(id); if(!c) return;
+            let h = ''; 
+            labels.forEach((l,i)=>{ 
+                h+=`<div class="flex items-center gap-3"><span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background-color:${colors[i]}"></span><span class="text-xs font-bold text-gray-900 dark:text-gray-100 truncate tracking-tight">${l}</span></div>`; 
+            });
+            c.innerHTML = h;
+        }
+
+        // 图表中心文字插件：在饼图中心显示占比大于 5% 的数值
+        const segmentLabelPlugin = {
+            id: 'segmentLabels',
+            afterDatasetsDraw(chart, args, pluginOptions) {
+                const { ctx, data } = chart;
+                ctx.save();
+                const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
+                
+                chart.getDatasetMeta(0).data.forEach((datapoint, index) => {
+                    const value = data.datasets[0].data[index];
+                    const percentage = total > 0 ? (value / total * 100) : 0;
+                    
+                    if (percentage > 5) { 
+                        const { x, y } = datapoint.tooltipPosition();
+                        ctx.font = '18px "Roboto Mono"';
+                        ctx.fillStyle = '#ffffff';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(percentage.toFixed(0) + '%', x, y);
+                    }
+                });
+                ctx.restore();
+            }
+        };
+
+        // 初始化拖拽排序功能
+        function initSortable() {
+            const containers = ['usd-inputs', 'cn-inputs', 'cash-inputs'];
+            
+            containers.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+
+                Sortable.create(el, {
+                    handle: '.drag-handle', // 只有点击手柄区域才能拖动
+                    animation: 150,
+                    ghostClass: 'bg-blue-50',
+                    onEnd: (evt) => {
+                        const type = id.split('-')[0]; // 获取 usd/cn/cash
+                        const list = state[type];
+                        
+                        // 调整数组顺序
+                        const item = list.splice(evt.oldIndex, 1)[0];
+                        list.splice(evt.newIndex, 0, item);
+                        
+                        saveData();
+                        calculate();
+                    }
+                });
+            });
+        }
+
+        // 页面加载入口
         window.onload = function() { 
             initCharts(); 
             loadTheme();
-            updatePrivacyUI(); // Ensure UI matches state on load
+            updatePrivacyUI(); 
             renderAllRows(); 
             calculate(); 
+            initSortable(); 
             document.getElementById('fx-rate').addEventListener('input', calculate);
         };
     </script>
 </body>
-
 </html>
