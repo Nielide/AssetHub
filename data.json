@@ -5,21 +5,21 @@
       "ticker": "VOO",
       "shares": 7.08,
       "cost": 636.36,
-      "price": 637.85
+      "price": 639.68
     },
     {
       "id": "2",
       "ticker": "QQQM",
       "shares": 20.69,
       "cost": 256.05,
-      "price": 257.06
+      "price": 257.82
     },
     {
       "id": "3",
       "ticker": "META",
       "shares": 4,
       "cost": 740,
-      "price": 709.5
+      "price": 706.41
     },
     {
       "id": "4",
@@ -35,14 +35,14 @@
       "ticker": "能源ETF",
       "shares": 4200,
       "cost": 1.594,
-      "price": 1.532
+      "price": 1.519
     },
     {
       "id": "6",
       "ticker": "黄金ETF",
       "shares": 1800,
       "cost": 10.618,
-      "price": 9.908
+      "price": 10.161
     },
     {
       "id": "1770029280867",
