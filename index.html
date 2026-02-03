@@ -1,9 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN" class="">
 <head>
-    <head>
     <link rel="icon" href="logo.png" type="png">
-    </head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AssetHub</title>
@@ -185,7 +183,7 @@
                     </svg>
                 </button>
 
-                <button onclick="toggleSyncPanel()" class="btn-action" title="GitHub 云同步">
+                <button onclick="toggleSyncPanel()" class="btn-action" title="GitHub云同步">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
                     </svg>
@@ -197,13 +195,13 @@
                     <input type="file" id="file-import" style="display: none;" accept=".json" onchange="importData(this)">
                 </div>
 
-                <div class="flex items-center gap-2 px-3 py-1.5 rounded-full border border-borderSubtle dark:border-darkBorder bg-white dark:bg-darkSurface shadow-sm transition-colors">
-                    <svg class="w-3.5 h-3.5 text-textSecondary dark:text-darkTextSec" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span class="text-xs font-medium text-textSecondary dark:text-darkTextSec whitespace-nowrap">结算汇率</span>
-                    <input type="number" id="fx-rate" value="7.25" step="0.01" class="w-12 text-right font-mono text-sm font-bold text-googleBlue bg-transparent focus:outline-none p-0 m-0 border-none appearance-none">
-                </div>
+                        <div class="flex items-center gap-2 px-3 py-1.5 rounded-full border border-borderSubtle dark:border-darkBorder bg-white dark:bg-darkSurface shadow-sm transition-colors">
+                            <svg onclick="fetchLiveRate()" class="w-3.5 h-3.5 text-textSecondary dark:text-darkTextSec cursor-pointer hover:text-googleBlue transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" title="最新汇率">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            <span class="text-xs font-medium text-textSecondary dark:text-darkTextSec whitespace-nowrap">汇率</span>
+                            <input type="number" id="fx-rate" value="7.25" step="0.01" class="w-12 text-right font-mono text-sm font-bold text-googleBlue bg-transparent focus:outline-none p-0 m-0 border-none appearance-none">
+                        </div>
             </div>
         </header>
 
@@ -211,7 +209,7 @@
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-sm font-bold text-googleBlue uppercase tracking-wide flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                    GitHub 同步配置
+                    GitHub同步配置
                 </h3>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -230,8 +228,8 @@
             </div>
             <div class="flex gap-3 justify-end">
                 <button onclick="saveSyncSettings()" class="btn-action hover:bg-gray-100 dark:hover:bg-gray-700">保存配置</button>
-                <button onclick="pullFromGithub()" class="btn-action text-googleGreen border-googleGreen hover:bg-green-50 dark:hover:bg-green-900/20">↓ 拉取数据 (Pull)</button>
-                <button onclick="pushToGithub()" class="btn-action text-white bg-googleBlue border-transparent hover:bg-blue-600 shadow-sm">↑ 推送数据 (Push)</button>
+                <button onclick="pullFromGithub()" class="btn-action text-googleGreen border-googleGreen hover:bg-green-50 dark:hover:bg-green-900/20">同步数据</button>
+                <button onclick="pushToGithub()" class="btn-action text-white bg-googleBlue border-transparent hover:bg-blue-600 shadow-sm">备份数据</button>
             </div>
         </div>
 
@@ -288,7 +286,7 @@
 
             <div class="lg:col-span-4 flex flex-col gap-4">
                 <div class="g-card-static p-6 relative flex-1 flex flex-col">
-                    <div class="mb-4 text-left"><h2 class="text-sm font-bold text-textPrimary dark:text-darkText uppercase tracking-wide">资产分布概览</h2></div>
+                    <div class="mb-4 text-left"><h2 class="text-sm font-bold text-textPrimary dark:text-darkText uppercase tracking-wide">资产分布</h2></div>
                     <div class="w-full flex-1 min-h-[21rem] relative flex items-center justify-center">
                         <canvas id="chart-main"></canvas>
                         <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
@@ -613,8 +611,32 @@
             }
         };
 
+        // --- 新增：自动获取最新汇率 ---
+async function fetchLiveRate() {
+    const icon = document.querySelector('svg[onclick="fetchLiveRate()"]');
+    if(icon) icon.classList.add('animate-spin'); // 增加旋转动画
+    
+    try {
+        // 使用免费 API 获取汇率
+        const response = await fetch('https://open.er-api.com/v6/latest/USD');
+        const data = await response.json();
+        const rate = data.rates.CNY;
+        
+        if (rate) {
+            document.getElementById('fx-rate').value = rate.toFixed(4); // 更新输入框
+            saveData();  // 保存数据
+            calculate(); // 重新计算
+            alert(`汇率已更新: 1 USD = ${rate} CNY`);
+        }
+    } catch (error) {
+        console.error(error);
+        alert('获取失败，请检查网络');
+    } finally {
+        if(icon) icon.classList.remove('animate-spin'); // 停止旋转
+    }
+}
         function calculate() {
-            const fx = parseFloat(document.getElementById('fx-rate').value) || 7.25;
+            const fx = parseFloat(document.getElementById('fx-rate').value) || 7;
             
             const totalUsdStockVal = state.usd.reduce((a, i) => a + (i.shares * i.price), 0);
             const totalCnStockVal = state.cn.reduce((a, i) => a + (i.shares * i.price), 0);
@@ -874,6 +896,7 @@
 </body>
 
 </html>
+
 
 
 
