@@ -5,28 +5,28 @@
       "ticker": "VOO",
       "shares": 9.08,
       "cost": 636.96,
-      "price": 631.15
+      "price": 632.48
     },
     {
       "id": "2",
       "ticker": "QQQM",
       "shares": 20.69,
       "cost": 256.05,
-      "price": 249.38
+      "price": 249.06
     },
     {
       "id": "4",
       "ticker": "SGOV",
       "shares": 106,
       "cost": 100.45,
-      "price": 100.54
+      "price": 100.58
     },
     {
       "id": "3",
       "ticker": "META",
       "shares": 4,
       "cost": 740,
-      "price": 643.22
+      "price": 649.33
     }
   ],
   "cn": [
@@ -55,17 +55,17 @@
     {
       "id": "8",
       "ticker": "CNY",
-      "amount": 34305,
+      "amount": 34234,
       "currency": "CNY"
     },
     {
       "id": "1771068887275",
       "ticker": "微信",
-      "amount": 6040,
+      "amount": 1700,
       "currency": "CNY"
     }
   ],
-  "fxRate": 6.9434,
+  "fxRate": 6.9112,
   "isDark": false,
   "theme": "light"
 }
