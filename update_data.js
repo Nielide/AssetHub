@@ -66,10 +66,13 @@ async function updateData() {
         }
     }
 
-    // 4. 计算总资产并自动写入历史记录
+    // 4. 计算总资产、总成本并自动写入历史记录
     const fx = state.fxRate || 7.25;
-    const totalUsdStockVal = state.usd.reduce((a, i) => a + (i.shares * i.price), 0);
-    const totalCnStockVal = state.cn.reduce((a, i) => a + (i.shares * i.price), 0);
+    
+    const totalUsdStockCost = state.usd.reduce((a, i) => a + (i.shares * (i.cost || 0)), 0);
+    const totalCnStockCost = state.cn.reduce((a, i) => a + (i.shares * (i.cost || 0)), 0);
+    const totalUsdStockVal = state.usd.reduce((a, i) => a + (i.shares * (i.price || 0)), 0);
+    const totalCnStockVal = state.cn.reduce((a, i) => a + (i.shares * (i.price || 0)), 0);
     
     let totalUsdCashVal = 0, totalRmbCashVal = 0;
     state.cash.forEach(i => { 
@@ -77,39 +80,55 @@ async function updateData() {
         else totalRmbCashVal += i.amount; 
     });
     
+    const currentTotalCost = Math.round((totalUsdStockCost + totalUsdCashVal) * fx + totalCnStockCost + totalRmbCashVal);
     const totalUsdAssets = totalUsdStockVal + totalUsdCashVal;
     const totalRmbAssets = totalCnStockVal + totalRmbCashVal;
     const grandTotal = Math.round((totalUsdAssets * fx) + totalRmbAssets);
 
-    // 获取当前的北京时间
     const bjTime = new Date(new Date().getTime() + 8 * 3600 * 1000);
     const todayStr = bjTime.toISOString().split('T')[0];
 
     const pastRecords = state.history.filter(h => h.date !== todayStr);
-    const lastRecord = pastRecords.length > 0 ? pastRecords[pastRecords.length - 1] : null;
+    let baseline = pastRecords.length > 0 ? pastRecords[pastRecords.length - 1] : null;
 
-    let pl = 0, rate = 0;
-    if (lastRecord && (lastRecord.total > 0 || lastRecord.value > 0)) {
-        const prevTotal = lastRecord.total || lastRecord.value;
-        pl = grandTotal - prevTotal;
-        rate = (pl / prevTotal) * 100;
+    if (!baseline) {
+        if (!state.day1Baseline) state.day1Baseline = { total: grandTotal, cost: currentTotalCost };
+        baseline = state.day1Baseline;
+    } else {
+        delete state.day1Baseline;
+    }
+
+    if (baseline && baseline.cost === undefined) {
+        baseline.cost = currentTotalCost;
+    }
+
+    let pl = 0, rate = 0, netFlow = 0;
+    if (baseline) {
+        const prevTotal = baseline.total || baseline.value || grandTotal;
+        const prevCost = baseline.cost;
+        
+        netFlow = currentTotalCost - prevCost;
+        pl = grandTotal - prevTotal - netFlow; 
+        rate = prevTotal > 0 ? (pl / prevTotal) * 100 : 0;
     }
 
     let todayRecord = state.history.find(h => h.date === todayStr);
     if (todayRecord) {
         todayRecord.total = grandTotal;
+        todayRecord.cost = currentTotalCost;
         todayRecord.pl = pl;
         todayRecord.rate = rate;
+        todayRecord.netFlow = netFlow;
         todayRecord.value = grandTotal;
     } else {
-        state.history.push({ date: todayStr, total: grandTotal, pl: pl, rate: rate, value: grandTotal });
+        state.history.push({ date: todayStr, total: grandTotal, cost: currentTotalCost, pl: pl, rate: rate, netFlow: netFlow, value: grandTotal });
     }
 
     if (state.history.length > 365) state.history.shift();
 
     // 5. 保存回文件
     fs.writeFileSync(dataPath, JSON.stringify(state, null, 2));
-    console.log(`=== 更新完成！日期: ${todayStr}, 今日总额: ${grandTotal}, 盈亏: ${pl.toFixed(2)} ===`);
+    console.log(`=== 日期: ${todayStr} | 总额: ${grandTotal} | 流水: ${netFlow} | 真实盈亏: ${pl.toFixed(2)} ===`);
 }
 
 updateData();
