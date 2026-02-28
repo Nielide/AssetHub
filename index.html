@@ -578,31 +578,58 @@
 
             // --- 自动记录与盈亏计算模块 ---
             // 获取本地时区的正确日期字符串 YYYY-MM-DD
+            // --- 自动记录与盈亏计算模块 ---
+            // 1. 计算总成本基准
+            const totalUsdStockCost = usdItems.reduce((a, i) => a + (i.shares * (i.cost || 0)), 0);
+            const totalCnStockCost = cnItems.reduce((a, i) => a + (i.shares * (i.cost || 0)), 0);
+            const currentTotalCost = Math.round((totalUsdStockCost + totalUsdCashVal) * fx + totalCnStockCost + totalRmbCashVal);
+
             const localDate = new Date();
             const todayStr = `${localDate.getFullYear()}-${String(localDate.getMonth()+1).padStart(2,'0')}-${String(localDate.getDate()).padStart(2,'0')}`;
             const currentTotal = Math.round(grandTotal);
 
             const pastRecords = state.history.filter(h => h.date !== todayStr);
-            const lastRecord = pastRecords.length > 0 ? pastRecords[pastRecords.length - 1] : null;
+            let baseline = pastRecords.length > 0 ? pastRecords[pastRecords.length - 1] : null;
 
-            let pl = 0, rate = 0;
-            if (lastRecord && (lastRecord.total > 0 || lastRecord.value > 0)) {
-                const prevTotal = lastRecord.total || lastRecord.value;
-                pl = currentTotal - prevTotal;
-                rate = (pl / prevTotal) * 100;
+            // 【核心修复：Day 1 测试模式支持】
+            // 如果没有昨天的记录（首次测试），我们冻结第一次打开时的状态作为“虚拟的昨天”
+            if (!baseline) {
+                if (!state.day1Baseline) state.day1Baseline = { total: currentTotal, cost: currentTotalCost };
+                baseline = state.day1Baseline;
+            } else {
+                delete state.day1Baseline; // 以后有了真实历史记录，自动清理这个临时基准
+            }
+
+            // 兼容以前的旧数据
+            if (baseline && baseline.cost === undefined) {
+                baseline.cost = currentTotalCost;
+            }
+
+            let pl = 0, rate = 0, netFlow = 0;
+            if (baseline) {
+                const prevTotal = baseline.total || baseline.value || currentTotal;
+                const prevCost = baseline.cost; 
+                
+                netFlow = currentTotalCost - prevCost;
+                pl = currentTotal - prevTotal - netFlow; // 剥离流水后的真实盈亏
+                rate = prevTotal > 0 ? (pl / prevTotal) * 100 : 0;
             }
 
             let todayRecord = state.history.find(h => h.date === todayStr);
             if (todayRecord) {
                 todayRecord.total = currentTotal;
+                todayRecord.cost = currentTotalCost;
                 todayRecord.pl = pl;
                 todayRecord.rate = rate;
-                todayRecord.value = currentTotal; // 兼容旧数据
+                todayRecord.netFlow = netFlow;
+                todayRecord.value = currentTotal;
             } else {
-                state.history.push({ date: todayStr, total: currentTotal, pl: pl, rate: rate, value: currentTotal });
+                state.history.push({ 
+                    date: todayStr, total: currentTotal, cost: currentTotalCost, 
+                    pl: pl, rate: rate, netFlow: netFlow, value: currentTotal 
+                });
             }
             
-            // 保留最近 365 天数据
             if (state.history.length > 365) state.history.shift();
             // ------------------------------
 
@@ -794,6 +821,7 @@
                 let textClass = "text-gray-400 dark:text-darkTextSec";
                 let dayText = day;
                 let valHtml = `<span class="text-sm text-transparent">0</span>`; 
+                let flowHtml = ''; // 专门用于渲染出入金角标
 
                 if (data) {
                     const isPos = data.pl >= 0;
@@ -804,6 +832,7 @@
                         textClass = "text-textSecondary dark:text-darkTextSec";
                         bgClass = "bg-gray-100 dark:bg-[#3c4043]";
                     } else {
+                        // 视图模式判断
                         if (calViewMode === 0) {
                             displayVal = isPos ? `+${data.pl.toFixed(2)}` : `${data.pl.toFixed(2)}`;
                             textClass = isPos ? "text-stockGreen dark:text-green-400" : "text-stockRed dark:text-red-400";
@@ -817,22 +846,32 @@
                             textClass = "text-textPrimary dark:text-darkText";
                             bgClass = isPos ? "bg-stockGreenBg dark:bg-green-900/30" : "bg-stockRedBg dark:bg-red-900/30";
                         }
+
+                        // 【新增】如果今天有超过 5 元的净现金变动，渲染右上角小角标
+                        if (data.netFlow && Math.abs(data.netFlow) > 5) {
+                            let fv = data.netFlow;
+                            let fText = fv > 0 ? '+' : '';
+                            if (Math.abs(fv) >= 1000) fText += (fv/1000).toFixed(1) + 'k';
+                            else fText += Math.round(fv);
+                            
+                            const fColor = fv > 0 ? 'text-blue-500 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30' : 'text-orange-500 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30';
+                            flowHtml = `<div class="absolute top-[3px] right-[3px] text-[0.55rem] font-bold ${fColor} px-1 rounded-sm tracking-tighter" title="Cash Flow">${fText}</div>`;
+                        }
                     }
 
                     if (isToday) {
                         let ringColor = isPrivacyMode ? "ring-gray-400 dark:ring-gray-500" : (isPos ? "ring-stockGreen dark:ring-green-500" : "ring-stockRed dark:ring-red-500");
                         bgClass += ` ring-[1.5px] ${ringColor}`;
                     }
-                    
                     valHtml = `<span class="text-sm md:text-base font-bold font-mono tracking-tight mt-1 ${textClass}">${displayVal}</span>`;
                 } else if (isToday) {
-                    // 没有数据时的今天
                     bgClass = "bg-gray-50 dark:bg-darkBg ring-[1.5px] ring-gray-400 dark:ring-gray-500";
                 }
 
-                // 修复 2：彻底移除日期变白的逻辑，让日期数字颜色永远保持一致
+                // 给容器增加 relative 类，支撑角标绝对定位
                 grid.innerHTML += `
-                    <div class="flex flex-col justify-center items-center py-4 min-h-[80px] rounded-lg w-full transition-all hover:brightness-95 cursor-default ${bgClass}">
+                    <div class="relative flex flex-col justify-center items-center py-4 min-h-[80px] rounded-lg w-full transition-all hover:brightness-95 cursor-default ${bgClass}">
+                        ${flowHtml}
                         <span class="text-xs font-bold text-gray-500 dark:text-gray-400">${dayText}</span>
                         ${valHtml}
                     </div>
@@ -1171,6 +1210,46 @@
         }
         requestAnimationFrame(raf);
 
+// ==========================================
+        // 11. 智能静默自动刷新机制 (10分钟冷却)
+        // ==========================================
+        function updateCnStockPrices() {
+            const icon = document.getElementById('refresh-icon-cn');
+            if (icon) icon.classList.add('animate-spin');
+
+            const rawSymbols = state.cn.map(item => item.ticker.toLowerCase()).filter(t => t && t !== 'new');
+            if (rawSymbols.length === 0) {
+                if (icon) icon.classList.remove('animate-spin');
+                return; // 自动刷新时，如果没有A股代码，直接静默退出，不再弹窗报错
+            }
+
+            const script = document.createElement('script');
+            // 核心修复：在网址末尾加上 &t=${Date.now()} 强制打破浏览器缓存，确保每次都是最新价
+            script.src = `https://qt.gtimg.cn/q=${rawSymbols.join(',')}&t=${Date.now()}`;
+            
+            script.onload = function() {
+                let updatedCount = 0;
+                rawSymbols.forEach(symbol => {
+                    const dataStr = window['v_' + symbol];
+                    if (dataStr) {
+                        const parts = dataStr.split('~');
+                        const price = parseFloat(parts[3]); 
+                        const stock = state.cn.find(i => i.ticker.toLowerCase() === symbol);
+                        if (stock && price > 0) { stock.price = price; updatedCount++; }
+                    }
+                });
+
+                if (updatedCount > 0) { saveData(); renderAllRows(); calculate(); }
+                if (icon) icon.classList.remove('animate-spin');
+                document.body.removeChild(script);
+            };
+            script.onerror = function() { 
+                console.error('A股网络请求失败'); // 失败也改为后台静默打印
+                if (icon) icon.classList.remove('animate-spin'); 
+            };
+            document.body.appendChild(script);
+        }
+
         // ==========================================
         // 10. 页面加载初始化
         // ==========================================
@@ -1186,7 +1265,10 @@
             initSortable(); 
             document.getElementById('fx-rate').addEventListener('input', calculate);
             loadTradingViewTicker();
-            initScrollReveal(); // 开启滚动动画
+            initScrollReveal(); 
+            
+            // 加入这一行：启动智能自动刷新
+            autoRefreshPrices();
         };
 
     </script>
