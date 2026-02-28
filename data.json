@@ -1,1 +1,91 @@
-{"usd":[{"id":"1","ticker":"VOO","shares":9.08,"cost":636.96,"price":631.04},{"id":"2","ticker":"QQQM","shares":20.69,"cost":256.05,"price":250.06},{"id":"4","ticker":"SGOV","shares":106,"cost":100.45,"price":100.64},{"id":"3","ticker":"META","shares":4,"cost":740,"price":648.18}],"cn":[{"id":"6","ticker":"SH518880","shares":1800,"cost":10.618,"price":10.933},{"id":"5","ticker":"SZ159930","shares":4200,"cost":1.594,"price":1.69}],"cash":[{"id":"1770029043208","ticker":"USD","amount":21.98,"currency":"USD"},{"id":"8","ticker":"CNY","amount":32997,"currency":"CNY"},{"id":"1772259362176","ticker":"微信","amount":1248,"currency":"CNY"}],"fxRate":6.8707,"isDark":false,"theme":"light","history":[{"date":"2026-02-28","total":227198,"pl":0,"rate":0,"value":227198,"cost":229834,"netFlow":-937}],"day1Baseline":{"total":228135,"cost":230771}}
+{
+  "usd": [
+    {
+      "id": "1",
+      "ticker": "VOO",
+      "shares": 9.08,
+      "cost": 636.96,
+      "price": 631.04
+    },
+    {
+      "id": "2",
+      "ticker": "QQQM",
+      "shares": 20.69,
+      "cost": 256.05,
+      "price": 250.06
+    },
+    {
+      "id": "4",
+      "ticker": "SGOV",
+      "shares": 106,
+      "cost": 100.45,
+      "price": 100.64
+    },
+    {
+      "id": "3",
+      "ticker": "META",
+      "shares": 4,
+      "cost": 740,
+      "price": 648.18
+    }
+  ],
+  "cn": [
+    {
+      "id": "6",
+      "ticker": "SH518880",
+      "shares": 1800,
+      "cost": 10.618,
+      "price": 10.933
+    },
+    {
+      "id": "5",
+      "ticker": "SZ159930",
+      "shares": 4200,
+      "cost": 1.594,
+      "price": 1.69
+    }
+  ],
+  "cash": [
+    {
+      "id": "1770029043208",
+      "ticker": "USD",
+      "amount": 21.98,
+      "currency": "USD"
+    },
+    {
+      "id": "8",
+      "ticker": "CNY",
+      "amount": 32997,
+      "currency": "CNY"
+    },
+    {
+      "id": "1772259362176",
+      "ticker": "微信",
+      "amount": 1248,
+      "currency": "CNY"
+    }
+  ],
+  "fxRate": 6.8707,
+  "isDark": false,
+  "theme": "light",
+  "history": [
+    {
+      "date": "2026-02-28",
+      "total": 227198,
+      "pl": 0,
+      "rate": 0,
+      "value": 227198,
+      "cost": 229834,
+      "netFlow": -937
+    },
+    {
+      "date": "2026-03-01",
+      "total": 227198,
+      "cost": 229834,
+      "pl": 0,
+      "rate": 0,
+      "netFlow": 0,
+      "value": 227198
+    }
+  ]
+}
