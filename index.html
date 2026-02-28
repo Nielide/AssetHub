@@ -860,19 +860,15 @@
                             let fText =`${sign}${Math.abs(fv).toLocaleString()}`;
                             
                             // 统一使用黄色主题 (亮色模式: 金黄字+浅黄底, 暗色模式: 亮黄字+深黄底)
-                            const fColor = 'text-black dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-300 dark:border-yellow-800/50';
+                            const fColor = 'text-yellow-400 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-300 dark:border-yellow-800/50';
                             
-                            flowHtml = `<div class="absolute top-[3px] right-[3px] text-[0.55rem] md:text-xs font-bold ${fColor} px-1 py-0.5 rounded shadow-sm tracking-tight" title="Cash Flow">${fText}</div>`;
+                            flowHtml = `<div class="absolute top-[6px] right-[6px] text-[0.55rem] md:text-xs font-bold ${fColor} px-1 py-0.5 rounded shadow-sm tracking-tight" title="Cash Flow">${fText}</div>`;
                         }
                     }
-
-                    if (isToday) {
-                        let ringColor = isPrivacyMode ? "ring-gray-400 dark:ring-gray-500" : (isPos ? "ring-stockGreen dark:ring-green-500" : "ring-stockRed dark:ring-red-500");
-                        bgClass += ` ring-[1.5px] ${ringColor}`;
-                    }
+                    
                     valHtml = `<span class="text-sm md:text-base font-bold font-mono tracking-tight mt-1 ${textClass}">${displayVal}</span>`;
                 } else if (isToday) {
-                    bgClass = "bg-gray-50 dark:bg-darkBg ring-[1.5px] ring-gray-400 dark:ring-gray-500";
+                    bgClass = "bg-gray-50 dark:bg-darkBg";
                 }
 
                 // 给容器增加 relative 类，支撑角标绝对定位
