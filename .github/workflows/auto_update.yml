@@ -1,0 +1,39 @@
+name: Daily Portfolio Auto-Update
+
+# 触发条件：定时触发 + 支持手动点击触发
+on:
+  schedule:
+    # 每天 UTC 07:15 运行 (北京时间 15:15 左右，A股刚收盘)
+    - cron: '15 7 * * *'
+    # 每天 UTC 22:00 运行 (北京时间 06:00，美股已收盘)
+    - cron: '0 22 * * *'
+  workflow_dispatch: # 允许你在网页上手动点击运行测试
+
+# 授予写入权限，以便能把更新后的 data.json 推送回仓库
+permissions:
+  contents: write
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run Update Script
+        env:
+          FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}
+        run: node update_data.js
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add data.json
+          git diff --quiet && git diff --staged --quiet || git commit -m "Auto-update daily portfolio data"
+          git push
