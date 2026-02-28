@@ -74,7 +74,13 @@
       "total": 228887,
       "pl": 0,
       "rate": 0,
-      "value": 228887
+      "value": 228887,
+      "cost": 231523,
+      "netFlow": 0
     }
-  ]
+  ],
+  "day1Baseline": {
+    "total": 228887,
+    "cost": 231523
+  }
 }
