@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <link rel="icon" href="logo.png" type="image/png">
     <meta charset="UTF-8">
@@ -13,17 +13,17 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.19/bundled/lenis.min.js"></script>
 
     <script>
         tailwind.config = {
-            darkMode: 'class', // 启用基于 class 的暗黑模式
+            darkMode: 'class', 
             theme: {
                 extend: {
                     fontFamily: {
                         sans: ['"Google Sans"', 'Roboto', 'sans-serif'],
                         mono: ['"Roboto Mono"', 'monospace'],
                     },
-                    // 定义 Google 风格的品牌颜色
                     colors: {
                         googleBlue: '#1a73e8',
                         googleRed: '#ea4335',
@@ -33,7 +33,12 @@
                         darkBg: '#202124',
                         darkBorder: '#5f6368',
                         darkText: '#e8eaed',
-                        darkTextSec: '#9aa0a6'
+                        darkTextSec: '#9aa0a6',
+                        // 股票涨跌专属配色 (红涨绿跌)
+                        stockRed: '#f04a4a',
+                        stockRedBg: '#fef1f1',
+                        stockGreen: '#0fa968',
+                        stockGreenBg: '#ecfdf5',
                     }
                 }
             }
@@ -41,7 +46,6 @@
     </script>
 
     <style>
-        /* --- CSS 变量定义：便于统一管理颜色 --- */
         :root {
             --bg-body: #f8f9fa;
             --bg-card: #ffffff;
@@ -52,7 +56,6 @@
             --input-focus-bg: #ffffff;
         }
 
-        /* 暗黑模式下的变量覆盖 */
         html.dark {
             --bg-body: #202124;
             --bg-card: #303134;
@@ -63,19 +66,53 @@
             --input-focus-bg: #303134;
         }
 
+        /* --- 高级自定义滚动条 --- */
+        ::-webkit-scrollbar {
+            width: 8px; /* 滚动条宽度 */
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent; /* 轨道透明 */
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #dadce0; /* 默认亮色滑块 */
+            border-radius: 10px; /* 圆角 */
+            border: 2px solid var(--bg-body); /* 增加呼吸感 */
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: #9aa0a6; /* 悬停变深 */
+        }
+        /* 暗黑模式适配 */
+        html.dark ::-webkit-scrollbar-thumb {
+            background-color: #5f6368;
+            border-color: #202124; /* 匹配暗黑模式背景 */
+        }
+        html.dark ::-webkit-scrollbar-thumb:hover {
+            background-color: #9aa0a6;
+        }
+
+        /* --- 卡片入场动画的基础状态 --- */
+        .reveal-card {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), 
+                        transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        /* 卡片被触发后的激活状态 */
+        .reveal-card.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
         html { font-size: 19px; } 
-       body { 
-    background-color: var(--bg-body); 
-    color: var(--text-primary); 
-    transition: background-color 0.3s, color 0.3s;
-    
-    /* padding-bottom: 60px;  <-- 请删除这一行，现在不需要了 */
-}
+        body { 
+            background-color: var(--bg-body); 
+            color: var(--text-primary); 
+            transition: background-color 0.3s, color 0.3s;
+        }
         
-        /* 移除数字输入框右侧的微调箭头 */
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
-        /* 卡片通用样式 */
         .g-card-static {
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -84,7 +121,6 @@
             transition: background-color 0.3s, border-color 0.3s;
         }
 
-        /* 输入框样式：平时透明，悬停或聚焦时显示背景 */
         .input-google {
             background-color: transparent;
             border: 1px solid transparent;
@@ -102,7 +138,6 @@
             box-shadow: 0 1px 2px rgba(26,115,232,0.1);
         }
 
-        /* 按钮通用样式 */
         .btn-add, .btn-action {
             display: flex;
             align-items: center;
@@ -111,7 +146,6 @@
             user-select: none;
         }
         
-        /* 列表头部的操作按钮 */
         .btn-add {
             color: #1a73e8;
             font-size: 0.75rem; 
@@ -122,7 +156,6 @@
         }
         .btn-add:hover { background-color: rgba(26, 115, 232, 0.1); }
 
-        /* 顶部导航栏的功能按钮 */
         .btn-action {
             font-size: 0.75rem;
             font-weight: 500;
@@ -141,8 +174,6 @@
 
         .icon-glass { width: 1.2rem; height: 1.2rem; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 
-        /* --- 表格布局 --- */
-        /* 使用 CSS Grid 实现对齐，第一列(30px)预留给拖拽手柄 */
         .pro-grid-header, .pro-grid-row {
             display: grid;
             grid-template-columns: 30px 1.2fr 1fr 1fr 1fr 1.5fr 2fr 0.8fr 40px;
@@ -157,7 +188,6 @@
             align-items: center;
         }
 
-        /* 拖拽手柄样式 */
         .drag-handle {
             cursor: grab;
             color: #dadce0;
@@ -169,27 +199,18 @@
         html.dark .drag-handle { color: #5f6368; }
         .drag-handle:hover { color: #1a73e8; }
 
-        /* 删除确认弹窗的动画 */
-        #delete-popover {
-            transition: opacity 0.1s ease-in-out, transform 0.1s ease-in-out;
-        }
+        #delete-popover { transition: opacity 0.1s ease-in-out, transform 0.1s ease-in-out; }
         
-        /* 设置面板的折叠动画 */
         #sync-panel {
             transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, padding 0.3s;
             overflow: hidden;
         }
         #sync-panel.hidden-panel {
-            max-height: 0;
-            opacity: 0;
-            padding-top: 0;
-            padding-bottom: 0;
-            border: none;
-            margin: 0;
+            max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; border: none; margin: 0;
         }
     </style>
 </head>
-<body class="min-h-screen py-6 font-sans" onclick="handleBodyClick(event)">
+<body class="min-h-screen py-6 font-sans pb-16" onclick="handleBodyClick(event)">
 
     <div class="w-full px-[30px]">
         
@@ -210,7 +231,7 @@
                     </svg>
                 </button>
 
-                <button onclick="toggleSyncPanel()" class="btn-action" title="GitHub云同步">
+                <button onclick="toggleSyncPanel()" class="btn-action" title="System Settings">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
                     </svg>
@@ -235,7 +256,7 @@
         <div id="sync-panel" class="hidden-panel mb-6 p-5 g-card-static">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-sm font-bold text-googleBlue uppercase tracking-wide flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                     System Settings
                 </h3>
             </div>
@@ -270,14 +291,9 @@
                 <div class="g-card-static p-6 flex-shrink-0">
                     <div class="flex items-center gap-2 mb-1">
                         <p class="text-xs font-medium text-textSecondary dark:text-darkTextSec">Total Net Worth</p>
-                        <button onclick="togglePrivacy()" class="text-textSecondary dark:text-darkTextSec hover:text-googleBlue focus:outline-none transition-colors" title="隐藏/显示金额">
-                            <svg id="eye-open" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                            <svg id="eye-closed" class="w-4 h-4 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                            </svg>
+                        <button onclick="togglePrivacy()" class="text-textSecondary dark:text-darkTextSec hover:text-googleBlue focus:outline-none transition-colors" title="Toggle Privacy">
+                            <svg id="eye-open" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                            <svg id="eye-closed" class="w-4 h-4 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
                         </button>
                     </div>
                     <h2 class="text-3xl lg:text-3xl font-bold text-textPrimary dark:text-darkText font-mono tracking-tight mb-2 truncate" id="total-nw-cny">¥0</h2>
@@ -329,9 +345,10 @@
                     <div class="mt-6 flex flex-wrap justify-center gap-4 text-center px-2 flex-shrink-0">
                         <div class="flex flex-col items-center"><span class="w-8 h-1 bg-googleBlue mb-1 rounded-full"></span><p class="text-xs font-bold text-textPrimary dark:text-darkText">US Stocks</p></div>
                         <div class="flex flex-col items-center"><span class="w-8 h-1 bg-googleYellow mb-1 rounded-full"></span><p class="text-xs font-bold text-textPrimary dark:text-darkText">CN Stocks</p></div>
-                        <div class="flex flex-col items-center"><span class="w-8 h-1 bg-googleGreen mb-1 rounded-full"></span><p class="text-xs font-bold text-textPrimary dark:text-darkText">Cash Ratio</p></div>
+                        <div class="flex flex-col items-center"><span class="w-8 h-1 bg-googleGreen mb-1 rounded-full"></span><p class="text-xs font-bold text-textPrimary dark:text-darkText">Cash</p></div>
                     </div>
                 </div>
+                
                 <div class="g-card-static p-6 flex-shrink-0">
                     <div class="flex justify-between items-center mb-4 border-b border-borderSubtle dark:border-darkBorder pb-2">
                         <h2 class="text-sm font-bold text-googleGreen uppercase tracking-wider">Liquidity</h2>
@@ -412,7 +429,7 @@
                             <div class="text-right">Qty</div>
                             <div class="text-right">Avg Cost</div>
                             <div class="text-right">Price</div>
-                            <div class="text-right text-googleBlue">Market Value</div>
+                            <div class="text-right text-googleYellow">Market Value</div>
                             <div class="text-right">P/L</div>
                             <div class="text-right">Weight</div>
                             <div></div>
@@ -438,7 +455,38 @@
                     </div>
                 </div>
             </div>
+
+        </div> 
+        
+        <div class="g-card-static p-6 mt-5 w-full">
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center gap-3">
+                    <h2 class="text-sm font-bold text-textPrimary dark:text-darkText uppercase tracking-wider">Daily Performance</h2>
+                    <span id="cal-view-badge" class="px-2 py-1 text-[0.7rem] font-bold bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded">P/L</span>
+                </div>
+                <button onclick="toggleCalendarView()" class="text-xs font-medium text-textSecondary dark:text-darkTextSec hover:text-googleBlue dark:hover:text-googleBlue transition-colors flex items-center gap-1 bg-gray-50 dark:bg-darkBg px-3 py-1.5 rounded-full border border-gray-200 dark:border-darkBorder">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+                    <span id="cal-toggle-text">View: Rate</span>
+                </button>
+            </div>
+            
+            <div class="flex justify-center items-center gap-4 mb-4">
+                <button onclick="changeMonth(-1)" class="p-1.5 text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText bg-gray-50 dark:bg-darkBg rounded-full border border-transparent hover:border-gray-200 dark:hover:border-darkBorder transition-all focus:outline-none">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                </button>
+                <div id="cal-month-display" class="text-base font-bold text-textPrimary dark:text-darkText w-28 text-center tracking-wide">...</div>
+                <button onclick="changeMonth(1)" class="p-1.5 text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText bg-gray-50 dark:bg-darkBg rounded-full border border-transparent hover:border-gray-200 dark:hover:border-darkBorder transition-all focus:outline-none">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-7 text-center text-xs font-bold text-textSecondary dark:text-darkTextSec mb-2 uppercase tracking-wider">
+                <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+            </div>
+            
+            <div id="calendar-grid" class="grid grid-cols-7 gap-2"></div>
         </div>
+
     </div>
 
     <div id="delete-popover" class="hidden absolute z-50 bg-white dark:bg-[#303134] shadow-lg border border-gray-200 dark:border-gray-600 rounded-lg p-2 opacity-0 transform scale-95 origin-top-right w-40">
@@ -451,80 +499,61 @@
 
     <script>
         // ==============================================
-        // 1. 初始化与数据管理模块
-function animateNumber(element, start, end, duration = 500, prefix = '', decimals = 2) {
-    let startTime = null;
-    function step(timestamp) {
-        if (!startTime) startTime = timestamp;
-        const progress = Math.min((timestamp - startTime) / duration, 1);
-        const current = progress * (end - start) + start;
-        
-        // 关键：强制控制小数位数
-        element.innerText = prefix + current.toFixed(decimals);
-
-        if (progress < 1) {
+        // 1. 初始化与数据管理
+        function animateNumber(element, start, end, duration = 500, prefix = '', decimals = 2) {
+            let startTime = null;
+            function step(timestamp) {
+                if (!startTime) startTime = timestamp;
+                const progress = Math.min((timestamp - startTime) / duration, 1);
+                const current = progress * (end - start) + start;
+                element.innerText = prefix + current.toFixed(decimals);
+                if (progress < 1) window.requestAnimationFrame(step);
+            }
             window.requestAnimationFrame(step);
         }
-    }
-    window.requestAnimationFrame(step);
-}
-        // 默认数据结构，防止 localStorage 为空时报错
+
         const defaultState = {
-            usd: [
-                { id: '1', ticker: 'VOO', shares: 0, cost: 0, price: 0 },
-                { id: '2', ticker: 'QQQ', shares: 0, cost: 0, price: 0 },
-            ],
-            cn: [
-                { id: '5', ticker: 'sh600036', shares: 0, cost: 0, price: 0 },
-                { id: '6', ticker: 'sz000001', shares: 0, cost: 0, price: 0 }
-            ],
-            cash: [
-                { id: '7', ticker: 'USD', amount: 0, currency: 'USD' },
-                { id: '8', ticker: 'CNY', amount: 0, currency: 'CNY' }
-            ],
-            fxRate: 7 // 默认美元兑人民币汇率
+            usd: [{ id: '1', ticker: 'VOO', shares: 0, cost: 0, price: 0 }],
+            cn: [{ id: '5', ticker: 'sh600036', shares: 0, cost: 0, price: 0 }],
+            cash: [{ id: '7', ticker: 'USD', amount: 0, currency: 'USD' }],
+            fxRate: 7,
+            history: [] 
         };
 
-        // 从浏览器本地存储加载数据
         let savedState = localStorage.getItem('portfolioData');
         let state;
         try {
             state = savedState ? JSON.parse(savedState) : defaultState;
-            // 鲁棒性检查：如果旧数据缺失某些字段，补全为空数组
             if(!state.usd) state.usd = [];
             if(!state.cn) state.cn = [];
             if(!state.cash) state.cash = [];
+            if(!state.history) state.history = []; 
         } catch(e) {
             state = defaultState;
         }
 
         if(state.fxRate) document.getElementById('fx-rate').value = state.fxRate;
 
-        // 隐私模式状态 (是否隐藏金额)
         let isPrivacyMode = localStorage.getItem('portfolio_privacy') === 'true';
-
-        // 全局图表实例对象
         let charts = {};
-        // 暂存待删除的项目信息
         let itemToDelete = null;
+        
+        // 日历状态管理 (0=P/L, 1=Rate, 2=Total)
+        let displayDate = new Date();
+        let calViewMode = 0; 
+        const calModes = [
+            { id: 0, current: "P/L", next: "View: Rate" },
+            { id: 1, current: "Rate", next: "View: Total" },
+            { id: 2, current: "Total", next: "View: P/L" }
+        ];
 
-        // 保存数据到本地存储
         function saveData() {
             state.fxRate = parseFloat(document.getElementById('fx-rate').value) || 7.25;
             localStorage.setItem('portfolioData', JSON.stringify(state));
         }
 
         // ==============================================
-        // 2. 核心计算模块
-        // ==============================================
-
-        // 格式化金额显示 (例如: $1,234 或 ¥5,678)
-        function formatMoney(num, currency) {
-            const symbol = currency === 'USD' ? '$' : '¥';
-           return `${symbol}${Math.round(num)}`;
-        }
-
-        // 主计算函数：重新计算所有总额、占比并更新UI
+        // 2. 核心计算与历史记录
         function calculate() {
             const fx = parseFloat(document.getElementById('fx-rate').value) || 7.25;
             
@@ -532,7 +561,6 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
             const cnItems = state.cn || [];
             const cashItems = state.cash || [];
             
-            // 计算各部分总市值
             const totalUsdStockVal = usdItems.reduce((a, i) => a + (i.shares * i.price), 0);
             const totalCnStockVal = cnItems.reduce((a, i) => a + (i.shares * i.price), 0);
             
@@ -542,55 +570,64 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                 else totalRmbCashVal += i.amount; 
             });
             
-            // 汇总计算 (统一转换为人民币)
             const totalCashValRmb = (totalUsdCashVal * fx) + totalRmbCashVal;
             const totalUsdAssets = totalUsdStockVal + totalUsdCashVal;
             const totalRmbAssets = totalCnStockVal + totalRmbCashVal;
             const grandTotal = (totalUsdAssets * fx) + totalRmbAssets;
             const cashRatio = grandTotal > 0 ? (totalCashValRmb / grandTotal) * 100 : 0;
 
-            // 更新页面顶部的总金额显示
-            // 1. 更新：账户总净值 (grandTotal)
-const totalNwEl = document.getElementById('total-nw-cny');
-if (totalNwEl) {
-    if (isPrivacyMode) {
-        totalNwEl.innerText = '******';
-    } else {
-        // 过滤掉符号提取当前值，若失败则默认为 0
-        const currentVal = parseFloat(totalNwEl.innerText.replace(/[¥\s,]/g, '')) || 0;
-        // 整数动画
-        animateNumber(totalNwEl, currentVal, grandTotal, 500, '¥', 2);
-    }
-}
+            // --- 自动记录与盈亏计算模块 ---
+            // 获取本地时区的正确日期字符串 YYYY-MM-DD
+            const localDate = new Date();
+            const todayStr = `${localDate.getFullYear()}-${String(localDate.getMonth()+1).padStart(2,'0')}-${String(localDate.getDate()).padStart(2,'0')}`;
+            const currentTotal = Math.round(grandTotal);
 
-// 2. 更新：USD 总额 (totalUsdAssets)
-const totalUsdEl = document.getElementById('total-usd-assets');
-if (totalUsdEl) {
-    if (isPrivacyMode) {
-        totalUsdEl.innerText = '******'; // 如果是 formatMoney 生成的，这里需对应
-    } else {
-        const currentVal = parseFloat(totalUsdEl.innerText.replace(/[\$\s,]/g, '')) || 0;
-        // 整数动画
-        animateNumber(totalUsdEl, currentVal, totalUsdAssets, 600, '$', 2);
-    }
-}
+            const pastRecords = state.history.filter(h => h.date !== todayStr);
+            const lastRecord = pastRecords.length > 0 ? pastRecords[pastRecords.length - 1] : null;
 
-// 3. 更新：等值人民币 (totalUsdAssets * fx)
-// --- 找到 calculate 函数中处理 CNY 总额的地方并替换 ---
-const totalCnyEl = document.getElementById('total-cny-assets');
-if (totalCnyEl) {
-    if (isPrivacyMode) {
-        totalCnyEl.innerText = '******';
-    } else {
-        const currentVal = parseFloat(totalCnyEl.innerText.replace(/[¥\s,]/g, '')) || 0;
-        animateNumber(totalCnyEl, currentVal, totalRmbAssets, 500, '¥', 2);
-    }
-}
-            // 更新现金占比进度条
+            let pl = 0, rate = 0;
+            if (lastRecord && (lastRecord.total > 0 || lastRecord.value > 0)) {
+                const prevTotal = lastRecord.total || lastRecord.value;
+                pl = currentTotal - prevTotal;
+                rate = (pl / prevTotal) * 100;
+            }
+
+            let todayRecord = state.history.find(h => h.date === todayStr);
+            if (todayRecord) {
+                todayRecord.total = currentTotal;
+                todayRecord.pl = pl;
+                todayRecord.rate = rate;
+                todayRecord.value = currentTotal; // 兼容旧数据
+            } else {
+                state.history.push({ date: todayStr, total: currentTotal, pl: pl, rate: rate, value: currentTotal });
+            }
+            
+            // 保留最近 365 天数据
+            if (state.history.length > 365) state.history.shift();
+            // ------------------------------
+
+            // 更新 UI 数字
+            const totalNwEl = document.getElementById('total-nw-cny');
+            if (totalNwEl) {
+                if (isPrivacyMode) totalNwEl.innerText = '******';
+                else animateNumber(totalNwEl, parseFloat(totalNwEl.innerText.replace(/[¥\s,]/g, '')) || 0, grandTotal, 500, '¥', 2);
+            }
+
+            const totalUsdEl = document.getElementById('total-usd-assets');
+            if (totalUsdEl) {
+                if (isPrivacyMode) totalUsdEl.innerText = '******';
+                else animateNumber(totalUsdEl, parseFloat(totalUsdEl.innerText.replace(/[\$\s,]/g, '')) || 0, totalUsdAssets, 600, '$', 2);
+            }
+
+            const totalCnyEl = document.getElementById('total-cny-assets');
+            if (totalCnyEl) {
+                if (isPrivacyMode) totalCnyEl.innerText = '******';
+                else animateNumber(totalCnyEl, parseFloat(totalCnyEl.innerText.replace(/[¥\s,]/g, '')) || 0, totalRmbAssets, 500, '¥', 2);
+            }
+
             const re = document.getElementById('cash-ratio');
             if(re) {
                 re.innerText = cashRatio.toFixed(1) + '%';
-                // 如果现金低于 15%，显示为红色警告
                 re.className = `text-2xl font-bold font-mono ${cashRatio < 15 ? 'text-googleRed' : 'text-googleGreen'}`;
             }
             const bar = document.getElementById('cash-bar');
@@ -599,10 +636,10 @@ if (totalCnyEl) {
                 bar.className = `h-full rounded-full transition-all duration-500 ${cashRatio < 15 ? 'bg-googleRed' : 'bg-googleGreen'}`;
             }
 
-            // 更新主图表数据
+            // 更新主图表
             if(charts.main) updateChart(charts.main, [(totalUsdStockVal * fx), totalCnStockVal, totalCashValRmb]);
-            
-            // 准备子图表数据
+
+            // 子图表更新
             const usLabels = usdItems.map(i => i.ticker);
             const usData = usdItems.map(i => i.shares * i.price);
             const cnLabels = cnItems.map(i => i.ticker);
@@ -610,33 +647,29 @@ if (totalCnyEl) {
             const cashLabels = cashItems.map(i => i.ticker);
             const cashData = cashItems.map(i => i.currency === 'USD' ? i.amount * fx : i.amount);
 
-            // 更新子图表及图例
             if(charts.usSub) {
                 const colors = generateShades('#1a73e8', usData.length);
                 updateSubChart(charts.usSub, usLabels, usData, colors);
                 updateCustomLegend('legend-us', usLabels, colors);
             }
-
             if(charts.cnSub) {
                 const colors = generateShades('#fbbc04', cnData.length);
                 updateSubChart(charts.cnSub, cnLabels, cnData, colors);
                 updateCustomLegend('legend-cn', cnLabels, colors);
             }
-
             if(charts.cashSub) { 
                  const colors = generateShades('#34a853', cashData.length);
                  updateSubChart(charts.cashSub, cashLabels, cashData, colors);
             }
 
-            // 更新每行资产的具体数值 (盈亏、占比等)
             updateRowValues('usd', usdItems, totalUsdStockVal, '$');
             updateRowValues('cn', cnItems, totalCnStockVal, '¥');
             updateCashRowValues(totalCashValRmb, fx);
 
             saveData();
+            renderCalendar(); // 每次计算后同步刷新全宽日历
         }
 
-        // 更新单行资产的计算结果
         function updateRowValues(type, items, totalVal, symbol) {
             items.forEach(item => {
                 const valEl = document.getElementById(`val-${type}-${item.id}`);
@@ -651,21 +684,17 @@ if (totalCnyEl) {
                 const plPct = costBasis > 0 ? (pl / costBasis) * 100 : 0;
                 const allocPct = totalVal > 0 ? (val / totalVal) * 100 : 0;
                 
-                // 颜色逻辑：盈利绿，亏损红，持平灰
                 let color = 'text-gray-400 dark:text-gray-500';
                 if (pl > 0.01) color = 'text-googleGreen';
                 if (pl < -0.01) color = 'text-googleRed';
 
                 const sign = pl > 0 ? '+' : ''; 
-
 				valEl.innerText = `${symbol}${val.toFixed(2)}`;
                 
                 if(plEl) {
                     plEl.className = `text-right font-mono font-medium ${color}`;
-                    // 显示格式: +100/+5.00%
                     plEl.innerHTML = `${sign}${Math.round(pl)} / ${sign}${plPct.toFixed(2)}%`;
                 }
-                
                 if(allocEl) allocEl.innerText = `${allocPct.toFixed(1)}%`;
             });
         }
@@ -674,85 +703,49 @@ if (totalCnyEl) {
             state.cash.forEach(item => {
                 const valEl = document.getElementById(`val-cash-${item.id}`);
                 const allocEl = document.getElementById(`alloc-cash-${item.id}`);
-                
                 if(!valEl) return;
-
                 let rmbVal = item.currency === 'USD' ? item.amount * fx : item.amount;
                 let allocPct = totalCashRmb > 0 ? (rmbVal / totalCashRmb) * 100 : 0;
-
                 valEl.innerText = `¥${Math.round(rmbVal)}`;
                 allocEl.innerText = `${allocPct.toFixed(1)}%`;
             });
         }
 
         // ==============================================
-        // 3. UI 渲染与交互模块
-        // ==============================================
-
-        // 新增资产项目
-        function addItem(type) {
-            const id = Date.now().toString(); // 生成唯一 ID
-            if (type === 'usd') {
-                state.usd.push({ id, ticker: 'New', shares: 0, cost: 0, price: 0 });
-            } else if (type === 'cn') {
-                state.cn.push({ id, ticker: 'New', shares: 0, cost: 0, price: 0 });
-            } else if (type === 'cash') {
-                state.cash.push({ id, ticker: 'New', amount: 0, currency: 'CNY' });
-            }
-            saveData();
-            renderAllRows(); // 重新渲染列表
-            calculate();
-            initSortable(); // 新增项目后需要重新绑定拖拽事件
-        }
-
-        // 渲染所有列表
+        // 3. 渲染模块 (表格 + 日历)
         function renderAllRows() {
             renderRows('usd', state.usd, '$');
             renderRows('cn', state.cn, '¥');
             renderCashRows();
         }
 
-        // 渲染股票列表 HTML (使用模板字符串)
         function renderRows(type, items, symbol) {
             const container = document.getElementById(type + '-inputs');
             if(!container) return; 
-
             container.innerHTML = items.map(item => {
                 return `
                 <div class="pro-grid-row px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border-b border-gray-50 dark:border-gray-800 last:border-0 text-sm">
-                    <div class="drag-handle">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
-                        </svg>
-                    </div>
+                    <div class="drag-handle"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" /></svg></div>
                     <div><input type="text" class="input-google w-full font-bold text-textPrimary dark:text-darkText" data-type="${type}" data-id="${item.id}" data-field="ticker" value="${item.ticker}"></div>
                     <div><input type="number" class="input-google w-full text-right font-mono text-textPrimary dark:text-darkText" data-type="${type}" data-id="${item.id}" data-field="shares" value="${item.shares}"></div>
                     <div><input type="number" class="input-google w-full text-right font-mono text-textSecondary dark:text-darkTextSec" data-type="${type}" data-id="${item.id}" data-field="cost" value="${item.cost}"></div>
                     <div><input type="number" class="input-google w-full text-right font-mono text-textPrimary dark:text-darkText" data-type="${type}" data-id="${item.id}" data-field="price" value="${item.price}"></div>
-                    
                     <div class="text-right font-mono font-bold text-textPrimary dark:text-darkText" id="val-${type}-${item.id}">--</div>
                     <div class="text-right font-mono font-medium" id="pl-${type}-${item.id}">--</div>
                     <div class="text-right font-mono text-textSecondary dark:text-darkTextSec" id="alloc-${type}-${item.id}">--</div>
-                    
                     <div class="flex justify-center"><svg onclick="toggleDeletePopover(event, '${type}', '${item.id}')" class="delete-trigger icon-glass btn-icon w-4 h-4 text-gray-300 dark:text-gray-600 cursor-pointer hover:text-red-500 transition-colors" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></div>
                 </div>`;
             }).join('');
-            
-            // 为所有新生成的输入框绑定输入事件
             container.querySelectorAll('input').forEach(i => i.addEventListener('input', e => handleInput(e.target)));
         }
 
-        // 渲染现金列表 HTML
         function renderCashRows() {
             const container = document.getElementById('cash-inputs');
             if(!container) return;
-
             container.innerHTML = state.cash.map(item => {
                 return `
                 <div class="cash-grid-row px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border-b border-gray-50 dark:border-gray-800 last:border-0 text-sm">
-                    <div class="drag-handle">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" /></svg>
-                    </div>
+                    <div class="drag-handle"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" /></svg></div>
                     <div class="flex items-center gap-1">
                         <select onchange="handleCurrencyChange('${item.id}', this.value)" class="bg-transparent text-xs border-none focus:ring-0 text-textSecondary dark:text-darkTextSec mr-1 cursor-pointer font-bold"><option value="USD" ${item.currency === 'USD'?'selected':''}>$</option><option value="CNY" ${item.currency === 'CNY'?'selected':''}>¥</option></select>
                         <input type="text" class="input-google w-full font-medium text-textPrimary dark:text-darkText" data-type="cash" data-id="${item.id}" data-field="ticker" value="${item.ticker}">
@@ -766,11 +759,101 @@ if (totalCnyEl) {
             container.querySelectorAll('input').forEach(i => i.addEventListener('input', e => handleInput(e.target)));
         }
 
-        // ==============================================
-        // 4. API 交互模块 (行情与同步)
-        // ==============================================
+        // --- 全宽版日历渲染逻辑 ---
+        function renderCalendar() {
+            const year = displayDate.getFullYear();
+            const month = displayDate.getMonth();
+            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            
+            document.getElementById('cal-month-display').innerText = `${monthNames[month]} ${year}`;
+            const grid = document.getElementById('calendar-grid');
+            if(!grid) return;
+            grid.innerHTML = '';
 
-        // 从 GitHub 拉取数据
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            // 将 state.history 转为日历字典
+            const calData = {};
+            state.history.forEach(item => {
+                calData[item.date] = { total: item.total || item.value || 0, pl: item.pl || 0, rate: item.rate || 0 };
+            });
+
+            for (let i = 0; i < firstDay; i++) { grid.innerHTML += `<div></div>`; }
+
+            const localDate = new Date();
+            const todayStr = `${localDate.getFullYear()}-${String(localDate.getMonth()+1).padStart(2,'0')}-${String(localDate.getDate()).padStart(2,'0')}`;
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const data = calData[dateStr];
+                const isToday = (dateStr === todayStr);
+
+                // 修复 1：暗黑模式空状态对比度优化
+                let bgClass = "bg-gray-50 dark:bg-darkBg";
+                let textClass = "text-gray-400 dark:text-darkTextSec";
+                let dayText = day;
+                let valHtml = `<span class="text-sm text-transparent">0</span>`; 
+
+                if (data) {
+                    const isPos = data.pl >= 0;
+                    let displayVal = '';
+                    
+                    if (isPrivacyMode) {
+                        displayVal = '***';
+                        textClass = "text-textSecondary dark:text-darkTextSec";
+                        bgClass = "bg-gray-100 dark:bg-[#3c4043]";
+                    } else {
+                        if (calViewMode === 0) {
+                            displayVal = isPos ? `+${data.pl.toFixed(2)}` : `${data.pl.toFixed(2)}`;
+                            textClass = isPos ? "text-stockGreen dark:text-green-400" : "text-stockRed dark:text-red-400";
+                            bgClass = isPos ? "bg-stockGreenBg dark:bg-green-900/30" : "bg-stockRedBg dark:bg-red-900/30";
+                        } else if (calViewMode === 1) {
+                            displayVal = isPos ? `+${data.rate.toFixed(2)}%` : `${data.rate.toFixed(2)}%`;
+                            textClass = isPos ? "text-stockGreen dark:text-green-400" : "text-stockRed dark:text-red-400";
+                            bgClass = isPos ? "bg-stockGreenBg dark:bg-green-900/30" : "bg-stockRedBg dark:bg-red-900/30";
+                        } else {
+                            displayVal = `¥${Math.round(data.total).toLocaleString()}`;
+                            textClass = "text-textPrimary dark:text-darkText";
+                            bgClass = isPos ? "bg-stockGreenBg dark:bg-green-900/30" : "bg-stockRedBg dark:bg-red-900/30";
+                        }
+                    }
+
+                    if (isToday) {
+                        let ringColor = isPrivacyMode ? "ring-gray-400 dark:ring-gray-500" : (isPos ? "ring-stockGreen dark:ring-green-500" : "ring-stockRed dark:ring-red-500");
+                        bgClass += ` ring-[1.5px] ${ringColor}`;
+                    }
+                    
+                    valHtml = `<span class="text-sm md:text-base font-bold font-mono tracking-tight mt-1 ${textClass}">${displayVal}</span>`;
+                } else if (isToday) {
+                    // 没有数据时的今天
+                    bgClass = "bg-gray-50 dark:bg-darkBg ring-[1.5px] ring-gray-400 dark:ring-gray-500";
+                }
+
+                // 修复 2：彻底移除日期变白的逻辑，让日期数字颜色永远保持一致
+                grid.innerHTML += `
+                    <div class="flex flex-col justify-center items-center py-4 min-h-[80px] rounded-lg w-full transition-all hover:brightness-95 cursor-default ${bgClass}">
+                        <span class="text-xs font-bold text-gray-500 dark:text-gray-400">${dayText}</span>
+                        ${valHtml}
+                    </div>
+                `;
+            }
+        }
+
+        function changeMonth(offset) {
+            displayDate.setMonth(displayDate.getMonth() + offset);
+            renderCalendar();
+        }
+
+        function toggleCalendarView() {
+            calViewMode = (calViewMode + 1) % 3;
+            document.getElementById('cal-view-badge').innerText = calModes[calViewMode].current;
+            document.getElementById('cal-toggle-text').innerText = calModes[calViewMode].next;
+            renderCalendar();
+        }
+
+        // ==============================================
+        // 4. API 请求与交互逻辑
         async function pullFromGithub() {
             const token = localStorage.getItem('gh_token');
             const repo = localStorage.getItem('gh_repo');
@@ -782,287 +865,120 @@ if (totalCnyEl) {
                 const res = await fetch(url, { headers: { Authorization: `token ${token}` } });
                 if (res.ok) {
                     const data = await res.json();
-                    // GitHub API 返回的是 Base64 编码，需要解码
-                    const jsonStr = decodeURIComponent(escape(atob(data.content)));
-                    state = JSON.parse(jsonStr);
+                    state = JSON.parse(decodeURIComponent(escape(atob(data.content))));
                     if(state.fxRate) document.getElementById('fx-rate').value = state.fxRate;
-                    saveData();
-                    calculate();
-                    renderAllRows();
-                    initSortable(); // 重新加载数据后需要重新初始化拖拽
+                    saveData(); calculate(); renderAllRows(); initSortable();
                     alert('拉取成功！');
-                } else {
-                    alert('拉取失败，请检查配置或文件是否存在');
-                }
+                } else alert('拉取失败');
             } catch (e) { alert('网络错误'); }
         }
 
-        // 自动更新 A 股价格 (使用腾讯财经接口)
         function updateCnStockPrices() {
             const icon = document.getElementById('refresh-icon-cn');
-            if (icon) icon.classList.add('animate-spin'); // 图标旋转动画
+            if (icon) icon.classList.add('animate-spin');
 
-            // 1. 整理代码列表
-            // 必须加上前缀：上海加 sh (sh600519), 深圳加 sz (sz000001)
             const rawSymbols = state.cn.map(item => item.ticker.toLowerCase()).filter(t => t && t !== 'new');
             if (rawSymbols.length === 0) {
                 if (icon) icon.classList.remove('animate-spin');
                 return alert('请输入 A 股代码 (如 sh600000)');
             }
 
-            // 2. 创建临时脚本标签请求数据 (JSONP 方式)
             const script = document.createElement('script');
             script.src = `https://qt.gtimg.cn/q=${rawSymbols.join(',')}`;
             
             script.onload = function() {
                 let updatedCount = 0;
                 rawSymbols.forEach(symbol => {
-                    // 腾讯返回的变量名格式是 v_sh600519
                     const dataStr = window['v_' + symbol];
                     if (dataStr) {
                         const parts = dataStr.split('~');
-                        const price = parseFloat(parts[3]); // 第 4 位通常是现价
-                        
+                        const price = parseFloat(parts[3]); 
                         const stock = state.cn.find(i => i.ticker.toLowerCase() === symbol);
-                        if (stock && price > 0) {
-                            stock.price = price;
-                            updatedCount++;
-                        }
+                        if (stock && price > 0) { stock.price = price; updatedCount++; }
                     }
                 });
 
-                if (updatedCount > 0) {
-                    saveData();
-                    renderAllRows();
-                    calculate();
-                    console.log(`已成功更新 ${updatedCount} 只 A 股`);
-                } else {
-                    alert('获取失败，请确保代码格式正确 (如 sh600519)');
-                }
-
+                if (updatedCount > 0) { saveData(); renderAllRows(); calculate(); }
                 if (icon) icon.classList.remove('animate-spin');
-                document.body.removeChild(script); // 清理 DOM
+                document.body.removeChild(script);
             };
-
-            script.onerror = function() {
-                alert('网络请求失败');
-                if (icon) icon.classList.remove('animate-spin');
-            };
-
+            script.onerror = function() { alert('网络请求失败'); if (icon) icon.classList.remove('animate-spin'); };
             document.body.appendChild(script);
         }
 
-        // 自动更新美股价格 (Finnhub API)
         async function updateUsStockPrices() {
             const apiKey = localStorage.getItem('finnhub_key');
+            if (!apiKey) return alert('请先在配置面板填写 Finnhub API Key');
             
-            if (!apiKey) {
-                alert('请先在配置面板填写 Finnhub API Key');
-                toggleSyncPanel(); 
-                return;
-            }
-
             const icon = document.getElementById('refresh-icon');
             if(icon) icon.classList.add('animate-spin');
-
             let updatedCount = 0;
 
             for (let item of state.usd) {
                 if (!item.ticker || item.ticker === 'New') continue;
-
                 try {
                     const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${item.ticker}&token=${apiKey}`);
                     const data = await res.json();
-                    if (data.c) {
-                        item.price = data.c; 
-                        updatedCount++;
-                    }
-                } catch (e) {
-                    console.error(`更新 ${item.ticker} 失败`, e);
-                }
+                    if (data.c) { item.price = data.c; updatedCount++; }
+                } catch (e) { console.error(`更新 ${item.ticker} 失败`, e); }
             }
 
-            if (updatedCount > 0) {
-                saveData();       
-                renderAllRows(); 
-                calculate();     
-                console.log(`已更新 ${updatedCount} 只股票`);
-            } else {
-                alert('未更新数据，请检查 Key 或网络');
-            }
-
+            if (updatedCount > 0) { saveData(); renderAllRows(); calculate(); } 
+            else alert('未更新数据，请检查 Key 或网络');
             if(icon) icon.classList.remove('animate-spin');
         }
 
-        // 获取实时汇率 (API)
         async function fetchLiveRate() {
             const icon = document.querySelector('svg[onclick="fetchLiveRate()"]');
             if(icon) icon.classList.add('animate-spin'); 
-            
             try {
-                const response = await fetch('https://open.er-api.com/v6/latest/USD');
-                const data = await response.json();
-                const rate = data.rates.CNY;
-                
-                if (rate) {
-                    document.getElementById('fx-rate').value = rate.toFixed(4); 
-                    saveData();  
-                    calculate(); 
+                const res = await fetch('https://open.er-api.com/v6/latest/USD');
+                const data = await res.json();
+                if (data.rates.CNY) {
+                    document.getElementById('fx-rate').value = data.rates.CNY.toFixed(4); 
+                    saveData(); calculate(); 
                 }
-            } catch (error) {
-                alert('获取失败，请检查网络');
-            } finally {
-                if(icon) icon.classList.remove('animate-spin'); 
-            }
+            } catch (error) {} 
+            finally { if(icon) icon.classList.remove('animate-spin'); }
         }
 
         // ==============================================
-        // 5. 辅助功能模块
-        // ==============================================
-
-        function toggleSyncPanel() {
-            const panel = document.getElementById('sync-panel');
-            if (panel.classList.contains('hidden-panel')) {
-                panel.classList.remove('hidden-panel');
-                loadSyncSettings();
-            } else {
-                panel.classList.add('hidden-panel');
-            }
+        // 5. 事件绑定与工具
+        function addItem(type) {
+            const id = Date.now().toString();
+            if (type === 'usd') state.usd.push({ id, ticker: 'New', shares: 0, cost: 0, price: 0 });
+            else if (type === 'cn') state.cn.push({ id, ticker: 'New', shares: 0, cost: 0, price: 0 });
+            else if (type === 'cash') state.cash.push({ id, ticker: 'New', amount: 0, currency: 'CNY' });
+            saveData(); renderAllRows(); calculate(); initSortable();
         }
 
-        function saveSyncSettings() {
-            localStorage.setItem('gh_token', document.getElementById('gh-token').value);
-            localStorage.setItem('gh_repo', document.getElementById('gh-repo').value);
-            localStorage.setItem('gh_path', document.getElementById('gh-path').value);
-            localStorage.setItem('finnhub_key', document.getElementById('finnhub-token').value);
-            alert('配置已保存 (本地)');
-        }
-
-        function loadSyncSettings() {
-            if(document.getElementById('gh-token')) document.getElementById('gh-token').value = localStorage.getItem('gh_token') || '';
-            if(document.getElementById('gh-repo')) document.getElementById('gh-repo').value = localStorage.getItem('gh_repo') || '';
-            if(document.getElementById('gh-path')) document.getElementById('gh-path').value = localStorage.getItem('gh_path') || 'data.json';
-            if(document.getElementById('finnhub-token')) document.getElementById('finnhub-token').value = localStorage.getItem('finnhub_key') || '';
-        }
-
-        // 推送数据到 GitHub
-        async function pushToGithub() {
-            const token = localStorage.getItem('gh_token');
-            const repo = localStorage.getItem('gh_repo');
-            const path = localStorage.getItem('gh_path');
-            if (!token || !repo) return alert('请先保存 GitHub 配置');
-
-            const url = `https://api.github.com/repos/${repo}/contents/${path}`;
-            let sha = '';
-            // 先获取文件的 SHA，用于覆盖更新
-            try {
-                const res = await fetch(url, { headers: { Authorization: `token ${token}` } });
-                if (res.ok) {
-                    const data = await res.json();
-                    sha = data.sha;
-                }
-            } catch (e) {}
-
-            const content = btoa(unescape(encodeURIComponent(JSON.stringify(state, null, 2))));
-            const body = { message: "Update portfolio data via Web", content: content, sha: sha };
-
-            try {
-                const response = await fetch(url, {
-                    method: 'PUT',
-                    headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body)
-                });
-                if (response.ok) alert('推送成功！');
-                else {
-                    const err = await response.json();
-                    alert('推送失败: ' + (err.message || '未知错误'));
-                }
-            } catch(e) { alert('网络错误'); }
-        }
-
-        // 导出 JSON 文件
-        function exportData() {
-            saveData(); 
-            const jsonStr = JSON.stringify(state, null, 2);
-            const blob = new Blob([jsonStr], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `portfolio_${new Date().toISOString().slice(0,10)}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
-        // 导入 JSON 文件
-        function importData(input) {
-            const f = input.files[0]; if(!f) return;
-            const r = new FileReader();
-            r.onload = e => { 
-                try { 
-                    const d = JSON.parse(e.target.result); 
-                    if(d.usd) { 
-                        state = d; 
-                        if(state.fxRate) document.getElementById('fx-rate').value = state.fxRate; 
-                        saveData(); 
-                        calculate(); 
-                        renderAllRows(); 
-                        initSortable();
-                        alert('导入成功'); 
-                    } 
-                } catch(e) {
-                    alert('文件格式错误');
-                } 
-                input.value=''; 
-            };
-            r.readAsText(f);
-        }
-
-        // 隐私模式切换
-        // --- 4. 修改隐私切换函数 ---
-function togglePrivacy() {
-    isPrivacyMode = !isPrivacyMode;
-    localStorage.setItem('portfolio_privacy', isPrivacyMode);
-    updatePrivacyUI();
-    
-    // 切换到显示模式时，重置所有起点为 0
-    if (!isPrivacyMode) {
-        document.getElementById('total-nw-cny').innerText = '¥0';
-        document.getElementById('total-usd-assets').innerText = '$0';
-        document.getElementById('total-cny-assets').innerText = '¥0';
-        const equivEl = document.getElementById('total-usd-cny-equiv');
-        if (equivEl) equivEl.innerText = '≈ ¥0';
-    }
-    
-    calculate(); // 触发动画
-}
-
-        function updatePrivacyUI() {
+        function togglePrivacy() {
+            isPrivacyMode = !isPrivacyMode;
+            localStorage.setItem('portfolio_privacy', isPrivacyMode);
             const openEye = document.getElementById('eye-open');
             const closedEye = document.getElementById('eye-closed');
-            if (isPrivacyMode) {
-                openEye.classList.add('hidden');
-                closedEye.classList.remove('hidden');
-            } else {
-                openEye.classList.remove('hidden');
-                closedEye.classList.add('hidden');
+            if (isPrivacyMode) { openEye.classList.add('hidden'); closedEye.classList.remove('hidden'); } 
+            else { openEye.classList.remove('hidden'); closedEye.classList.add('hidden'); }
+            
+            if (!isPrivacyMode) {
+                document.getElementById('total-nw-cny').innerText = '¥0';
+                document.getElementById('total-usd-assets').innerText = '$0';
+                document.getElementById('total-cny-assets').innerText = '¥0';
             }
+            calculate(); 
         }
 
-        // 主题切换
         function toggleTheme() {
-            const html = document.documentElement;
-            const isDark = html.classList.toggle('dark');
+            const isDark = document.documentElement.classList.toggle('dark');
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
             updateChartTheme(isDark);
+            setTimeout(loadTradingViewTicker, 50); 
+            renderCalendar(); // 主题切换时重新渲染日历确保颜色同步
         }
 
         function loadTheme() {
-            const theme = localStorage.getItem('theme');
-            if (theme === 'dark') {
+            if (localStorage.getItem('theme') === 'dark') {
                 document.documentElement.classList.add('dark');
-                updateChartTheme(true);
             }
         }
 
@@ -1080,299 +996,201 @@ function togglePrivacy() {
             });
         }
 
-        // 删除弹窗控制
         function toggleDeletePopover(event, type, id) {
             event.stopPropagation();
             const popover = document.getElementById('delete-popover');
-            
-            if(itemToDelete && itemToDelete.id === id && !popover.classList.contains('hidden')) {
-                closePopover();
-                return;
-            }
-
+            if(itemToDelete && itemToDelete.id === id && !popover.classList.contains('hidden')) return closePopover();
             itemToDelete = { type, id };
-            const btn = event.currentTarget;
-            const rect = btn.getBoundingClientRect();
-            
+            const rect = event.currentTarget.getBoundingClientRect();
             popover.style.top = (window.scrollY + rect.top + 5) + 'px'; 
             popover.style.left = (window.scrollX + rect.left - 130) + 'px'; 
-
             popover.classList.remove('hidden');
-            requestAnimationFrame(() => {
-                popover.classList.remove('opacity-0', 'scale-95');
-                popover.classList.add('opacity-100', 'scale-100');
-            });
+            requestAnimationFrame(() => { popover.classList.remove('opacity-0', 'scale-95'); popover.classList.add('opacity-100', 'scale-100'); });
         }
 
         function closePopover() {
             const popover = document.getElementById('delete-popover');
             popover.classList.remove('opacity-100', 'scale-100');
             popover.classList.add('opacity-0', 'scale-95');
-            setTimeout(() => {
-                popover.classList.add('hidden');
-                itemToDelete = null;
-            }, 100);
+            setTimeout(() => { popover.classList.add('hidden'); itemToDelete = null; }, 100);
         }
 
         function handleBodyClick(event) {
-            const popover = document.getElementById('delete-popover');
-            if (!popover.contains(event.target) && !event.target.closest('.delete-trigger')) {
-                closePopover();
-            }
+            if (!document.getElementById('delete-popover').contains(event.target) && !event.target.closest('.delete-trigger')) closePopover();
         }
 
         document.getElementById('popover-confirm-btn').addEventListener('click', () => {
             if (itemToDelete) {
-                const { type, id } = itemToDelete;
-                state[type] = state[type].filter(i => i.id !== id);
-                
-                if(type==='cash') renderCashRows();
-                else renderRows(type, state[type], type==='usd'?'$':'¥');
-                
-                calculate();
-                closePopover();
+                state[itemToDelete.type] = state[itemToDelete.type].filter(i => i.id !== itemToDelete.id);
+                if(itemToDelete.type==='cash') renderCashRows(); else renderRows(itemToDelete.type, state[itemToDelete.type], itemToDelete.type==='usd'?'$':'¥');
+                calculate(); closePopover();
             }
         });
 
-        // 响应输入框变化
         function handleInput(t) { 
             if(t.id==='fx-rate'){calculate();return;} 
-            const type=t.dataset.type, id=t.dataset.id, field=t.dataset.field; 
-            let val=t.value; 
-            if(t.type==='number') val=parseFloat(t.value)||0; 
-            const item=state[type].find(x=>x.id===id); 
+            const val = t.type==='number' ? parseFloat(t.value)||0 : t.value; 
+            const item=state[t.dataset.type].find(x=>x.id===t.dataset.id); 
             if(item){ 
-                if(type==='cash'&&field==='amount') item.amount=val; 
-                else item[field]=val; 
-                
+                if(t.dataset.type==='cash'&&t.dataset.field==='amount') item.amount=val; 
+                else item[t.dataset.field]=val; 
                 calculate(); 
             } 
         }
 
-        function handleCurrencyChange(id, v) { 
-            const i=state.cash.find(x=>x.id===id); 
-            if(i){ i.currency=v; calculate(); } 
-        }
+        function handleCurrencyChange(id, v) { const i=state.cash.find(x=>x.id===id); if(i){ i.currency=v; calculate(); } }
 
         // ==============================================
-        // 6. 图表与拖拽初始化
-        // ==============================================
-
+        // 6. 图表初始化
         function initCharts() {
             Chart.defaults.font.family = '"Google Sans", "Roboto", sans-serif';
-            
-            // 自定义 Tooltip 显示逻辑
             const tooltipCallback = { 
-			label: function(context) { 
-			// 1. 获取当前名称（美股、A股 或 现金）
-			const label = context.label || '';
-			// 2. 获取数值（使用 context.raw）
-			const value = context.raw; 
-			// 3. 计算百分比
-			const dataset = context.chart.data.datasets[0];
-			const total = dataset.data.reduce((a, b) => a + b, 0); 
-			const percentage = total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%'; 
-
-			// 4. 返回拼接后的字符串：名称: 数值 (百分比)
-			// 数值部分使用 toFixed(2) 满足你之前提出的不带逗号且保留两位小数的要求
-			return ` ${label}: ${value.toFixed(2)} (${percentage})`; 
-    } 
-};
-            
-            // 通用图表配置
-            const opts = (cutout) => ({ 
-                responsive: true, 
-                maintainAspectRatio: false, 
-                borderWidth: 0, 
-                cutout: cutout, 
-                layout: { padding: 0 }, 
-                plugins: { 
-                    legend: { display: false }, 
-                    tooltip: { enabled: true, borderWidth: 1, callbacks: tooltipCallback } 
+                label: function(ctx) { 
+                    const total = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0); 
+                    const pct = total > 0 ? ((ctx.raw / total) * 100).toFixed(1) + '%' : '0%'; 
+                    return ` ${ctx.label || ''}: ${ctx.raw.toFixed(2)} (${pct})`; 
                 } 
-            });
+            };
             
-            const chartMainEl = document.getElementById('chart-main');
-            if(chartMainEl) {
-                charts.main = new Chart(chartMainEl.getContext('2d'), { 
-                    type: 'doughnut', 
-                    data: { labels: ['美股', 'A股', '现金'], datasets: [{ data: [1,1,1], backgroundColor: ['#1a73e8', '#fbbc04', '#34a853'], hoverOffset: 4 }] }, 
-                    options: opts('55%'),
-                    plugins: [segmentLabelPlugin] // 注册自定义插件
-                });
-            }
+            const opts = (cutout) => ({ responsive: true, maintainAspectRatio: false, borderWidth: 0, cutout: cutout, layout: { padding: 0 }, plugins: { legend: { display: false }, tooltip: { enabled: true, borderWidth: 1, callbacks: tooltipCallback } } });
+            
+            const segPlugin = {
+                id: 'segmentLabels',
+                afterDatasetsDraw(chart) {
+                    const { ctx, data } = chart;
+                    ctx.save();
+                    const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
+                    chart.getDatasetMeta(0).data.forEach((dp, i) => {
+                        const pct = total > 0 ? (data.datasets[0].data[i] / total * 100) : 0;
+                        if (pct > 5) { 
+                            const { x, y } = dp.tooltipPosition();
+                            ctx.font = '18px "Roboto Mono"'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                            ctx.fillText(pct.toFixed(0) + '%', x, y);
+                        }
+                    });
+                    ctx.restore();
+                }
+            };
 
-            const chartUsEl = document.getElementById('chart-us-sub');
-            if(chartUsEl) charts.usSub = new Chart(chartUsEl.getContext('2d'), { type: 'doughnut', data: { datasets: [{ data: [], backgroundColor: [] }] }, options: opts('70%') });
-            
-            const chartCnEl = document.getElementById('chart-cn-sub');
-            if(chartCnEl) charts.cnSub = new Chart(chartCnEl.getContext('2d'), { type: 'doughnut', data: { datasets: [{ data: [], backgroundColor: [] }] }, options: opts('70%') });
-            
-            const chartCashEl = document.getElementById('chart-cash-sub');
-            if(chartCashEl) charts.cashSub = new Chart(chartCashEl.getContext('2d'), { type: 'doughnut', data: { datasets: [{ data: [], backgroundColor: [] }] }, options: opts('70%') });
+            const cm = document.getElementById('chart-main');
+            if(cm) charts.main = new Chart(cm.getContext('2d'), { type: 'doughnut', data: { labels: ['US Stocks', 'CN Stocks', 'Cash'], datasets: [{ data: [1,1,1], backgroundColor: ['#1a73e8', '#fbbc04', '#34a853'], hoverOffset: 4 }] }, options: opts('55%'), plugins: [segPlugin] });
+            const cu = document.getElementById('chart-us-sub');
+            if(cu) charts.usSub = new Chart(cu.getContext('2d'), { type: 'doughnut', data: { datasets: [{ data: [], backgroundColor: [] }] }, options: opts('70%') });
+            const cc = document.getElementById('chart-cn-sub');
+            if(cc) charts.cnSub = new Chart(cc.getContext('2d'), { type: 'doughnut', data: { datasets: [{ data: [], backgroundColor: [] }] }, options: opts('70%') });
+            const ca = document.getElementById('chart-cash-sub');
+            if(ca) charts.cashSub = new Chart(ca.getContext('2d'), { type: 'doughnut', data: { datasets: [{ data: [], backgroundColor: [] }] }, options: opts('70%') });
         }
 
         function updateChart(c, d) { if(c) { c.data.datasets[0].data = d; c.update(); } }
         function updateSubChart(c, l, d, co) { if(c) { c.data.labels = l; c.data.datasets[0].data = d; c.data.datasets[0].backgroundColor = co; c.update(); } }
         
-        // 生成同色系的不同深浅颜色，用于饼图
         function generateShades(baseHex, count) {
-            const p = { 
-                'blue': ['#1a73e8','#4285f4','#669df6','#8ab4f8','#aecbfa','#d2e3fc'], 
-                'yellow': ['#f9ab00','#fbbc04','#fcd965','#fdd663','#fde293','#feefc3'], 
-                'green': ['#188038','#34a853','#5bb974','#81c995','#a8dab5','#ceead6'] 
-            };
-            let k = 'blue'; 
-            if(baseHex.includes('fbbc04')) k='yellow'; 
-            if(baseHex.includes('34a853')) k='green';
-            
-            let c=[]; 
-            for(let i=0; i<count; i++) c.push(p[k][i%p[k].length]); 
-            return c;
+            const p = { 'blue': ['#1a73e8','#4285f4','#669df6','#8ab4f8','#aecbfa','#d2e3fc'], 'yellow': ['#f9ab00','#fbbc04','#fcd965','#fdd663','#fde293','#feefc3'], 'green': ['#188038','#34a853','#5bb974','#81c995','#a8dab5','#ceead6'] };
+            let k = 'blue'; if(baseHex.includes('fbbc04')) k='yellow'; if(baseHex.includes('34a853')) k='green';
+            let c=[]; for(let i=0; i<count; i++) c.push(p[k][i%p[k].length]); return c;
         }
 
         function updateCustomLegend(id, labels, colors) {
             const c = document.getElementById(id); if(!c) return;
-            let h = ''; 
-            labels.forEach((l,i)=>{ 
-                h+=`<div class="flex items-center gap-3"><span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background-color:${colors[i]}"></span><span class="text-xs font-bold text-gray-900 dark:text-gray-100 truncate tracking-tight">${l}</span></div>`; 
-            });
+            let h = ''; labels.forEach((l,i)=>{ h+=`<div class="flex items-center gap-3"><span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background-color:${colors[i]}"></span><span class="text-xs font-bold text-gray-900 dark:text-gray-100 truncate tracking-tight">${l}</span></div>`; });
             c.innerHTML = h;
         }
 
-        // 图表中心文字插件：在饼图中心显示占比大于 5% 的数值
-        const segmentLabelPlugin = {
-            id: 'segmentLabels',
-            afterDatasetsDraw(chart, args, pluginOptions) {
-                const { ctx, data } = chart;
-                ctx.save();
-                const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
-                
-                chart.getDatasetMeta(0).data.forEach((datapoint, index) => {
-                    const value = data.datasets[0].data[index];
-                    const percentage = total > 0 ? (value / total * 100) : 0;
-                    
-                    if (percentage > 5) { 
-                        const { x, y } = datapoint.tooltipPosition();
-                        ctx.font = '18px "Roboto Mono"';
-                        ctx.fillStyle = '#ffffff';
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillText(percentage.toFixed(0) + '%', x, y);
-                    }
-                });
-                ctx.restore();
-            }
-        };
-
-        // 初始化拖拽排序功能
         function initSortable() {
-            const containers = ['usd-inputs', 'cn-inputs', 'cash-inputs'];
-            
-            containers.forEach(id => {
+            ['usd-inputs', 'cn-inputs', 'cash-inputs'].forEach(id => {
                 const el = document.getElementById(id);
-                if (!el) return;
-
-                Sortable.create(el, {
-                    handle: '.drag-handle', // 只有点击手柄区域才能拖动
-                    animation: 150,
-                    ghostClass: 'bg-blue-50',
-                    onEnd: (evt) => {
-                        const type = id.split('-')[0]; // 获取 usd/cn/cash
-                        const list = state[type];
-                        
-                        // 调整数组顺序
-                        const item = list.splice(evt.oldIndex, 1)[0];
-                        list.splice(evt.newIndex, 0, item);
-                        
-                        saveData();
-                        calculate();
-                    }
-                });
+                if (el) Sortable.create(el, { handle: '.drag-handle', animation: 150, ghostClass: 'bg-blue-50', onEnd: (evt) => {
+                    const list = state[id.split('-')[0]];
+                    const item = list.splice(evt.oldIndex, 1)[0];
+                    list.splice(evt.newIndex, 0, item);
+                    saveData(); calculate();
+                }});
             });
         }
-// ==========================================
-// 8. TradingView 动态加载模块 (适配暗黑模式)
-// ==========================================
 
-function loadTradingViewTicker() {
-    const container = document.getElementById('tv-ticker-container');
-    if (!container) return;
+        // ==========================================
+        // 7. TradingView Widget
+        function loadTradingViewTicker() {
+            const container = document.getElementById('tv-ticker-container');
+            if (!container) return;
+            container.innerHTML = ''; 
+            const widgetDiv = document.createElement('div');
+            widgetDiv.className = 'tradingview-widget-container__widget';
+            container.appendChild(widgetDiv);
 
-    // 1. 先清空旧的组件（防止重复）
-    container.innerHTML = ''; 
-    
-    // 2. 创建一个新的容器供脚本使用
-    const widgetDiv = document.createElement('div');
-    widgetDiv.className = 'tradingview-widget-container__widget';
-    container.appendChild(widgetDiv);
+            const isDark = document.documentElement.classList.contains('dark');
+            const script = document.createElement('script');
+            script.type = 'text/javascript';
+            script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js';
+            script.async = true;
+            script.innerHTML = JSON.stringify({
+                "symbols": [ { "proName": "FOREXCOM:SPXUSD", "title": "S&P 500" }, { "proName": "FOREXCOM:NSXUSD", "title": "US 100" }, { "proName": "FX_IDC:USDCNY", "title": "USD/CNY" }, { "proName": "BITSTAMP:BTCUSD", "title": "Bitcoin" }, { "description": "Gold", "proName": "TVC:GOLD" } ],
+                "showSymbolLogo": true, "colorTheme": isDark ? "dark" : "light", "isTransparent": false, "displayMode": "adaptive", "locale": "en"
+            });
+            container.appendChild(script);
+        }
 
-    // 3. 判断当前是否暗黑模式
-    const isDark = document.documentElement.classList.contains('dark');
-    
-    // 4. 动态构建脚本配置
-    const script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js';
-    script.async = true;
-    
-    // 配置参数
-    script.innerHTML = JSON.stringify({
-        "symbols": [
-            { "proName": "FOREXCOM:SPXUSD", "title": "S&P 500" },
-            { "proName": "FOREXCOM:NSXUSD", "title": "US 100" },
-            { "proName": "FX_IDC:USDCNY", "title": "USD/CNY" },
-            { "proName": "BITSTAMP:BTCUSD", "title": "Bitcoin" },
-            { "description": "Gold", "proName": "TVC:GOLD" }
-        ],
-        "showSymbolLogo": true,
-        // 关键点：根据 isDark 变量自动切换 theme
-        "colorTheme": isDark ? "dark" : "light", 
-        "isTransparent": false,
-        "displayMode": "adaptive",
-        "locale": "zh_CN"
-    });
+        // ==========================================
+        // 8. 滚动入场动画初始化
+        // ==========================================
+        function initScrollReveal() {
+            // 给所有主卡片加上 reveal-card 类
+            document.querySelectorAll('.g-card-static').forEach(card => {
+                card.classList.add('reveal-card');
+            });
 
-    // 5. 插入脚本，开始渲染
-    container.appendChild(script);
-}
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                        // 触发后就不再重复监听，保持显示
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { 
+                threshold: 0.1, // 卡片露出 10% 时触发
+                rootMargin: "0px 0px -50px 0px" 
+            });
 
-// ==========================================
-// 关联触发逻辑 (这就是你困惑的第四步)
-// ==========================================
+            document.querySelectorAll('.reveal-card').forEach(el => observer.observe(el));
+        }
 
-// 1. 修改 toggleTheme 函数：切换主题时，顺便刷新行情条
-function toggleTheme() {
-    const html = document.documentElement;
-    const isDark = html.classList.toggle('dark');
-    
-    // 保存设置
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    
-    // 更新你的 Chart.js 图表颜色
-    updateChartTheme(isDark);
-    
-    // --- 关键：切换主题后，重载底部的 TradingView 组件 ---
-    // 稍微延迟 50毫秒，确保 DOM 类名切换完成
-    setTimeout(loadTradingViewTicker, 50); 
-}
+        // ==========================================
+        // 9. 开启丝滑惯性滚动 (Lenis)
+        // ==========================================
+        const lenis = new Lenis({
+            duration: 1.2, // 滚动阻尼时间，越大越滑
+            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // 缓动函数
+            smooth: true
+        });
 
-window.onload = function() { 
-    initCharts(); 
-    loadTheme();
-    updatePrivacyUI(); 
-    renderAllRows(); 
-    calculate(); 
-    initSortable(); 
-    document.getElementById('fx-rate').addEventListener('input', calculate);
-    
-    // --- 新增：页面加载时初始化行情条 ---
-    loadTradingViewTicker();
-};
+        function raf(time) {
+            lenis.raf(time);
+            requestAnimationFrame(raf);
+        }
+        requestAnimationFrame(raf);
+
+        // ==========================================
+        // 10. 页面加载初始化
+        // ==========================================
+        window.onload = function() { 
+            if (isPrivacyMode) {
+                document.getElementById('eye-open').classList.add('hidden');
+                document.getElementById('eye-closed').classList.remove('hidden');
+            }
+            initCharts(); 
+            loadTheme(); 
+            renderAllRows(); 
+            calculate(); 
+            initSortable(); 
+            document.getElementById('fx-rate').addEventListener('input', calculate);
+            loadTradingViewTicker();
+            initScrollReveal(); // 开启滚动动画
+        };
 
     </script>
-	<script type="module" src="https://widgets.tradingview-widget.com/w/en/tv-ticker-tape.js"></script>
-
-<div id="tv-ticker-container" class="fixed bottom-0 left-0 w-full z-50 transition-opacity duration-500" style="height: 46px;"></div>
+    <script type="module" src="https://widgets.tradingview-widget.com/w/en/tv-ticker-tape.js"></script>
+    <div id="tv-ticker-container" class="fixed bottom-0 left-0 w-full z-50 transition-opacity duration-500" style="height: 46px;"></div>
 </body>
 </html>
