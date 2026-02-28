@@ -4,6 +4,13 @@ const fs = require('fs');
 const dataPath = './data.json';
 let state = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
 
+// === 【修复点】确保所有核心字段存在，防止 filter 报错 ===
+if (!state.history) state.history = [];
+if (!state.usd) state.usd = [];
+if (!state.cn) state.cn = [];
+if (!state.cash) state.cash = [];
+if (!state.fxRate) state.fxRate = 7.25;
+
 // 获取环境变量中的 Finnhub 密钥
 const FINNHUB_KEY = process.env.FINNHUB_KEY;
 
@@ -21,7 +28,7 @@ async function updateData() {
     } catch(e) { console.error("汇率更新失败", e); }
 
     // 2. 更新美股数据
-    if (FINNHUB_KEY && state.usd) {
+    if (FINNHUB_KEY && state.usd.length > 0) {
         for (let item of state.usd) {
             if (!item.ticker || item.ticker === 'New') continue;
             try {
@@ -36,14 +43,13 @@ async function updateData() {
     }
 
     // 3. 更新 A 股数据
-    if (state.cn) {
+    if (state.cn.length > 0) {
         const symbols = state.cn.map(i => i.ticker.toLowerCase()).filter(t => t && t !== 'new');
         if (symbols.length > 0) {
             try {
                 const res = await fetch(`https://qt.gtimg.cn/q=${symbols.join(',')}`);
                 const text = await res.text();
                 symbols.forEach(symbol => {
-                    // 解析腾讯财经返回的字符串
                     const regex = new RegExp(`v_${symbol}="(.*?)";`);
                     const match = text.match(regex);
                     if (match) {
@@ -94,12 +100,11 @@ async function updateData() {
         todayRecord.total = grandTotal;
         todayRecord.pl = pl;
         todayRecord.rate = rate;
-        todayRecord.value = grandTotal; // 兼容旧版
+        todayRecord.value = grandTotal;
     } else {
         state.history.push({ date: todayStr, total: grandTotal, pl: pl, rate: rate, value: grandTotal });
     }
 
-    // 仅保留最近 365 天
     if (state.history.length > 365) state.history.shift();
 
     // 5. 保存回文件
