@@ -803,7 +803,12 @@
             // 将 state.history 转为日历字典
             const calData = {};
             state.history.forEach(item => {
-                calData[item.date] = { total: item.total || item.value || 0, pl: item.pl || 0, rate: item.rate || 0 };
+                calData[item.date] = { 
+                    total: item.total || item.value || 0, 
+                    pl: item.pl || 0, 
+                    rate: item.rate || 0,
+                    netFlow: item.netFlow || 0  // <--- 之前就是漏提取了这一项！
+                };
             });
 
             for (let i = 0; i < firstDay; i++) { grid.innerHTML += `<div></div>`; }
@@ -849,13 +854,15 @@
 
                         // 【新增】如果今天有超过 5 元的净现金变动，渲染右上角小角标
                         if (data.netFlow && Math.abs(data.netFlow) > 5) {
-                            let fv = data.netFlow;
-                            let fText = fv > 0 ? '+' : '';
-                            if (Math.abs(fv) >= 1000) fText += (fv/1000).toFixed(1) + 'k';
-                            else fText += Math.round(fv);
+                            let fv = Math.round(data.netFlow);
+                            let sign = fv > 0 ? '+' : '-';
+                            // 格式化为 CASH: +¥XXX 或 CASH: -¥XXX，并带有千分位逗号
+                            let fText =`${sign}${Math.abs(fv).toLocaleString()}`;
                             
-                            const fColor = fv > 0 ? 'text-blue-500 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30' : 'text-orange-500 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30';
-                            flowHtml = `<div class="absolute top-[3px] right-[3px] text-[0.55rem] font-bold ${fColor} px-1 rounded-sm tracking-tighter" title="Cash Flow">${fText}</div>`;
+                            // 统一使用黄色主题 (亮色模式: 金黄字+浅黄底, 暗色模式: 亮黄字+深黄底)
+                            const fColor = 'text-black dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-300 dark:border-yellow-800/50';
+                            
+                            flowHtml = `<div class="absolute top-[3px] right-[3px] text-[0.55rem] md:text-xs font-bold ${fColor} px-1 py-0.5 rounded shadow-sm tracking-tight" title="Cash Flow">${fText}</div>`;
                         }
                     }
 
