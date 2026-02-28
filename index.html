@@ -34,7 +34,6 @@
                         darkBorder: '#5f6368',
                         darkText: '#e8eaed',
                         darkTextSec: '#9aa0a6',
-                        // 股票涨跌专属配色 (红涨绿跌)
                         stockRed: '#f04a4a',
                         stockRedBg: '#fef1f1',
                         stockGreen: '#0fa968',
@@ -47,7 +46,7 @@
 
     <style>
         :root {
-            --bg-body: #f8f9fa;
+            --bg-body: #f0f2f5;
             --bg-card: #ffffff;
             --text-primary: #202124;
             --text-secondary: #5f6368;
@@ -66,39 +65,35 @@
             --input-focus-bg: #303134;
         }
 
-        /* --- 高级自定义滚动条 --- */
         ::-webkit-scrollbar {
-            width: 8px; /* 滚动条宽度 */
+            width: 8px; 
             height: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: transparent; /* 轨道透明 */
+            background: transparent; 
         }
         ::-webkit-scrollbar-thumb {
-            background-color: #dadce0; /* 默认亮色滑块 */
-            border-radius: 10px; /* 圆角 */
-            border: 2px solid var(--bg-body); /* 增加呼吸感 */
+            background-color: #dadce0; 
+            border-radius: 10px; 
+            border: 2px solid var(--bg-body); 
         }
         ::-webkit-scrollbar-thumb:hover {
-            background-color: #9aa0a6; /* 悬停变深 */
+            background-color: #9aa0a6; 
         }
-        /* 暗黑模式适配 */
         html.dark ::-webkit-scrollbar-thumb {
             background-color: #5f6368;
-            border-color: #202124; /* 匹配暗黑模式背景 */
+            border-color: #202124; 
         }
         html.dark ::-webkit-scrollbar-thumb:hover {
             background-color: #9aa0a6;
         }
 
-        /* --- 卡片入场动画的基础状态 --- */
         .reveal-card {
             opacity: 0;
             transform: translateY(30px);
             transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), 
                         transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
-        /* 卡片被触发后的激活状态 */
         .reveal-card.active {
             opacity: 1;
             transform: translateY(0);
@@ -113,11 +108,11 @@
         
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
-        .g-card-static {
+       .g-card-static {
             background-color: var(--bg-card);
-            border: 1px solid var(--border-color);
+            border: none;
             border-radius: 0.5rem;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            box-shadow: none;
             transition: background-color 0.3s, border-color 0.3s;
         }
 
@@ -202,8 +197,20 @@
         #delete-popover { transition: opacity 0.1s ease-in-out, transform 0.1s ease-in-out; }
         
         #sync-panel {
-            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, padding 0.3s;
+            /* 设定一个足够大的最大高度，让展开动画能平滑计算 */
+            max-height: 500px; 
+            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease-in-out, padding 0.4s ease-in-out, margin 0.4s ease-in-out;
             overflow: hidden;
+            transform-origin: top;
+        }
+        #sync-panel.hidden-panel {
+            max-height: 0; 
+            opacity: 0; 
+            padding-top: 0; 
+            padding-bottom: 0; 
+            border: none; 
+            margin-top: 0;
+            margin-bottom: 0;
         }
         #sync-panel.hidden-panel {
             max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; border: none; margin: 0;
@@ -212,7 +219,7 @@
 </head>
 <body class="min-h-screen py-6 font-sans pb-16" onclick="handleBodyClick(event)">
 
-    <div class="w-full px-[30px]">
+    <div class="w-full px-[10px]">
         
         <header class="mb-6 flex justify-between items-center px-1">
             <div class="flex items-center gap-4">
@@ -285,7 +292,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
 
             <div class="lg:col-span-2 flex flex-col gap-4">
                 <div class="g-card-static p-6 flex-shrink-0">
@@ -458,36 +465,57 @@
 
         </div> 
         
-        <div class="g-card-static p-6 mt-5 w-full">
-            <div class="flex justify-between items-center mb-4">
-                <div class="flex items-center gap-3">
-                    <h2 class="text-sm font-bold text-textPrimary dark:text-darkText uppercase tracking-wider">Daily Performance</h2>
-                    <span id="cal-view-badge" class="px-2 py-1 text-[0.7rem] font-bold bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded">P/L</span>
+        <div class="g-card-static p-6 mt-3 w-full bg-white dark:bg-darkSurface transition-colors border-none shadow-sm">
+            <div class="flex justify-between items-center mb-1.5">
+                
+                <div class="flex gap-1.5 bg-gray-100 dark:bg-darkBg p-1 rounded-lg">
+                    <button id="tab-daily" onclick="switchView('daily')" class="px-6 py-2 text-sm font-bold rounded-md bg-white dark:bg-darkSurface shadow-sm text-textPrimary dark:text-darkText transition-all">Daily View</button>
+                    <button id="tab-yearly" onclick="switchView('yearly')" class="px-6 py-2 text-sm font-bold rounded-md text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText transition-all">Yearly View</button>
                 </div>
-                <button onclick="toggleCalendarView()" class="text-xs font-medium text-textSecondary dark:text-darkTextSec hover:text-googleBlue dark:hover:text-googleBlue transition-colors flex items-center gap-1 bg-gray-50 dark:bg-darkBg px-3 py-1.5 rounded-full border border-gray-200 dark:border-darkBorder">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
-                    <span id="cal-toggle-text">View: Rate</span>
-                </button>
+                
+                <div id="controls-daily" class="flex gap-1 bg-gray-100 dark:bg-darkBg p-1 rounded-lg">
+                    <button id="view-mode-0" onclick="setCalendarView(0)" class="px-4 py-1.5 text-xs font-bold rounded-md bg-white dark:bg-darkSurface shadow-sm text-blue-600 dark:text-blue-400 transition-all">P/L</button>
+                    <button id="view-mode-1" onclick="setCalendarView(1)" class="px-4 py-1.5 text-xs font-bold rounded-md text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText transition-all">Rate</button>
+                    <button id="view-mode-2" onclick="setCalendarView(2)" class="px-4 py-1.5 text-xs font-bold rounded-md text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText transition-all">Total</button>
+                </div>
+
+                <div id="controls-yearly" class="hidden flex items-center gap-3">
+                    <span class="px-3 py-1.5 text-xs font-bold bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full" id="current-year-badge">2026</span>
+                </div>
             </div>
             
-            <div class="flex justify-center items-center gap-4 mb-4">
-                <button onclick="changeMonth(-1)" class="p-1.5 text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText bg-gray-50 dark:bg-darkBg rounded-full border border-transparent hover:border-gray-200 dark:hover:border-darkBorder transition-all focus:outline-none">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
-                </button>
-                <div id="cal-month-display" class="text-base font-bold text-textPrimary dark:text-darkText w-28 text-center tracking-wide">...</div>
-                <button onclick="changeMonth(1)" class="p-1.5 text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText bg-gray-50 dark:bg-darkBg rounded-full border border-transparent hover:border-gray-200 dark:hover:border-darkBorder transition-all focus:outline-none">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-                </button>
+            <div id="view-daily" class="w-full">
+                <div class="flex justify-center items-center gap-4 mb-4">
+                    <button onclick="changeMonth(-1)" class="p-1.5 text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText bg-gray-50 dark:bg-darkBg rounded-full transition-all focus:outline-none">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                    </button>
+                    <div id="cal-month-display" class="text-base font-bold text-textPrimary dark:text-darkText w-32 text-center tracking-wide">...</div>
+                    <button onclick="changeMonth(1)" class="p-1.5 text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText bg-gray-50 dark:bg-darkBg rounded-full transition-all focus:outline-none">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                    </button>
+                </div>
+               
+                <div id="calendar-grid" class="grid grid-cols-7 gap-2.5 mt-4"></div>
             </div>
 
-            <div class="grid grid-cols-7 text-center text-xs font-bold text-textSecondary dark:text-darkTextSec mb-2 uppercase tracking-wider">
-                <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+            <div id="view-yearly" class="hidden w-full">
+                <div class="flex justify-center items-center gap-4 mb-4">
+                    <button onclick="changeYear(-1)" class="p-1.5 text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText bg-gray-50 dark:bg-darkBg rounded-full transition-all focus:outline-none">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                    </button>
+                    <div id="cal-year-display" class="text-base font-bold text-textPrimary dark:text-darkText w-32 text-center tracking-wide">...</div>
+                    <button onclick="changeYear(1)" class="p-1.5 text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText bg-gray-50 dark:bg-darkBg rounded-full transition-all focus:outline-none">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                    </button>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 mb-6" id="monthly-grid"></div>
+               <div class="flex flex-col justify-center items-center gap-1 pt-2">
+    <span class="text-sm font-bold text-textSecondary dark:text-darkTextSec uppercase tracking-wider">YTD</span>
+    <span id="yearly-total" class="text-3xl font-bold font-mono mt-1">--</span>
+</div>
             </div>
-            
-            <div id="calendar-grid" class="grid grid-cols-7 gap-2"></div>
         </div>
-
-    </div>
+        </div>
 
     <div id="delete-popover" class="hidden absolute z-50 bg-white dark:bg-[#303134] shadow-lg border border-gray-200 dark:border-gray-600 rounded-lg p-2 opacity-0 transform scale-95 origin-top-right w-40">
         <p class="text-xs text-textPrimary dark:text-darkText font-medium text-center mb-2 p-1">Confirm Delete?</p>
@@ -511,7 +539,167 @@
             }
             window.requestAnimationFrame(step);
         }
+// ==============================================
+        // 系统设置面板与配置保存逻辑
+        // ==============================================
+        
+        // 控制设置面板的展开与收起
+        function toggleSyncPanel() {
+            const panel = document.getElementById('sync-panel');
+            if (panel.classList.contains('hidden-panel')) {
+                // 面板展开时，自动从本地读取已保存的配置填充到输入框
+                document.getElementById('gh-token').value = localStorage.getItem('gh_token') || '';
+                document.getElementById('gh-repo').value = localStorage.getItem('gh_repo') || '';
+                document.getElementById('gh-path').value = localStorage.getItem('gh_path') || '';
+                document.getElementById('finnhub-token').value = localStorage.getItem('finnhub_key') || '';
+                panel.classList.remove('hidden-panel');
+            } else {
+                panel.classList.add('hidden-panel');
+            }
+        }
 
+        // 保存配置并给予视觉反馈
+        function saveSyncSettings() {
+            const ghToken = document.getElementById('gh-token').value;
+            const ghRepo = document.getElementById('gh-repo').value;
+            const ghPath = document.getElementById('gh-path').value;
+            const finnhubToken = document.getElementById('finnhub-token').value;
+
+            // 保存到本地浏览器缓存
+            localStorage.setItem('gh_token', ghToken);
+            localStorage.setItem('gh_repo', ghRepo);
+            localStorage.setItem('gh_path', ghPath);
+            localStorage.setItem('finnhub_key', finnhubToken);
+
+            // 动态按钮反馈效果
+            const saveBtn = document.querySelector('button[onclick="saveSyncSettings()"]');
+            const originalText = saveBtn.innerText;
+            saveBtn.innerText = 'Saved ✓';
+            saveBtn.classList.add('text-googleGreen', 'border-googleGreen');
+            
+            // 2秒后恢复原状
+            setTimeout(() => {
+                saveBtn.innerText = originalText;
+                saveBtn.classList.remove('text-googleGreen', 'border-googleGreen');
+            }, 2000);
+        }
+// ==============================================
+        // 数据导出与导入逻辑
+        // ==============================================
+        
+        // 导出本地数据为 JSON 文件
+        function exportData() {
+            try {
+                // 将当前的 state 对象转为格式化的 JSON 字符串
+                const dataStr = JSON.stringify(state, null, 2);
+                const blob = new Blob([dataStr], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                
+                // 自动生成当天的日期作为文件名
+                const dateSuffix = new Date().toISOString().slice(0,10);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `AssetHub_Backup_${dateSuffix}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch (err) {
+                console.error("Export failed:", err);
+            }
+        }
+
+        // 读取导入的 JSON 文件并刷新页面数据
+        function importData(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedState = JSON.parse(e.target.result);
+                    if (importedState && typeof importedState === 'object') {
+                        state = importedState;
+                        
+                        // 兼容处理缺失的字段
+                        if(!state.usd) state.usd = [];
+                        if(!state.cn) state.cn = [];
+                        if(!state.cash) state.cash = [];
+                        if(!state.history) state.history = [];
+                        
+                        // 保存并全面重绘界面
+                        saveData();
+                        calculate();
+                        renderAllRows();
+                        initSortable();
+                        
+                        // 如果汇率有覆盖，更新输入框
+                        if(state.fxRate) document.getElementById('fx-rate').value = state.fxRate;
+                        
+                        // 按钮给出视觉反馈
+                        const importBtn = input.previousElementSibling;
+                        const origText = importBtn.innerHTML;
+                        importBtn.innerHTML = 'Success ✓';
+                        importBtn.classList.add('text-googleGreen', 'border-googleGreen');
+                        
+                        setTimeout(() => {
+                            importBtn.innerHTML = origText;
+                            importBtn.classList.remove('text-googleGreen', 'border-googleGreen');
+                        }, 2000);
+                    }
+                } catch (err) {
+                    alert('数据格式不正确，导入失败！');
+                }
+            };
+            reader.readAsText(file);
+            input.value = ''; // 清空 input 的值，以便下次可以重复导入同一个文件
+        }
+        // 顺便补齐备份数据到 GitHub 的逻辑 (如果之前丢失的话)
+        async function pushToGithub() {
+            const token = localStorage.getItem('gh_token');
+            const repo = localStorage.getItem('gh_repo');
+            const path = localStorage.getItem('gh_path');
+            if (!token || !repo) return alert('请先保存 GitHub 配置');
+
+            const btn = document.querySelector('button[onclick="pushToGithub()"]');
+            const origText = btn.innerText;
+            btn.innerText = 'Pushing...';
+
+            const url = `https://api.github.com/repos/${repo}/contents/${path}`;
+            try {
+                let sha = '';
+                const getRes = await fetch(url, { headers: { Authorization: `token ${token}` } });
+                if (getRes.ok) {
+                    const data = await getRes.json();
+                    sha = data.sha;
+                }
+
+                const content = btoa(unescape(encodeURIComponent(JSON.stringify(state))));
+                const body = { message: "Backup from AssetHub", content: content, sha: sha || undefined };
+
+                const putRes = await fetch(url, {
+                    method: 'PUT',
+                    headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                if (putRes.ok) {
+                    btn.innerText = 'Success ✓';
+                    btn.classList.add('bg-googleGreen');
+                } else {
+                    btn.innerText = 'Failed ✕';
+                    btn.classList.add('bg-googleRed');
+                }
+            } catch (e) { 
+                btn.innerText = 'Error ✕';
+            } finally {
+                setTimeout(() => {
+                    btn.innerText = origText;
+                    btn.className = 'btn-action text-white bg-googleBlue border-transparent hover:bg-blue-600 shadow-sm';
+                }, 2000);
+            }
+        }
         const defaultState = {
             usd: [{ id: '1', ticker: 'VOO', shares: 0, cost: 0, price: 0 }],
             cn: [{ id: '5', ticker: 'sh600036', shares: 0, cost: 0, price: 0 }],
@@ -538,14 +726,8 @@
         let charts = {};
         let itemToDelete = null;
         
-        // 日历状态管理 (0=P/L, 1=Rate, 2=Total)
         let displayDate = new Date();
         let calViewMode = 0; 
-        const calModes = [
-            { id: 0, current: "P/L", next: "View: Rate" },
-            { id: 1, current: "Rate", next: "View: Total" },
-            { id: 2, current: "Total", next: "View: P/L" }
-        ];
 
         function saveData() {
             state.fxRate = parseFloat(document.getElementById('fx-rate').value) || 7.25;
@@ -576,10 +758,6 @@
             const grandTotal = (totalUsdAssets * fx) + totalRmbAssets;
             const cashRatio = grandTotal > 0 ? (totalCashValRmb / grandTotal) * 100 : 0;
 
-            // --- 自动记录与盈亏计算模块 ---
-            // 获取本地时区的正确日期字符串 YYYY-MM-DD
-            // --- 自动记录与盈亏计算模块 ---
-            // 1. 计算总成本基准
             const totalUsdStockCost = usdItems.reduce((a, i) => a + (i.shares * (i.cost || 0)), 0);
             const totalCnStockCost = cnItems.reduce((a, i) => a + (i.shares * (i.cost || 0)), 0);
             const currentTotalCost = Math.round((totalUsdStockCost + totalUsdCashVal) * fx + totalCnStockCost + totalRmbCashVal);
@@ -591,16 +769,13 @@
             const pastRecords = state.history.filter(h => h.date !== todayStr);
             let baseline = pastRecords.length > 0 ? pastRecords[pastRecords.length - 1] : null;
 
-            // 【核心修复：Day 1 测试模式支持】
-            // 如果没有昨天的记录（首次测试），我们冻结第一次打开时的状态作为“虚拟的昨天”
             if (!baseline) {
                 if (!state.day1Baseline) state.day1Baseline = { total: currentTotal, cost: currentTotalCost };
                 baseline = state.day1Baseline;
             } else {
-                delete state.day1Baseline; // 以后有了真实历史记录，自动清理这个临时基准
+                delete state.day1Baseline; 
             }
 
-            // 兼容以前的旧数据
             if (baseline && baseline.cost === undefined) {
                 baseline.cost = currentTotalCost;
             }
@@ -611,7 +786,7 @@
                 const prevCost = baseline.cost; 
                 
                 netFlow = currentTotalCost - prevCost;
-                pl = currentTotal - prevTotal - netFlow; // 剥离流水后的真实盈亏
+                pl = currentTotal - prevTotal - netFlow; 
                 rate = prevTotal > 0 ? (pl / prevTotal) * 100 : 0;
             }
 
@@ -631,9 +806,7 @@
             }
             
             if (state.history.length > 365) state.history.shift();
-            // ------------------------------
 
-            // 更新 UI 数字
             const totalNwEl = document.getElementById('total-nw-cny');
             if (totalNwEl) {
                 if (isPrivacyMode) totalNwEl.innerText = '******';
@@ -663,10 +836,8 @@
                 bar.className = `h-full rounded-full transition-all duration-500 ${cashRatio < 15 ? 'bg-googleRed' : 'bg-googleGreen'}`;
             }
 
-            // 更新主图表
             if(charts.main) updateChart(charts.main, [(totalUsdStockVal * fx), totalCnStockVal, totalCashValRmb]);
 
-            // 子图表更新
             const usLabels = usdItems.map(i => i.ticker);
             const usData = usdItems.map(i => i.shares * i.price);
             const cnLabels = cnItems.map(i => i.ticker);
@@ -694,7 +865,8 @@
             updateCashRowValues(totalCashValRmb, fx);
 
             saveData();
-            renderCalendar(); // 每次计算后同步刷新全宽日历
+            renderCalendar(); 
+            renderYearlySummary(); 
         }
 
         function updateRowValues(type, items, totalVal, symbol) {
@@ -739,7 +911,7 @@
         }
 
         // ==============================================
-        // 3. 渲染模块 (表格 + 日历)
+        // 3. 渲染模块 (表格 + 视图切换 + 复合日历)
         function renderAllRows() {
             renderRows('usd', state.usd, '$');
             renderRows('cn', state.cn, '¥');
@@ -786,7 +958,133 @@
             container.querySelectorAll('input').forEach(i => i.addEventListener('input', e => handleInput(e.target)));
         }
 
-        // --- 全宽版日历渲染逻辑 ---
+        // --- 视图切换相关 ---
+        function switchView(view) {
+            const tabDaily = document.getElementById('tab-daily');
+            const tabYearly = document.getElementById('tab-yearly');
+            const viewDaily = document.getElementById('view-daily');
+            const viewYearly = document.getElementById('view-yearly');
+            const controlsDaily = document.getElementById('controls-daily');
+            const controlsYearly = document.getElementById('controls-yearly');
+
+            const activeClasses = ['bg-white', 'dark:bg-darkSurface', 'shadow-sm', 'text-textPrimary', 'dark:text-darkText'];
+            const inactiveClasses = ['text-textSecondary', 'dark:text-darkTextSec', 'hover:text-textPrimary', 'dark:hover:text-darkText'];
+
+            if (view === 'daily') {
+                tabDaily.classList.add(...activeClasses);
+                tabDaily.classList.remove(...inactiveClasses);
+                tabYearly.classList.add(...inactiveClasses);
+                tabYearly.classList.remove(...activeClasses);
+                
+                viewDaily.classList.remove('hidden');
+                controlsDaily.classList.remove('hidden');
+                viewYearly.classList.add('hidden');
+                controlsYearly.classList.add('hidden');
+            } else {
+                tabYearly.classList.add(...activeClasses);
+                tabYearly.classList.remove(...inactiveClasses);
+                tabDaily.classList.add(...inactiveClasses);
+                tabDaily.classList.remove(...activeClasses);
+                
+                viewYearly.classList.remove('hidden');
+                controlsYearly.classList.remove('hidden');
+                viewDaily.classList.add('hidden');
+                controlsDaily.classList.add('hidden');
+            }
+        }
+
+        function setCalendarView(mode) {
+            calViewMode = mode;
+            const activeClasses = ['bg-white', 'dark:bg-darkSurface', 'shadow-sm', 'text-blue-600', 'dark:text-blue-400'];
+            const inactiveClasses = ['text-textSecondary', 'dark:text-darkTextSec', 'hover:text-textPrimary', 'dark:hover:text-darkText'];
+
+            for (let i = 0; i <= 2; i++) {
+                const btn = document.getElementById(`view-mode-${i}`);
+                if (i === mode) {
+                    btn.classList.add(...activeClasses);
+                    btn.classList.remove(...inactiveClasses);
+                } else {
+                    btn.classList.add(...inactiveClasses);
+                    btn.classList.remove(...activeClasses);
+                }
+            }
+            renderCalendar();
+        }
+
+        function jumpToMonth(monthIndex) {
+            displayDate.setMonth(monthIndex);
+            renderCalendar();
+            renderYearlySummary();
+            switchView('daily');
+        }
+
+        function renderYearlySummary() {
+            const currentYear = displayDate.getFullYear();
+            const yearBadge = document.getElementById('current-year-badge');
+            if (yearBadge) yearBadge.innerText = currentYear;
+            
+            const yearDisplay = document.getElementById('cal-year-display');
+            if (yearDisplay) yearDisplay.innerText = currentYear;
+
+            const monthlyData = new Array(12).fill(0);
+            let ytdTotal = 0;
+
+            state.history.forEach(record => {
+                if (!record.date) return;
+                const parts = record.date.split('-');
+                const year = parseInt(parts[0]);
+                const month = parseInt(parts[1]) - 1; 
+
+                if (year === currentYear) {
+                    const pl = record.pl || 0;
+                    monthlyData[month] += pl;
+                    ytdTotal += pl;
+                }
+            });
+
+            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const grid = document.getElementById('monthly-grid');
+            
+            if (grid) {
+                grid.innerHTML = monthlyData.map((val, index) => {
+                    const isPos = val >= 0;
+                    const valText = val === 0 ? '0.00' : (isPos ? '+' + val.toFixed(2) : val.toFixed(2));
+                    
+                    let colorClass = 'text-gray-400 dark:text-gray-500';
+                    let bgClass = 'bg-gray-50 dark:bg-darkBg';
+                    
+                    if (val > 0) {
+                        colorClass = 'text-stockGreen dark:text-green-300';
+                        bgClass = 'bg-stockGreenBg dark:bg-green-900/20';
+                    } else if (val < 0) {
+                        colorClass = 'text-stockRed dark:text-red-300';
+                        bgClass = 'bg-stockRedBg dark:bg-red-900/20';
+                    }
+                    
+                    return `
+                        <div onclick="jumpToMonth(${index})" class="py-6 px-3 min-h-[200px] rounded-lg ${bgClass} flex flex-col items-center justify-center cursor-pointer hover:-translate-y-1.5 transition-all duration-300">
+                            <span class="text-sm font-bold text-gray-500 dark:text-darkTextSec uppercase mb-3">${monthNames[index]}</span>
+                            <span class="text-2xl font-bold font-mono tracking-tight ${colorClass}">${valText}</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            const totalEl = document.getElementById('yearly-total');
+            if (totalEl) {
+                const isPos = ytdTotal >= 0;
+                totalEl.innerText = (isPos ? '+' : '') + ytdTotal.toFixed(2);
+                
+                if (ytdTotal > 0) {
+                    totalEl.className = 'text-3xl font-bold font-mono tracking-tight text-stockGreen dark:text-green-300';
+                } else if (ytdTotal < 0) {
+                    totalEl.className = 'text-3xl font-bold font-mono tracking-tight text-stockRed dark:text-red-300';
+                } else {
+                    totalEl.className = 'text-3xl font-bold font-mono tracking-tight text-gray-400 dark:text-gray-500';
+                }
+            }
+        }
+
         function renderCalendar() {
             const year = displayDate.getFullYear();
             const month = displayDate.getMonth();
@@ -800,14 +1098,13 @@
             const firstDay = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-            // 将 state.history 转为日历字典
             const calData = {};
             state.history.forEach(item => {
                 calData[item.date] = { 
                     total: item.total || item.value || 0, 
                     pl: item.pl || 0, 
                     rate: item.rate || 0,
-                    netFlow: item.netFlow || 0  // <--- 之前就是漏提取了这一项！
+                    netFlow: item.netFlow || 0  
                 };
             });
 
@@ -821,12 +1118,11 @@
                 const data = calData[dateStr];
                 const isToday = (dateStr === todayStr);
 
-                // 修复 1：暗黑模式空状态对比度优化
                 let bgClass = "bg-gray-50 dark:bg-darkBg";
                 let textClass = "text-gray-400 dark:text-darkTextSec";
                 let dayText = day;
                 let valHtml = `<span class="text-sm text-transparent">0</span>`; 
-                let flowHtml = ''; // 专门用于渲染出入金角标
+                let flowHtml = ''; 
 
                 if (data) {
                     const isPos = data.pl >= 0;
@@ -834,35 +1130,29 @@
                     
                     if (isPrivacyMode) {
                         displayVal = '***';
-                        textClass = "text-textSecondary dark:text-darkTextSec";
+                        textClass = "text-gray-500 dark:text-darkTextSec";
                         bgClass = "bg-gray-100 dark:bg-[#3c4043]";
                     } else {
-                        // 视图模式判断
                         if (calViewMode === 0) {
                             displayVal = isPos ? `+${data.pl.toFixed(2)}` : `${data.pl.toFixed(2)}`;
-                            textClass = isPos ? "text-stockGreen dark:text-green-400" : "text-stockRed dark:text-red-400";
-                            bgClass = isPos ? "bg-stockGreenBg dark:bg-green-900/30" : "bg-stockRedBg dark:bg-red-900/30";
+                            textClass = isPos ? "text-stockGreen dark:text-green-300" : "text-stockRed dark:text-red-300";
+                            bgClass = isPos ? "bg-stockGreenBg dark:bg-green-900/20" : "bg-stockRedBg dark:bg-red-900/20";
                         } else if (calViewMode === 1) {
                             displayVal = isPos ? `+${data.rate.toFixed(2)}%` : `${data.rate.toFixed(2)}%`;
-                            textClass = isPos ? "text-stockGreen dark:text-green-400" : "text-stockRed dark:text-red-400";
-                            bgClass = isPos ? "bg-stockGreenBg dark:bg-green-900/30" : "bg-stockRedBg dark:bg-red-900/30";
+                            textClass = isPos ? "text-stockGreen dark:text-green-300" : "text-stockRed dark:text-red-300";
+                            bgClass = isPos ? "bg-stockGreenBg dark:bg-green-900/20" : "bg-stockRedBg dark:bg-red-900/20";
                         } else {
                             displayVal = `¥${Math.round(data.total).toLocaleString()}`;
-                            textClass = "text-textPrimary dark:text-darkText";
-                            bgClass = isPos ? "bg-stockGreenBg dark:bg-green-900/30" : "bg-stockRedBg dark:bg-red-900/30";
+                            textClass = "text-gray-900 dark:text-gray-100";
+                            bgClass = isPos ? "bg-stockGreenBg dark:bg-green-900/20" : "bg-stockRedBg dark:bg-red-900/20";
                         }
 
-                        // 【新增】如果今天有超过 5 元的净现金变动，渲染右上角小角标
                         if (data.netFlow && Math.abs(data.netFlow) > 5) {
                             let fv = Math.round(data.netFlow);
                             let sign = fv > 0 ? '+' : '-';
-                            // 格式化为 CASH: +¥XXX 或 CASH: -¥XXX，并带有千分位逗号
-                            let fText =`${sign}${Math.abs(fv).toLocaleString()}`;
-                            
-                            // 统一使用黄色主题 (亮色模式: 金黄字+浅黄底, 暗色模式: 亮黄字+深黄底)
-                            const fColor = 'text-yellow-400 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-300 dark:border-yellow-800/50';
-                            
-                            flowHtml = `<div class="absolute top-[6px] right-[6px] text-[0.55rem] md:text-xs font-bold ${fColor} px-1 py-0.5 rounded shadow-sm tracking-tight" title="Cash Flow">${fText}</div>`;
+                            let fText = `${sign}${Math.abs(fv).toLocaleString()}`;
+                           const fColor = 'text-yellow-400 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-300 dark:border-yellow-800/50';
+                              flowHtml = `<div class="absolute top-[6px] right-[6px] text-[0.55rem] md:text-xs font-bold ${fColor} px-1 py-0.5 rounded shadow-sm tracking-tight" title="Cash Flow">${fText}</div>`;
                         }
                     }
                     
@@ -871,7 +1161,6 @@
                     bgClass = "bg-gray-50 dark:bg-darkBg";
                 }
 
-                // 给容器增加 relative 类，支撑角标绝对定位
                 grid.innerHTML += `
                     <div class="relative flex flex-col justify-center items-center py-4 min-h-[80px] rounded-lg w-full transition-all hover:brightness-95 cursor-default ${bgClass}">
                         ${flowHtml}
@@ -885,13 +1174,13 @@
         function changeMonth(offset) {
             displayDate.setMonth(displayDate.getMonth() + offset);
             renderCalendar();
+            renderYearlySummary();
         }
 
-        function toggleCalendarView() {
-            calViewMode = (calViewMode + 1) % 3;
-            document.getElementById('cal-view-badge').innerText = calModes[calViewMode].current;
-            document.getElementById('cal-toggle-text').innerText = calModes[calViewMode].next;
+        function changeYear(offset) {
+            displayDate.setFullYear(displayDate.getFullYear() + offset);
             renderCalendar();
+            renderYearlySummary();
         }
 
         // ==============================================
@@ -922,11 +1211,11 @@
             const rawSymbols = state.cn.map(item => item.ticker.toLowerCase()).filter(t => t && t !== 'new');
             if (rawSymbols.length === 0) {
                 if (icon) icon.classList.remove('animate-spin');
-                return alert('请输入 A 股代码 (如 sh600000)');
+                return; 
             }
 
             const script = document.createElement('script');
-            script.src = `https://qt.gtimg.cn/q=${rawSymbols.join(',')}`;
+            script.src = `https://qt.gtimg.cn/q=${rawSymbols.join(',')}&t=${Date.now()}`;
             
             script.onload = function() {
                 let updatedCount = 0;
@@ -944,7 +1233,10 @@
                 if (icon) icon.classList.remove('animate-spin');
                 document.body.removeChild(script);
             };
-            script.onerror = function() { alert('网络请求失败'); if (icon) icon.classList.remove('animate-spin'); };
+            script.onerror = function() { 
+                console.error('A股网络请求失败'); 
+                if (icon) icon.classList.remove('animate-spin'); 
+            };
             document.body.appendChild(script);
         }
 
@@ -1015,7 +1307,8 @@
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
             updateChartTheme(isDark);
             setTimeout(loadTradingViewTicker, 50); 
-            renderCalendar(); // 主题切换时重新渲染日历确保颜色同步
+            renderCalendar();
+            renderYearlySummary();
         }
 
         function loadTheme() {
@@ -1175,9 +1468,7 @@
 
         // ==========================================
         // 8. 滚动入场动画初始化
-        // ==========================================
         function initScrollReveal() {
-            // 给所有主卡片加上 reveal-card 类
             document.querySelectorAll('.g-card-static').forEach(card => {
                 card.classList.add('reveal-card');
             });
@@ -1186,12 +1477,11 @@
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add('active');
-                        // 触发后就不再重复监听，保持显示
                         observer.unobserve(entry.target);
                     }
                 });
             }, { 
-                threshold: 0.1, // 卡片露出 10% 时触发
+                threshold: 0.1, 
                 rootMargin: "0px 0px -50px 0px" 
             });
 
@@ -1200,10 +1490,9 @@
 
         // ==========================================
         // 9. 开启丝滑惯性滚动 (Lenis)
-        // ==========================================
         const lenis = new Lenis({
-            duration: 1.2, // 滚动阻尼时间，越大越滑
-            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // 缓动函数
+            duration: 1.2, 
+            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), 
             smooth: true
         });
 
@@ -1213,49 +1502,25 @@
         }
         requestAnimationFrame(raf);
 
-// ==========================================
-        // 11. 智能静默自动刷新机制 (10分钟冷却)
         // ==========================================
-        function updateCnStockPrices() {
-            const icon = document.getElementById('refresh-icon-cn');
-            if (icon) icon.classList.add('animate-spin');
-
-            const rawSymbols = state.cn.map(item => item.ticker.toLowerCase()).filter(t => t && t !== 'new');
-            if (rawSymbols.length === 0) {
-                if (icon) icon.classList.remove('animate-spin');
-                return; // 自动刷新时，如果没有A股代码，直接静默退出，不再弹窗报错
+        // 10. 智能静默自动刷新机制 (10分钟冷却)
+        function autoRefreshPrices() {
+            const lastRefresh = localStorage.getItem('last_auto_refresh');
+            const now = Date.now();
+            const cooldown = 10 * 60 * 1000; 
+            if (!lastRefresh || (now - parseInt(lastRefresh)) > cooldown) {
+                console.log("冷却完毕，后台静默拉取最新资产价格");
+                updateCnStockPrices();
+                fetchLiveRate();
+                if (localStorage.getItem('finnhub_key')) {
+                    updateUsStockPrices();
+                }
+                localStorage.setItem('last_auto_refresh', now.toString());
             }
-
-            const script = document.createElement('script');
-            // 核心修复：在网址末尾加上 &t=${Date.now()} 强制打破浏览器缓存，确保每次都是最新价
-            script.src = `https://qt.gtimg.cn/q=${rawSymbols.join(',')}&t=${Date.now()}`;
-            
-            script.onload = function() {
-                let updatedCount = 0;
-                rawSymbols.forEach(symbol => {
-                    const dataStr = window['v_' + symbol];
-                    if (dataStr) {
-                        const parts = dataStr.split('~');
-                        const price = parseFloat(parts[3]); 
-                        const stock = state.cn.find(i => i.ticker.toLowerCase() === symbol);
-                        if (stock && price > 0) { stock.price = price; updatedCount++; }
-                    }
-                });
-
-                if (updatedCount > 0) { saveData(); renderAllRows(); calculate(); }
-                if (icon) icon.classList.remove('animate-spin');
-                document.body.removeChild(script);
-            };
-            script.onerror = function() { 
-                console.error('A股网络请求失败'); // 失败也改为后台静默打印
-                if (icon) icon.classList.remove('animate-spin'); 
-            };
-            document.body.appendChild(script);
         }
 
         // ==========================================
-        // 10. 页面加载初始化
-        // ==========================================
+        // 11. 页面加载初始化
         window.onload = function() { 
             if (isPrivacyMode) {
                 document.getElementById('eye-open').classList.add('hidden');
@@ -1269,8 +1534,6 @@
             document.getElementById('fx-rate').addEventListener('input', calculate);
             loadTradingViewTicker();
             initScrollReveal(); 
-            
-            // 加入这一行：启动智能自动刷新
             autoRefreshPrices();
         };
 
