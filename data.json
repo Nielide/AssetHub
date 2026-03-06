@@ -35,21 +35,21 @@
       "ticker": "SH518880",
       "shares": 1300,
       "cost": 10.373,
-      "price": 10.964
+      "price": 10.873
     },
     {
       "id": "5",
       "ticker": "SH513050",
       "shares": 1600,
       "cost": 1.262,
-      "price": 1.222
+      "price": 1.263
     },
     {
       "id": "1772520779722",
       "ticker": "SH588000",
       "shares": 1400,
       "cost": 1.476,
-      "price": 1.482
+      "price": 1.491
     }
   ],
   "cash": [
@@ -72,7 +72,7 @@
       "currency": "CNY"
     }
   ],
-  "fxRate": 6.9057,
+  "fxRate": 6.9099,
   "isDark": false,
   "theme": "light",
   "history": [
@@ -132,12 +132,12 @@
     },
     {
       "date": "2026-03-06",
-      "total": 227462,
-      "cost": 230371,
-      "pl": -495,
-      "rate": -0.2171462161723483,
-      "netFlow": 0,
-      "value": 227462
+      "total": 227524,
+      "cost": 230475,
+      "pl": -537,
+      "rate": -0.2355707436051536,
+      "netFlow": 104,
+      "value": 227524
     }
   ]
 }
