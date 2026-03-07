@@ -1,1 +1,159 @@
-{"usd":[{"id":"1","ticker":"VOO","shares":9.08,"cost":636.96,"price":618.43},{"id":"2","ticker":"QQQM","shares":20.69,"cost":256.05,"price":246.97},{"id":"4","ticker":"SGOV","shares":106,"cost":100.45,"price":100.45},{"id":"3","ticker":"META","shares":4,"cost":740,"price":644.86}],"cn":[{"id":"6","ticker":"SH518880","shares":1300,"cost":10.373,"price":10.873},{"id":"5","ticker":"SH513050","shares":1600,"cost":1.262,"price":1.263},{"id":"1772520779722","ticker":"SH588000","shares":1400,"cost":1.476,"price":1.491},{"id":"1772715468763","ticker":"SZ159930","shares":0,"cost":0,"price":1.807}],"cash":[{"id":"1770029043208","ticker":"IBRK USD","amount":42.05,"currency":"USD"},{"id":"1772365669150","ticker":"SDIC CHY","amount":9157,"currency":"CNY"},{"id":"8","ticker":"WMP-90D","amount":40788,"currency":"CNY"}],"fxRate":6.9167,"isDark":false,"theme":"light","history":[{"date":"2026-02-28","total":228897,"cost":231523,"pl":-828,"rate":-0.35867135654012094,"netFlow":-1127,"value":228897},{"date":"2026-03-01","total":225955,"cost":228591,"pl":-10,"rate":-0.004368777222943071,"netFlow":-2932,"value":225955},{"date":"2026-03-02","total":227337,"cost":228563,"pl":1410,"rate":0.6240180566927043,"netFlow":-28,"value":227337},{"date":"2026-03-03","total":227828,"cost":230304,"pl":-1250,"rate":-0.5498445039742761,"netFlow":1741,"value":227828},{"date":"2026-03-04","total":227029,"cost":230603,"pl":-1098,"rate":-0.4819425180399249,"netFlow":299,"value":227029},{"date":"2026-03-05","total":235578,"cost":238121,"pl":1031,"rate":0.45412700580102106,"netFlow":7518,"value":235578},{"date":"2026-03-06","total":235453,"cost":238404,"pl":-408,"rate":-0.17319104500420243,"netFlow":283,"value":235453},{"date":"2026-03-07","total":234150,"cost":238573,"pl":-1472,"rate":-0.6251778486576939,"netFlow":169,"value":234150}]}
+{
+  "usd": [
+    {
+      "id": "1",
+      "ticker": "VOO",
+      "shares": 9.08,
+      "cost": 636.96,
+      "price": 618.43
+    },
+    {
+      "id": "2",
+      "ticker": "QQQM",
+      "shares": 20.69,
+      "cost": 256.05,
+      "price": 246.97
+    },
+    {
+      "id": "4",
+      "ticker": "SGOV",
+      "shares": 106,
+      "cost": 100.45,
+      "price": 100.45
+    },
+    {
+      "id": "3",
+      "ticker": "META",
+      "shares": 4,
+      "cost": 740,
+      "price": 644.86
+    }
+  ],
+  "cn": [
+    {
+      "id": "6",
+      "ticker": "SH518880",
+      "shares": 1300,
+      "cost": 10.373,
+      "price": 10.873
+    },
+    {
+      "id": "5",
+      "ticker": "SH513050",
+      "shares": 1600,
+      "cost": 1.262,
+      "price": 1.263
+    },
+    {
+      "id": "1772520779722",
+      "ticker": "SH588000",
+      "shares": 1400,
+      "cost": 1.476,
+      "price": 1.491
+    },
+    {
+      "id": "1772715468763",
+      "ticker": "SZ159930",
+      "shares": 0,
+      "cost": 0,
+      "price": 1.807
+    }
+  ],
+  "cash": [
+    {
+      "id": "1770029043208",
+      "ticker": "IBRK USD",
+      "amount": 42.05,
+      "currency": "USD"
+    },
+    {
+      "id": "1772365669150",
+      "ticker": "SDIC CHY",
+      "amount": 9157,
+      "currency": "CNY"
+    },
+    {
+      "id": "8",
+      "ticker": "WMP-90D",
+      "amount": 40788,
+      "currency": "CNY"
+    }
+  ],
+  "fxRate": 6.9167,
+  "isDark": false,
+  "theme": "light",
+  "history": [
+    {
+      "date": "2026-02-28",
+      "total": 228897,
+      "cost": 231523,
+      "pl": -828,
+      "rate": -0.35867135654012094,
+      "netFlow": -1127,
+      "value": 228897
+    },
+    {
+      "date": "2026-03-01",
+      "total": 225955,
+      "cost": 228591,
+      "pl": -10,
+      "rate": -0.004368777222943071,
+      "netFlow": -2932,
+      "value": 225955
+    },
+    {
+      "date": "2026-03-02",
+      "total": 227337,
+      "cost": 228563,
+      "pl": 1410,
+      "rate": 0.6240180566927043,
+      "netFlow": -28,
+      "value": 227337
+    },
+    {
+      "date": "2026-03-03",
+      "total": 227828,
+      "cost": 230304,
+      "pl": -1250,
+      "rate": -0.5498445039742761,
+      "netFlow": 1741,
+      "value": 227828
+    },
+    {
+      "date": "2026-03-04",
+      "total": 227029,
+      "cost": 230603,
+      "pl": -1098,
+      "rate": -0.4819425180399249,
+      "netFlow": 299,
+      "value": 227029
+    },
+    {
+      "date": "2026-03-05",
+      "total": 235578,
+      "cost": 238121,
+      "pl": 1031,
+      "rate": 0.45412700580102106,
+      "netFlow": 7518,
+      "value": 235578
+    },
+    {
+      "date": "2026-03-06",
+      "total": 235453,
+      "cost": 238404,
+      "pl": -408,
+      "rate": -0.17319104500420243,
+      "netFlow": 283,
+      "value": 235453
+    },
+    {
+      "date": "2026-03-07",
+      "total": 234150,
+      "cost": 238573,
+      "pl": -1472,
+      "rate": -0.6251778486576939,
+      "netFlow": 169,
+      "value": 234150
+    }
+  ]
+}
