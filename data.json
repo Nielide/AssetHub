@@ -81,7 +81,7 @@
       "currency": "CNY"
     }
   ],
-  "fxRate": 6.8436,
+  "fxRate": 6.8464,
   "isDark": false,
   "theme": "light",
   "history": [
@@ -420,12 +420,12 @@
     },
     {
       "date": "2026-04-12",
-      "total": 229676,
-      "cost": 233596,
-      "pl": 0,
-      "rate": 0,
-      "netFlow": 0,
-      "value": 229676
+      "total": 229746,
+      "cost": 233667,
+      "pl": -1,
+      "rate": -0.0004353959490760898,
+      "netFlow": 71,
+      "value": 229746
     }
   ],
   "drawdown": [
