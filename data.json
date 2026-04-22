@@ -5,28 +5,28 @@
       "ticker": "VOO",
       "shares": 11.1,
       "cost": 627.18,
-      "price": 647.25
+      "price": 653.9
     },
     {
       "id": "2",
       "ticker": "QQQM",
       "shares": 30.72,
       "cost": 251.1,
-      "price": 265.31
+      "price": 269.63
     },
     {
       "id": "4",
       "ticker": "SGOV",
       "shares": 87,
       "cost": 100.54,
-      "price": 100.59
+      "price": 100.6
     },
     {
       "id": "3",
       "ticker": "META",
       "shares": 4,
       "cost": 743.71,
-      "price": 668.84
+      "price": 674.72
     }
   ],
   "cn": [
@@ -493,6 +493,15 @@
       "rate": -0.3072917327111415,
       "netFlow": 132,
       "value": 235988
+    },
+    {
+      "date": "2026-04-23",
+      "total": 237567,
+      "cost": 233960,
+      "pl": 1579,
+      "rate": 0.669101818736546,
+      "netFlow": 0,
+      "value": 237567
     }
   ],
   "drawdown": [
