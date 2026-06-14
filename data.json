@@ -67,7 +67,7 @@
     }
   ],
   "cash": [],
-  "fxRate": 6.7765,
+  "fxRate": 6.7817,
   "isDark": false,
   "theme": "light",
   "history": [
@@ -766,12 +766,12 @@
     },
     {
       "date": "2026-06-14",
-      "total": 236051,
-      "cost": 230726,
-      "pl": 0,
-      "rate": 0,
-      "netFlow": 0,
-      "value": 236051
+      "total": 236217,
+      "cost": 230886,
+      "pl": 6,
+      "rate": 0.0025418235889701803,
+      "netFlow": 160,
+      "value": 236217
     }
   ],
   "drawdown": [
