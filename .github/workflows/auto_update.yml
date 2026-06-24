@@ -1,39 +1,80 @@
-name: Daily Portfolio Auto-Update
+name: Auto-update daily portfolio data
 
-# 触发条件：定时触发 + 支持手动点击触发
 on:
   schedule:
-    # 每天 UTC 07:15 运行 (北京时间 15:15 左右，A股刚收盘)
-    - cron: '15 7 * * *'
-    # 每天 UTC 22:00 运行 (北京时间 06:00，美股已收盘)
-    - cron: '0 22 * * *'
-  workflow_dispatch: # 允许你在网页上手动点击运行测试
-
-# 授予写入权限，以便能把更新后的 data.json 推送回仓库
-permissions:
-  contents: write
+    # UTC 时间 00:00 = 北京时间 08:00
+    - cron: '0 0 * * *'
+  workflow_dispatch:  # 允许手动触发
 
 jobs:
-  update-data:
+  update:
     runs-on: ubuntu-latest
+    timeout-minutes: 15  # 【改进】加入超时限制
+
     steps:
-      - name: Checkout Repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '18'
 
-      - name: Run Update Script
+      - name: Install dependencies
+        run: |
+          npm install  # 如果需要其他依赖，比如 axios
+        continue-on-error: true
+
+      # 【改进】关键步骤：加入重试机制
+      - name: Update portfolio data
+        uses: nick-invision/retry@v2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: node update_data_improved.js
         env:
           FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}
-        run: node update_data.js
 
-      - name: Commit and Push Changes
+      # 【新增】调试：显示更新后的数据文件
+      - name: Debug - Show data.json
+        if: always()  # 即使失败也显示
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          echo "=== data.json 内容 ==="
+          head -50 data.json
+          echo "..."
+
+      - name: Commit and push changes
+        if: success()
+        run: |
+          git config user.name "Portfolio Bot"
+          git config user.email "bot@portfolio.local"
           git add data.json
-          git diff --quiet && git diff --staged --quiet || git commit -m "Auto-update daily portfolio data"
-          git push
+          if git diff --cached --quiet; then
+            echo "✅ No changes to commit"
+          else
+            git commit -m "📊 Auto-update portfolio data - $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+            git push
+            echo "✅ Changes pushed successfully"
+          fi
+
+      # 【新增】失败通知 (可选，需配置)
+      - name: Send Slack notification on failure
+        if: failure()
+        uses: slackapi/slack-github-action@v1
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK }}
+          payload: |
+            {
+              "text": "❌ Portfolio update failed",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "❌ *Portfolio update failed*\n*Run:* <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Workflow>"
+                  }
+                }
+              ]
+            }
+        continue-on-error: true
