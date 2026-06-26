@@ -6,10 +6,13 @@ on:
     - cron: '0 0 * * *'
   workflow_dispatch:  # 允许手动触发
 
+permissions:
+  contents: write
+
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 15  # 【改进】加入超时限制
+    timeout-minutes: 15
 
     steps:
       - name: Checkout code
@@ -18,30 +21,18 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '24'
 
-      - name: Install dependencies
-        run: |
-          npm install  # 如果需要其他依赖，比如 axios
-        continue-on-error: true
-
-      # 【改进】关键步骤：加入重试机制
       - name: Update portfolio data
-        uses: nick-invision/retry@v2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: node scripts/update_data_improved.js
+        run: node scripts/update_data_improved.js
         env:
           FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}
 
-      # 【新增】调试：显示更新后的数据文件
-      - name: Debug - Show data.json
-        if: always()  # 即使失败也显示
+      - name: Debug - Show data/data.json
+        if: always()
         run: |
-          echo "=== data.json 内容 ==="
-          head -50 data.json
+          echo "=== data/data.json 内容预览 ==="
+          head -50 data/data.json
           echo "..."
 
       - name: Commit and push changes
@@ -49,32 +40,11 @@ jobs:
         run: |
           git config user.name "Portfolio Bot"
           git config user.email "bot@portfolio.local"
-          git add data.json
+          git add data/data.json
           if git diff --cached --quiet; then
-            echo "✅ No changes to commit"
+            echo "No changes to commit"
           else
-            git commit -m "📊 Auto-update portfolio data - $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+            git commit -m "Auto-update portfolio data - $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
             git push
-            echo "✅ Changes pushed successfully"
+            echo "Changes pushed successfully"
           fi
-
-      # 【新增】失败通知 (可选，需配置)
-      - name: Send Slack notification on failure
-        if: failure()
-        uses: slackapi/slack-github-action@v1
-        with:
-          webhook-url: ${{ secrets.SLACK_WEBHOOK }}
-          payload: |
-            {
-              "text": "❌ Portfolio update failed",
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "❌ *Portfolio update failed*\n*Run:* <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Workflow>"
-                  }
-                }
-              ]
-            }
-        continue-on-error: true
