@@ -17,6 +17,9 @@ AssetHub 是一个个人资产管理仪表盘，用原生 HTML、CSS 和 JavaScr
 - GitHub 同步：可通过 GitHub API 把数据备份到 `data.json`
 - 行情更新：支持通过外部接口刷新股票价格和汇率
 
+![AssetHub 界面截图](assets/screenshots/Snipaste_2026-06-26_11-24-25.png)
+![AssetHub 界面截图](assets/screenshots/Snipaste_2026-06-26_11-24-36.png)
+
 ## 项目结构
 
 ```text
