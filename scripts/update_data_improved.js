@@ -1,7 +1,7 @@
 const fs = require('fs');
 
 // 读取你的数据文件
-const dataPath = './data.json';
+const dataPath = './data/data.json';
 let state = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
 
 // === 确保所有核心字段存在，防止报错 ===
