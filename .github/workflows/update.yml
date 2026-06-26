@@ -32,7 +32,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
-          command: node update_data_improved.js
+          command: node scripts/update_data_improved.js
         env:
           FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}
 
