@@ -1,0 +1,141 @@
+/* 明暗主题共用的颜色变量。 */
+:root {
+            --bg-body: #f0f2f5; --bg-card: #ffffff; --text-primary: #202124; --text-secondary: #5f6368;
+            --border-color: #dadce0; --input-hover: #f1f3f4; --input-focus-bg: #ffffff;
+        }
+        html.dark {
+            --bg-body: #202124; --bg-card: #303134; --text-primary: #e8eaed; --text-secondary: #9aa0a6;
+            --border-color: rgba(255, 255, 255, 0.03); --input-hover: #3c4043; --input-focus-bg: #303134;
+        }
+
+/* 桌面端滚动条样式。 */
+        @media (min-width: 768px) {
+            ::-webkit-scrollbar { width: 8px; height: 8px; }
+            ::-webkit-scrollbar-track { background: transparent; }
+            ::-webkit-scrollbar-thumb { background-color: #dadce0; border-radius: 10px; border: 2px solid var(--bg-body); }
+            ::-webkit-scrollbar-thumb:hover { background-color: #9aa0a6; }
+            html.dark ::-webkit-scrollbar-thumb { background-color: #5f6368; border-color: #202124; }
+            html.dark ::-webkit-scrollbar-thumb:hover { background-color: #9aa0a6; }
+        }
+
+/* 移动端滚动条处理。 */
+        @media (max-width: 767px) {
+            ::-webkit-scrollbar { display: none; width: 0; height: 0; }
+            html, body { -ms-overflow-style: none; scrollbar-width: none; }
+        }
+
+/* 通用工具类和卡片出现动画。 */
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .reveal-card { opacity: 0; transform: translateY(30px); transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .reveal-card.active { opacity: 1; transform: translateY(0); }
+
+        html { font-size: 16px; }
+        @media (min-width: 768px) { html { font-size: 19px; } }
+
+/* 页面基础布局，以及手机安全区域间距。 */
+        body {
+            background-color: var(--bg-body); color: var(--text-primary); transition: background-color 0.3s, color 0.3s;
+            padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px)) !important;
+            padding-top: calc(16px + env(safe-area-inset-top, 0px)) !important;
+        }
+
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* 卡片、输入框、按钮的通用样式。 */
+       .g-card-static { background-color: var(--bg-card); border: none; border-radius: 0.5rem; box-shadow: none; transition: background-color 0.3s, border-color 0.3s; }
+
+        .input-google { background-color: transparent; border: 1px solid transparent; border-bottom: 1px solid transparent; transition: all 0.2s ease; color: var(--text-primary); padding: 2px 4px; }
+        .input-google:hover { background-color: var(--input-hover); border-radius: 0.25rem; }
+        .input-google:focus { background-color: var(--input-focus-bg); border: 1px solid #1a73e8; border-radius: 0.25rem; outline: none; box-shadow: 0 1px 2px rgba(26,115,232,0.1); }
+
+        .btn-add, .btn-action { display: flex; align-items: center; cursor: pointer; transition: all 0.2s; user-select: none; }
+        .btn-add { color: #1a73e8; font-size: 0.75rem; font-weight: 500; gap: 0.25rem; padding: 0.3rem 0.6rem; border-radius: 0.25rem; }
+        .btn-add:hover { background-color: rgba(26, 115, 232, 0.1); }
+
+        .btn-action { font-size: 0.75rem; font-weight: 500; gap: 0.4rem; padding: 0.4rem 0.6rem; border-radius: 2rem; border: 1px solid var(--border-color); background-color: var(--bg-card); color: var(--text-secondary); }
+        @media (min-width: 768px) { .btn-action { padding: 0.4rem 0.8rem; } }
+        .btn-action:hover { background-color: var(--input-hover); color: var(--text-primary); border-color: var(--text-secondary); }
+
+        .icon-glass { width: 1.2rem; height: 1.2rem; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+
+/* 可编辑资产行的网格布局。 */
+        .pro-grid-header, .pro-grid-row { display: grid; grid-template-columns: 30px 1.2fr 1fr 1fr 1fr 1.5fr 2fr 0.8fr 40px; gap: 12px; align-items: center; }
+        .cash-grid-row { display: grid; grid-template-columns: 30px 1fr 0.8fr 1fr 1fr 0.6fr 40px; gap: 12px; align-items: center; }
+
+/* 资产行拖拽排序手柄。 */
+        .drag-handle { cursor: grab; color: #dadce0; display: flex; justify-content: center; align-items: center; }
+        .drag-handle:active { cursor: grabbing; }
+        html.dark .drag-handle { color: #5f6368; }
+        .drag-handle:hover { color: #1a73e8; }
+
+/* 浮层面板和底部行情条位置。 */
+        #delete-popover { transition: opacity 0.1s ease-in-out, transform 0.1s ease-in-out; }
+
+        #sync-panel { max-height: 700px; transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease-in-out, padding 0.4s ease-in-out, margin 0.4s ease-in-out; overflow: hidden; transform-origin: top; }
+        #sync-panel.hidden-panel { max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; border: none; margin: 0; }
+
+        .ticker-position { bottom: 28px; }
+        @media (min-width: 768px) { .ticker-position { bottom: 0px; } }
+
+/* 隐私模式和同步冲突提示动画。 */
+        .privacy-blur { user-select: none; transition: all 0.2s; }
+
+        .conflict-banner { animation: slideDown 0.3s ease; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+        @keyframes pulseBg {
+            0%, 100% { background-color: rgba(234, 67, 53, 0.05); }
+            50% { background-color: rgba(234, 67, 53, 0.15); }
+        }
+        html.dark @keyframes pulseBgDark {
+            0%, 100% { background-color: rgba(234, 67, 53, 0.1); }
+            50% { background-color: rgba(234, 67, 53, 0.25); }
+        }
+        .animate-pulse-bg { animation: pulseBg 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; border-radius: 0.5rem; }
+        html.dark .animate-pulse-bg { animation: pulseBgDark 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; border-radius: 0.5rem; }
+
+/* VOO/QQQM 对比卡片。 */
+        .vq-col { display: flex; flex-direction: column; padding-right: 1.25rem; }
+        .vq-col + .vq-col { padding-left: 1.25rem; padding-right: 0; }
+        .vq-col-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; }
+        .vq-ticker { font-weight: 700; font-size: 1rem; letter-spacing: 0.01em; }
+        .vq-pct-badge { font-family: "Roboto Mono", monospace; font-size: 0.65rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 999px; }
+        .vq-pct-badge.vq-pos { background-color: rgba(52,168,83,0.14); color: #1e8e3e; }
+        html.dark .vq-pct-badge.vq-pos { background-color: rgba(52,168,83,0.2); color: #81c995; }
+        .vq-pct-badge.vq-neg { background-color: rgba(234,67,53,0.12); color: #ea4335; }
+        html.dark .vq-pct-badge.vq-neg { background-color: rgba(234,67,53,0.18); color: #f6958e; }
+        .vq-primary-val { font-family: "Roboto Mono", monospace; font-weight: 800; font-size: 1.9rem; line-height: 1.1; margin-bottom: 0.6rem; }
+        .vq-secondary { display: flex; flex-direction: column; gap: 0.5rem; padding-top: 0.25rem; }
+        .vq-secondary-row { display: flex; justify-content: space-between; font-size: 0.72rem; }
+        .vq-secondary-row span { color: var(--text-secondary); font-weight: 500; }
+        .vq-secondary-row b { color: var(--text-primary); font-family: "Roboto Mono", monospace; font-weight: 600; }
+        .vq-weightbar { display: flex; height: 12px; border-radius: 999px; overflow: hidden; background: var(--input-hover); }
+        .vq-weightbar > span { height: 100%; }
+
+/* 现金行的币种选择器。 */
+        .ccy-select-wrap { position: relative; display: inline-block; }
+        .ccy-select-btn {
+            display: inline-flex; align-items: center; justify-content: flex-start; gap: 0.3rem; width: auto;
+            padding: 2px 6px; border: 1px solid transparent; border-radius: 0.25rem;
+            background-color: transparent; cursor: pointer; transition: border-color 0.15s, background-color 0.15s;
+            font-family: "Roboto Mono", monospace; font-weight: 700; font-size: 0.85rem; color: var(--text-primary);
+        }
+        .ccy-select-btn:hover { background-color: var(--input-hover); }
+        .ccy-select-wrap.open .ccy-select-btn { border-color: #1a73e8; background-color: var(--input-focus-bg); box-shadow: 0 1px 2px rgba(26,115,232,0.1); }
+        .ccy-chevron { width: 0.65rem; height: 0.65rem; stroke-width: 2.5; color: var(--text-secondary); transition: transform 0.15s; flex-shrink: 0; }
+        .ccy-select-wrap.open .ccy-chevron { transform: rotate(180deg); }
+        .ccy-menu {
+            position: absolute; top: calc(100% + 6px); left: 0; min-width: 100%; width: max-content; z-index: 9999;
+            background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 0.5rem;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.14); overflow: hidden; padding: 0.25rem;
+        }
+        .ccy-menu.hidden { display: none; }
+        .ccy-option {
+            padding: 0.4rem 0.7rem; font-family: "Roboto Mono", monospace; font-weight: 600; font-size: 0.72rem;
+            color: var(--text-primary); border-radius: 0.35rem; cursor: pointer; text-align: left; transition: background-color 0.12s;
+        }
+        .ccy-option:hover { background-color: var(--input-hover); }
+        .ccy-option.active { background-color: #1a73e8; color: #fff; }
+        .cash-amt-prefix { color: var(--text-secondary); font-family: "Roboto Mono", monospace; font-weight: 600; flex-shrink: 0; }

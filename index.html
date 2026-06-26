@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" href="logo.png" type="image/png">
+    <link rel="apple-touch-icon" href="apple-touch-icon3.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>AssetHub</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500;700;900&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- 外部库：Tailwind 负责样式工具类，Chart.js 负责图表，Sortable 负责拖拽排序，Lenis 负责平滑滚动。 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.19/bundled/lenis.min.js"></script>
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="AssetHub">
+
+        <!-- 本项目自己的配置和样式文件。 -->
+        <script src="js/tailwind.config.js"></script>
+
+        <link rel="stylesheet" href="css/app.css">
+</head>
+<body class="min-h-screen py-4 md:py-6 font-sans pb-16" onclick="handleBodyClick(event)">
+
+    <div class="w-full px-2 md:px-[10px]">
+
+        <!-- 顶部工具栏：Logo、主题切换、同步按钮、汇率输入。 -->
+        <header class="mb-4 md:mb-6 flex justify-between items-center px-1">
+            <div class="flex items-center gap-2 md:gap-4">
+                <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-googleBlue border border-blue-100 dark:border-blue-800 flex-shrink-0">
+                    <svg class="icon-glass w-5 h-5 md:w-6 md:h-6" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                </div>
+                <div><h1 class="text-xl font-normal text-textPrimary dark:text-darkText hidden md:block">AssetHub</h1></div>
+            </div>
+
+            <div class="flex items-center gap-2 md:gap-3 flex-wrap justify-end">
+                <button onclick="toggleTheme()" class="btn-action" id="theme-btn" title="Toggle Theme">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                </button>
+                <button onclick="toggleSyncPanel()" class="btn-action" title="System Settings">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" /></svg>
+                </button>
+                <div class="flex gap-2 mr-1 md:mr-3">
+                    <button onclick="pullFromGithub()" id="btn-pull" class="btn-action text-googleGreen border-googleGreen hover:bg-green-50 dark:hover:bg-green-900/20" title="Sync from Cloud">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                        <span class="hidden md:inline">Sync</span>
+                    </button>
+                    <button onclick="pushToGithub(false)" id="btn-push" class="btn-action text-white bg-googleBlue border-transparent hover:bg-blue-600 shadow-sm" title="Backup to Cloud">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                        <span class="hidden md:inline">Backup</span>
+                    </button>
+                </div>
+                <div class="flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1.5 rounded-full border border-gray-200 dark:border-white/[0.03] bg-white dark:bg-darkSurface shadow-sm transition-colors">
+                    <svg onclick="fetchLiveRate()" class="w-3.5 h-3.5 text-textSecondary dark:text-darkTextSec cursor-pointer hover:text-googleBlue transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" title="Live Rate">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    <span class="text-xs font-medium text-textSecondary dark:text-darkTextSec whitespace-nowrap hidden sm:inline">FX Rate</span>
+                    <input type="number" id="fx-rate" value="7.25" step="0.0001" class="w-14 md:w-16 text-right font-mono text-sm font-bold text-googleBlue bg-transparent focus:outline-none p-0 m-0 border-none appearance-none">
+                </div>
+            </div>
+        </header>
+
+        <!-- 同步冲突提示：当 GitHub 云端数据比本地新时显示。 -->
+        <div id="conflict-banner" class="hidden conflict-banner mb-4 p-3 md:p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-800/50 flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div class="flex items-start gap-2">
+                <svg class="w-5 h-5 text-googleYellow flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" /></svg>
+                <div>
+                    <p class="text-sm font-bold text-textPrimary dark:text-darkText">Cloud data is newer than this device</p>
+                    <p class="text-xs text-textSecondary dark:text-darkTextSec mt-0.5" id="conflict-detail">The backup on GitHub was saved after your last local edit. Overwriting it now could discard those changes.</p>
+                </div>
+            </div>
+            <div class="flex gap-2 flex-shrink-0">
+                <button onclick="resolveConflict('keep-local')" class="btn-action border-googleBlue text-googleBlue">Keep mine, push anyway</button>
+                <button onclick="resolveConflict('use-remote')" class="btn-action bg-googleBlue text-white border-transparent">Use cloud version</button>
+            </div>
+        </div>
+
+        <!-- 系统设置面板：GitHub、Finnhub、数据路径和汇率设置。 -->
+        <div id="sync-panel" class="hidden-panel mb-6 p-4 md:p-5 g-card-static">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-sm font-bold text-googleBlue uppercase tracking-wide flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    System Settings
+                </h3>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                <div>
+                    <label class="text-[0.65rem] font-bold text-textSecondary dark:text-darkTextSec uppercase tracking-wider block mb-1">GitHub Token</label>
+                    <input type="password" id="gh-token" class="input-google w-full text-sm font-mono border-b border-gray-200 dark:border-white/[0.03] focus:border-googleBlue" placeholder="TOKEN">
+                </div>
+                <div>
+                    <label class="text-[0.65rem] font-bold text-textSecondary dark:text-darkTextSec uppercase tracking-wider block mb-1">Repo</label>
+                    <input type="text" id="gh-repo" class="input-google w-full text-sm font-mono border-b border-gray-200 dark:border-white/[0.03] focus:border-googleBlue" placeholder="user/repo">
+                </div>
+                <div>
+                    <label class="text-[0.65rem] font-bold text-textSecondary dark:text-darkTextSec uppercase tracking-wider block mb-1">Data Path</label>
+                    <input type="text" id="gh-path" class="input-google w-full text-sm font-mono border-b border-gray-200 dark:border-white/[0.03] focus:border-googleBlue" placeholder="data.json">
+                </div>
+                <div>
+                    <label class="text-[0.65rem] font-bold text-googleBlue uppercase tracking-wider block mb-1">Finnhub Key</label>
+                    <input type="password" id="finnhub-token" class="input-google w-full text-sm font-mono border-b border-gray-200 dark:border-white/[0.03] focus:border-googleBlue" placeholder="KEY">
+                </div>
+            </div>
+            <div class="border-t border-gray-100 dark:border-white/[0.03] pt-4 mb-4">
+                <h4 class="text-[0.65rem] font-bold text-googleGreen uppercase tracking-wider mb-3">Currency Rates</h4>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[0.65rem] text-textSecondary dark:text-darkTextSec block mb-1">HKD → CNY Rate</label>
+                        <input type="number" id="hkd-rate" min="0" step="0.0001" class="input-google w-full text-sm font-mono border-b border-gray-200 dark:border-white/[0.03] focus:border-googleBlue" placeholder="0.93">
+                    </div>
+                    <div class="flex items-end">
+                        <p class="text-[0.6rem] text-textSecondary dark:text-darkTextSec">USD → CNY uses the FX Rate field in the header.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end pt-2 border-t border-gray-100 dark:border-white/[0.03]">
+                <button onclick="saveSyncSettings()" class="btn-action bg-googleBlue text-white hover:bg-blue-600 shadow-sm border-transparent">Save Config</button>
+            </div>
+        </div>
+
+        <!-- 主仪表盘：左侧摘要，中间图表，右侧资产表格。 -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
+            <!-- 左侧摘要卡片：总资产、币种汇总、今日盈亏、累计盈亏、提醒。 -->
+            <div class="lg:col-span-2 flex flex-col gap-3 md:gap-4 h-full">
+                <div class="g-card-static p-4 md:p-6 flex-shrink-0">
+                    <div class="flex items-center gap-2 mb-1">
+                        <p class="text-xs font-medium text-textSecondary dark:text-darkTextSec">Total Net Worth</p>
+                        <button onclick="togglePrivacy()" class="text-textSecondary dark:text-darkTextSec hover:text-googleBlue focus:outline-none transition-colors" title="Toggle Privacy">
+                            <svg id="eye-open" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                            <svg id="eye-closed" class="w-4 h-4 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
+                        </button>
+                    </div>
+                    <h2 class="text-3xl lg:text-3xl font-bold text-textPrimary dark:text-darkText font-mono tracking-tight mb-2 truncate" id="total-nw-cny">¥0</h2>
+                </div>
+
+                <div class="g-card-static overflow-hidden flex-shrink-0">
+                    <div class="p-3 md:p-4 border-b border-gray-100 dark:border-white/[0.03] flex justify-between items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+                        <span class="text-sm text-textSecondary dark:text-darkTextSec font-bold">USD</span>
+                        <div class="text-right">
+                            <div class="text-xl md:text-2xl font-bold text-googleBlue font-mono" id="total-usd-assets">$0</div>
+                        </div>
+                    </div>
+                    <div class="p-3 md:p-4 flex justify-between items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+                        <span class="text-sm text-textSecondary dark:text-darkTextSec font-bold">CNY</span>
+                        <div class="text-right">
+                            <div class="text-xl md:text-2xl font-bold text-googleYellow font-mono" id="total-cny-assets">¥0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="g-card-static p-4 md:p-5 flex-shrink-0">
+                    <h2 class="text-sm font-bold text-textPrimary dark:text-darkText uppercase tracking-wide mb-2">DAY</h2>
+                    <div class="flex justify-between items-center">
+                        <div class="text-2xl md:text-3xl font-bold font-mono" id="today-pl-val">--</div>
+                        <div class="text-[0.65rem] font-bold font-mono px-2.5 py-1 rounded-full" id="today-pl-pct">--</div>
+                    </div>
+                </div>
+
+                <div class="g-card-static p-4 md:p-5 flex-shrink-0">
+                    <h2 class="text-sm font-bold text-textPrimary dark:text-darkText uppercase tracking-wide mb-2">All</h2>
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="text-2xl md:text-3xl font-bold font-mono" id="total-unrealized-pl-val">--</div>
+                        <div class="text-[0.65rem] font-bold font-mono px-2.5 py-1 rounded-full" id="total-unrealized-pl-pct">--</div>
+                    </div>
+                    <div class="flex justify-between text-xs text-textPrimary dark:text-darkText">
+                        <div>
+                            <div class="text-[0.65rem] font-bold text-textSecondary dark:text-darkTextSec mb-0.5">COST</div>
+                            <div id="total-cost-val" class="font-bold font-mono text-sm">--</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-[0.65rem] font-bold text-textSecondary dark:text-darkTextSec mb-0.5">VALUE</div>
+                            <div id="total-value-val" class="font-bold font-mono text-sm">--</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="g-card-static p-4 md:p-5 flex-1 flex flex-col">
+                    <h2 class="text-sm font-bold text-textPrimary dark:text-darkText uppercase tracking-wide mb-4">ALERT</h2>
+                    <div id="dd-alert-list" class="flex flex-col gap-4 mt-0">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 中间图表区：资产配置环形图，以及 VOO/QQQM 对比卡片。 -->
+            <div class="lg:col-span-4 flex flex-col gap-3 md:gap-4 h-full">
+                <div class="g-card-static p-4 md:p-6 relative flex flex-col flex-shrink-0">
+                    <div class="mb-2 md:mb-4 text-left"><h2 class="text-sm font-bold text-textPrimary dark:text-darkText uppercase tracking-wide">Asset Allocation</h2></div>
+                    <div class="w-full min-h-[18rem] md:min-h-[22rem] relative flex items-center justify-center">
+                        <canvas id="chart-main"></canvas>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                       <span class="text-xl md:text-2xl font-bold text-textPrimary dark:text-darkText mt-1">AssetHub</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 md:mt-6 flex flex-wrap justify-center gap-4 text-center px-2 flex-shrink-0">
+                        <div class="flex flex-col items-center"><span class="w-6 h-1 md:w-8 md:h-1 bg-googleBlue mb-1 rounded-full"></span><p class="text-xs font-bold text-textPrimary dark:text-darkText">US Stocks</p></div>
+                        <div class="flex flex-col items-center"><span class="w-6 h-1 md:w-8 md:h-1 bg-googleYellow mb-1 rounded-full"></span><p class="text-xs font-bold text-textPrimary dark:text-darkText">CN Stocks</p></div>
+                        <div class="flex flex-col items-center"><span class="w-6 h-1 md:w-8 md:h-1 bg-googleGreen mb-1 rounded-full"></span><p class="text-xs font-bold text-textPrimary dark:text-darkText">Cash</p></div>
+                        <div class="flex flex-col items-center"><span class="w-6 h-1 md:w-8 md:h-1 mb-1 rounded-full" style="background-color:#277ef1;"></span><p class="text-xs font-bold text-textPrimary dark:text-darkText">SGOV</p></div>
+                    </div>
+                </div>
+
+                <div class="g-card-static p-4 md:p-6 flex-1 flex flex-col">
+                    <div class="grid grid-cols-2 flex-1" id="vooqqqm-rows"></div>
+                </div>
+            </div>
+
+            <!-- 右侧资产表格：美股、SGOV、A 股和现金。 -->
+            <div class="lg:col-span-6 flex flex-col gap-3 md:gap-4 w-full overflow-hidden h-full">
+
+                <!-- 美股持仓表格。 -->
+                <div class="g-card-static overflow-hidden">
+                    <div class="px-4 md:px-5 py-3 border-b border-gray-100 dark:border-white/[0.03] bg-gray-50 dark:bg-gray-800 flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <div class="w-1 h-4 bg-googleBlue rounded-full"></div>
+                            <h2 class="text-sm font-bold text-textPrimary dark:text-darkText uppercase tracking-wide">USD</h2>
+                        </div>
+                        <div class="flex items-center gap-1 md:gap-2">
+                            <div class="btn-add text-googleGreen" onclick="updateUsStockPrices()">
+                                <svg id="refresh-icon" class="icon-glass w-4 h-4 text-googleGreen" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                <span class="hidden sm:inline"></span>
+                            </div>
+                            <div class="btn-add" onclick="addItem('usd')">
+                                <svg class="icon-glass w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                </svg>
+                                <span class="hidden sm:inline"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white dark:bg-darkSurface transition-colors w-full overflow-x-auto hide-scroll">
+                        <div class="min-w-[800px]">
+                            <div class="pro-grid-header px-4 py-2 border-b border-gray-100 dark:border-white/[0.03] text-[0.6rem] font-bold text-textSecondary dark:text-darkTextSec uppercase tracking-wider">
+                                <div></div> <div class="pl-1">Symbol</div>
+                                <div class="text-right pr-1">Qty</div>
+                                <div class="text-right pr-1">Avg Cost</div>
+                                <div class="text-right pr-1">Price</div>
+                                <div class="text-right text-googleBlue">Market Value</div>
+                                <div class="text-right">P/L</div>
+                                <div class="text-right">Weight</div>
+                                <div></div>
+                            </div>
+                            <div id="usd-inputs" class="divide-y divide-gray-50 dark:divide-white/[0.03]"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SGOV 表格：单独展示类现金美元资产。 -->
+                <div class="g-card-static overflow-hidden">
+                    <div class="px-4 md:px-5 py-3 border-b border-gray-100 dark:border-white/[0.03] bg-gray-50 dark:bg-gray-800 flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <div class="w-1 h-4 bg-googleGreen rounded-full"></div>
+                            <h2 class="text-sm font-bold text-textPrimary dark:text-darkText uppercase tracking-wide">USD <span class="text-textSecondary dark:text-darkTextSec font-normal text-[0.65rem] normal-case"></span></h2>
+                        </div>
+                        <div class="flex items-center gap-1 md:gap-2">
+                            <div class="btn-add text-googleGreen" onclick="updateSgovPrices()">
+                                <svg id="refresh-icon-sgov" class="icon-glass w-4 h-4 text-googleGreen" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                <span class="hidden sm:inline"></span>
+                            </div>
+                            <div class="btn-add" onclick="addItem('sgov')">
+                                <svg class="icon-glass w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                </svg>
+                                <span class="hidden sm:inline"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white dark:bg-darkSurface transition-colors w-full overflow-x-auto hide-scroll">
+                        <div class="min-w-[800px]">
+                            <div id="sgov-inputs" class="divide-y divide-gray-50 dark:divide-white/[0.03]"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- A 股持仓表格。 -->
+                <div class="g-card-static overflow-hidden">
+                    <div class="px-4 md:px-5 py-3 border-b border-gray-100 dark:border-white/[0.03] bg-gray-50 dark:bg-gray-800 flex justify-between items-center">
+                        <div class="flex items-center gap-2"><div class="w-1 h-4 bg-googleYellow rounded-full"></div><h2 class="text-sm font-bold text-textPrimary dark:text-darkText uppercase tracking-wide">CNY</h2></div>
+                        <div class="flex items-center gap-1 md:gap-2">
+                             <div class="btn-add text-googleGreen" onclick="updateCnStockPrices()">
+                                <svg id="refresh-icon-cn" class="icon-glass w-4 h-4 text-googleGreen" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                <span class="hidden sm:inline"></span>
+                            </div>
+                            <div class="btn-add" onclick="addItem('cn')">
+                                <svg class="icon-glass w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                                <span class="hidden sm:inline"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white dark:bg-darkSurface transition-colors w-full overflow-x-auto hide-scroll">
+                        <div class="min-w-[800px]">
+                            <div id="cn-inputs" class="divide-y divide-gray-50 dark:divide-white/[0.03]"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 现金表格：支持 CNY、USD、HKD。 -->
+                <div class="g-card-static overflow-hidden">
+                    <div class="px-4 md:px-5 py-3 border-b border-gray-100 dark:border-white/[0.03] bg-gray-50 dark:bg-gray-800 flex justify-between items-center">
+                        <div class="flex items-center gap-2"><div class="w-1 h-4 bg-googleGreen rounded-full"></div><h2 class="text-sm font-bold text-textPrimary dark:text-darkText uppercase tracking-wide">CASH</h2></div>
+                        <div class="btn-add" onclick="addItem('cash')">
+                            <svg class="icon-glass w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                            <span class="hidden sm:inline"></span>
+                        </div>
+                    </div>
+                    <div class="bg-white dark:bg-darkSurface transition-colors w-full overflow-x-auto hide-scroll">
+                        <div class="min-w-[420px] md:min-w-[480px]">
+                            <div id="cash-inputs" class="divide-y divide-gray-50 dark:divide-white/[0.03]"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- 回撤监控：用最高价和当前价计算距离 5%、10%、15% 等回撤档位还有多远。 -->
+        <div class="g-card-static overflow-hidden mt-3 md:mt-4 w-full">
+            <div class="px-6 md:px-12 py-4 border-b border-gray-100 dark:border-white/[0.03] bg-gray-50 dark:bg-gray-800 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <div class="w-1 h-4 bg-googleBlue rounded-full"></div>
+                    <h2 class="text-sm font-bold text-textPrimary dark:text-darkText uppercase tracking-wide">Drawdown Tracker</h2>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-1 cursor-pointer text-googleGreen hover:bg-green-50 dark:hover:bg-green-900/20 px-2 py-1 rounded transition-colors" onclick="fetchDrawdownPrices()">
+                        <svg id="refresh-icon-dd" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                        <span class="text-xs font-bold hidden sm:inline"></span>
+                    </div>
+                    <div class="flex items-center gap-1 cursor-pointer text-googleBlue hover:bg-blue-50 dark:hover:bg-blue-900/20 px-2 py-1 rounded transition-colors" onclick="addNewDrawdownRow()">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                        <span class="text-xs font-bold hidden sm:inline"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-darkSurface transition-colors w-full overflow-x-auto hide-scroll pb-4">
+                <div id="drawdown-list" class="min-w-[1750px] divide-y divide-gray-50 dark:divide-white/[0.03]">
+                </div>
+            </div>
+        </div>
+
+        <!-- 盈亏日历：可以在每日视图和年度视图之间切换。 -->
+        <div class="g-card-static p-4 md:p-6 mt-3 w-full bg-white dark:bg-darkSurface transition-colors border-none shadow-sm">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-3">
+
+                <div class="flex gap-1.5 bg-gray-100 dark:bg-darkBg p-1 rounded-lg w-full md:w-auto">
+                    <button id="tab-daily" onclick="switchView('daily')" class="flex-1 md:flex-none px-4 md:px-6 py-1.5 md:py-2 text-xs md:text-sm font-bold rounded-md bg-white dark:bg-darkSurface shadow-sm text-textPrimary dark:text-darkText transition-all">Daily View</button>
+                    <button id="tab-yearly" onclick="switchView('yearly')" class="flex-1 md:flex-none px-4 md:px-6 py-1.5 md:py-2 text-xs md:text-sm font-bold rounded-md text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText transition-all">Yearly View</button>
+                </div>
+
+                <div id="controls-daily" class="flex gap-1 bg-gray-100 dark:bg-darkBg p-1 rounded-lg w-full md:w-auto">
+                    <button id="view-mode-0" onclick="setCalendarView(0)" class="flex-1 md:flex-none px-4 py-1 md:py-1.5 text-xs font-bold rounded-md bg-white dark:bg-darkSurface shadow-sm text-blue-600 dark:text-blue-400 transition-all">P/L</button>
+                    <button id="view-mode-1" onclick="setCalendarView(1)" class="flex-1 md:flex-none px-4 py-1 md:py-1.5 text-xs font-bold rounded-md text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText transition-all">Rate</button>
+                    <button id="view-mode-2" onclick="setCalendarView(2)" class="flex-1 md:flex-none px-4 py-1 md:py-1.5 text-xs font-bold rounded-md text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText transition-all">Total</button>
+                </div>
+
+                <div id="controls-yearly" class="hidden flex items-center gap-3">
+                    <span class="px-3 py-1.5 text-xs font-bold bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full" id="current-year-badge">2026</span>
+                </div>
+            </div>
+
+            <!-- 每日视图：按日期显示每日盈亏、收益率或总资产。 -->
+            <div id="view-daily" class="w-full">
+                <div class="flex justify-center items-center gap-4 mb-2">
+                    <button onclick="changeMonth(-1)" class="p-1 text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText bg-gray-50 dark:bg-darkBg rounded-full transition-all focus:outline-none">
+                        <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                    </button>
+                    <div id="cal-month-display" class="text-sm md:text-base font-bold text-textPrimary dark:text-darkText w-24 md:w-32 text-center tracking-wide">...</div>
+                    <button onclick="changeMonth(1)" class="p-1 text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText bg-gray-50 dark:bg-darkBg rounded-full transition-all focus:outline-none">
+                        <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                    </button>
+                </div>
+
+                <div id="calendar-grid" class="grid grid-cols-7 gap-1 md:gap-2.5 mt-4"></div>
+            </div>
+
+            <!-- 年度视图：按月份汇总当年盈亏。 -->
+            <div id="view-yearly" class="hidden w-full">
+                <div class="flex justify-center items-center gap-4 mb-4">
+                    <button onclick="changeYear(-1)" class="p-1 text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText bg-gray-50 dark:bg-darkBg rounded-full transition-all focus:outline-none">
+                        <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                    </button>
+                    <div id="cal-year-display" class="text-sm md:text-base font-bold text-textPrimary dark:text-darkText w-24 md:w-32 text-center tracking-wide">...</div>
+                    <button onclick="changeYear(1)" class="p-1 text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText bg-gray-50 dark:bg-darkBg rounded-full transition-all focus:outline-none">
+                        <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                    </button>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2 md:gap-3 mb-6" id="monthly-grid"></div>
+
+                <div class="flex justify-center items-baseline gap-3 pt-2">
+                    <span class="text-sm font-bold text-textSecondary dark:text-darkTextSec uppercase">YTD Total</span>
+                    <span id="yearly-total" class="text-2xl font-bold font-mono">--</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 净值曲线：展示资产历史变化，以及区间收益、最大回撤、波动率。 -->
+        <div class="g-card-static p-4 md:p-6 mt-3 w-full bg-white dark:bg-darkSurface transition-colors border-none shadow-sm">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4">
+                <div class="flex items-center gap-2">
+                    <div class="w-1 h-4 bg-googleBlue rounded-full"></div>
+                    <h2 class="text-sm font-bold text-textPrimary dark:text-darkText uppercase tracking-wide">Net Worth Curve</h2>
+                </div>
+                <div class="flex gap-1 bg-gray-100 dark:bg-darkBg p-1 rounded-lg">
+                    <button class="nw-range-btn px-3 py-1 text-xs font-bold rounded-md transition-all" data-range="30" onclick="setNwRange(30)">1M</button>
+                    <button class="nw-range-btn px-3 py-1 text-xs font-bold rounded-md transition-all" data-range="90" onclick="setNwRange(90)">3M</button>
+                    <button class="nw-range-btn px-3 py-1 text-xs font-bold rounded-md transition-all" data-range="365" onclick="setNwRange(365)">1Y</button>
+                    <button class="nw-range-btn px-3 py-1 text-xs font-bold rounded-md transition-all" data-range="0" onclick="setNwRange(0)">ALL</button>
+                </div>
+            </div>
+            <div class="grid grid-cols-3 gap-2 md:gap-4 mb-4">
+                <div class="text-center p-2 md:p-3 rounded-lg bg-gray-50 dark:bg-darkBg">
+                    <p class="text-[0.6rem] md:text-xs text-textSecondary dark:text-darkTextSec uppercase mb-1">Period Return</p>
+                    <p class="text-base md:text-xl font-bold font-mono" id="nw-period-return">--</p>
+                </div>
+                <div class="text-center p-2 md:p-3 rounded-lg bg-gray-50 dark:bg-darkBg">
+                    <p class="text-[0.6rem] md:text-xs text-textSecondary dark:text-darkTextSec uppercase mb-1">Max Drawdown</p>
+                    <p class="text-base md:text-xl font-bold font-mono text-googleRed" id="nw-max-drawdown">--</p>
+                </div>
+                <div class="text-center p-2 md:p-3 rounded-lg bg-gray-50 dark:bg-darkBg">
+                    <p class="text-[0.6rem] md:text-xs text-textSecondary dark:text-darkTextSec uppercase mb-1">Annualized Vol</p>
+                    <p class="text-base md:text-xl font-bold font-mono" id="nw-volatility">--</p>
+                </div>
+            </div>
+            <div class="w-full h-56 md:h-72 relative">
+                <canvas id="chart-networth"></canvas>
+            </div>
+            <p class="text-[0.65rem] text-textSecondary dark:text-darkTextSec mt-2 text-center" id="nw-empty-hint"></p>
+        </div>
+
+    </div>
+
+    <!-- 删除确认浮层：点击资产行的删除按钮时显示。 -->
+    <div id="delete-popover" class="hidden absolute z-50 bg-white dark:bg-[#303134] shadow-lg border border-gray-200 dark:border-gray-600 rounded-lg p-2 opacity-0 transform scale-95 origin-top-right w-40">
+        <p class="text-xs text-textPrimary dark:text-darkText font-medium text-center mb-2 p-1">Confirm Delete?</p>
+        <div class="flex gap-2 justify-center">
+            <button onclick="closePopover()" class="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors rounded text-textSecondary dark:text-darkTextSec font-bold">Cancel</button>
+            <button id="popover-confirm-btn" class="px-2 py-1 text-xs bg-googleRed text-white rounded hover:bg-red-600 shadow-sm font-bold transition-colors">Delete</button>
+        </div>
+    </div>
+    <!-- 本项目主要功能脚本。 -->
+    <script src="js/app.js"></script>
+
+    <!-- 底部 TradingView 行情条。 -->
+    <script type="module" src="https://widgets.tradingview-widget.com/w/en/tv-ticker-tape.js"></script>
+    <div id="tv-ticker-container" class="fixed left-0 w-full z-50 transition-opacity duration-500 ticker-position" style="height: 46px;"></div>
+</body>
+</html>
