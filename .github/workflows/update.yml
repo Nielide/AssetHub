@@ -3,7 +3,7 @@ name: Auto-update daily portfolio data
 on:
   schedule:
     # UTC 时间 00:00 = 北京时间 08:00
-    - cron: '0 0 * * *'
+    - cron: '05 01 * * *'
   workflow_dispatch:  # 允许手动触发
 
 permissions:
