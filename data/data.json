@@ -5,21 +5,21 @@
       "ticker": "VOO",
       "shares": 13.08,
       "cost": 638.06,
-      "price": 670.26
+      "price": 681.01
     },
     {
       "id": "2",
       "ticker": "QQQM",
       "shares": 30.72,
       "cost": 251.11,
-      "price": 290.95
+      "price": 298.05
     },
     {
       "id": "3",
       "ticker": "META",
       "shares": 5,
       "cost": 717.01,
-      "price": 550.25
+      "price": 562.6
     },
     {
       "id": "1778077914573",
@@ -35,28 +35,28 @@
       "ticker": "SH518880",
       "shares": 1800,
       "cost": 10.275,
-      "price": 8.39
+      "price": 8.449
     },
     {
       "id": "1772715468763",
       "ticker": "SZ159930",
       "shares": 2100,
       "cost": 1.63,
-      "price": 1.499
+      "price": 1.495
     },
     {
       "id": "1772520779722",
       "ticker": "SH588000",
       "shares": 1400,
       "cost": 1.476,
-      "price": 2.133
+      "price": 2.248
     },
     {
       "id": "5",
       "ticker": "SH513050",
       "shares": 1600,
       "cost": 1.262,
-      "price": 0.941
+      "price": 0.976
     }
   ],
   "cash": [
@@ -79,7 +79,7 @@
       "currency": "HKD"
     }
   ],
-  "fxRate": 6.8112,
+  "fxRate": 6.8037,
   "isDark": false,
   "theme": "light",
   "history": [
@@ -919,6 +919,15 @@
       "rate": 0.0008283631544068919,
       "netFlow": 111,
       "value": 241553
+    },
+    {
+      "date": "2026-06-30",
+      "total": 244507,
+      "cost": 239291,
+      "pl": 3185,
+      "rate": 1.318551208223454,
+      "netFlow": -231,
+      "value": 244507
     }
   ],
   "drawdown": [
@@ -926,7 +935,7 @@
       "id": "d1773504802357",
       "symbol": "QQQM",
       "high": 308.2,
-      "current": 290.95,
+      "current": 298.05,
       "distance": 0.678131083711877,
       "progressPct": 86.43737832576247,
       "nextDrop": 5
@@ -935,7 +944,7 @@
       "id": "d1773504801045",
       "symbol": "VOO",
       "high": 699.15,
-      "current": 670.26,
+      "current": 681.01,
       "distance": 1.6473575055424527,
       "progressPct": 67.05284988915095,
       "nextDrop": 5
@@ -944,7 +953,7 @@
       "id": "d1773504819492",
       "symbol": "META",
       "high": 796.2,
-      "current": 550.25
+      "current": 562.6
     }
   ],
   "sgov": [
@@ -953,9 +962,9 @@
       "ticker": "SGOV",
       "shares": 107,
       "cost": 100.48,
-      "price": 100.65
+      "price": 100.67
     }
   ],
   "hkdFx": 0.93,
-  "lastSavedAt": 1782685028533
+  "lastSavedAt": 1782772394192
 }
