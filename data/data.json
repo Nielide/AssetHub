@@ -26,7 +26,7 @@
       "ticker": "NTDOY",
       "shares": 24,
       "cost": 12.37,
-      "price": 10.74
+      "price": 11.085
     }
   ],
   "cn": [
@@ -35,28 +35,28 @@
       "ticker": "SH518880",
       "shares": 1800,
       "cost": 10.275,
-      "price": 8.475
+      "price": 8.672
     },
     {
       "id": "1772715468763",
       "ticker": "SZ159930",
       "shares": 2100,
       "cost": 1.63,
-      "price": 1.499
+      "price": 1.53
     },
     {
       "id": "1772520779722",
       "ticker": "SH588000",
       "shares": 1400,
       "cost": 1.476,
-      "price": 2.119
+      "price": 2.102
     },
     {
       "id": "5",
       "ticker": "SH513050",
       "shares": 1600,
       "cost": 1.262,
-      "price": 0.999
+      "price": 1.009
     }
   ],
   "cash": [
@@ -79,7 +79,7 @@
       "currency": "HKD"
     }
   ],
-  "fxRate": 6.8011,
+  "fxRate": 6.7963,
   "isDark": false,
   "theme": "light",
   "history": [
@@ -955,6 +955,15 @@
       "rate": -0.8365059135813493,
       "netFlow": 0,
       "value": 244321
+    },
+    {
+      "date": "2026-07-04",
+      "total": 244636,
+      "cost": 239064,
+      "pl": 462,
+      "rate": 0.18909549322407815,
+      "netFlow": -147,
+      "value": 244636
     }
   ],
   "drawdown": [
@@ -993,5 +1002,5 @@
     }
   ],
   "hkdFx": 0.93,
-  "lastSavedAt": 1783031338529
+  "lastSavedAt": 1783117054433
 }
