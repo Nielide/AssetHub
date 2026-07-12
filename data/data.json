@@ -79,7 +79,7 @@
       "currency": "HKD"
     }
   ],
-  "fxRate": 6.7848,
+  "fxRate": 6.79,
   "isDark": false,
   "theme": "light",
   "history": [
@@ -982,6 +982,15 @@
       "rate": -0.004410656145246917,
       "netFlow": -182,
       "value": 249203
+    },
+    {
+      "date": "2026-07-13",
+      "total": 249373,
+      "cost": 238870,
+      "pl": 10,
+      "rate": 0.004012792783393459,
+      "netFlow": 160,
+      "value": 249373
     }
   ],
   "drawdown": [
@@ -1020,5 +1029,5 @@
     }
   ],
   "hkdFx": 0.93,
-  "lastSavedAt": 1783807773629
+  "lastSavedAt": 1783894224192
 }
