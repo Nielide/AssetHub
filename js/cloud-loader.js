@@ -83,7 +83,6 @@
                         ? dataset.backgroundColor.slice()
                         : dataset.backgroundColor;
                 }
-                dataset.backgroundColor = ['#dadce0', '#e8eaed', '#f1f3f4', '#cfd8dc'];
                 dataset.hoverOffset = 0;
             } else if (dataset.publicBackgroundColor) {
                 dataset.backgroundColor = Array.isArray(dataset.publicBackgroundColor)
@@ -93,6 +92,147 @@
             }
         }
     }
+
+    const SIMPLE_ICON_SLUGS = {
+        AAPL: 'apple',
+        ABBV: 'abbvie',
+        ABNB: 'airbnb',
+        ADBE: 'adobe',
+        AMD: 'amd',
+        AMZN: 'amazon',
+        ASML: 'asml',
+        AVGO: 'broadcom',
+        BABA: 'alibabadotcom',
+        BAC: 'bankofamerica',
+        BRK: 'berkshirehathaway',
+        COST: 'costco',
+        CRM: 'salesforce',
+        DIS: 'disney',
+        GOOGL: 'google',
+        GOOG: 'google',
+        INTC: 'intel',
+        JNJ: 'johnsonandjohnson',
+        JPM: 'jpmorgan',
+        KO: 'cocacola',
+        MA: 'mastercard',
+        MCD: 'mcdonalds',
+        META: 'meta',
+        MSFT: 'microsoft',
+        NFLX: 'netflix',
+        NKE: 'nike',
+        NVDA: 'nvidia',
+        ORCL: 'oracle',
+        PEP: 'pepsi',
+        PYPL: 'paypal',
+        QCOM: 'qualcomm',
+        SBUX: 'starbucks',
+        T: 'att',
+        TSM: 'tsmc',
+        TSLA: 'tesla',
+        UBER: 'uber',
+        V: 'visa',
+        WMT: 'walmart',
+        XOM: 'exxonmobil'
+    };
+
+    function injectHoldingIconStyles() {
+        if (document.getElementById('holding-icon-styles')) return;
+        const style = document.createElement('style');
+        style.id = 'holding-icon-styles';
+        style.textContent = `
+            .holding-symbol-cell {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                min-width: 0;
+            }
+            .holding-symbol-cell .input-google {
+                flex: 1;
+                min-width: 0;
+            }
+            .holding-icon {
+                width: 26px;
+                height: 26px;
+                border-radius: 999px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                flex: 0 0 26px;
+                overflow: hidden;
+                background: hsl(var(--holding-icon-hue, 212) 80% 46%);
+                color: #fff;
+                box-shadow: inset 0 0 0 1px rgba(255,255,255,.28);
+                font-size: 9px;
+                font-weight: 800;
+                line-height: 1;
+                letter-spacing: 0;
+            }
+            .holding-icon img {
+                width: 15px;
+                height: 15px;
+                filter: brightness(0) invert(1);
+                object-fit: contain;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    function holdingIconHue(ticker) {
+        return Array.from(String(ticker || '').toUpperCase()).reduce((sum, char) => {
+            return sum + char.charCodeAt(0);
+        }, 0) % 360;
+    }
+
+    function holdingIconLabel(ticker) {
+        const clean = String(ticker || '').trim().toUpperCase();
+        const letters = clean.replace(/[^A-Z]/g, '');
+        if (letters) return letters.slice(0, 3);
+        return clean.slice(0, 3) || '--';
+    }
+
+    function updateHoldingIcon(icon, ticker) {
+        const clean = String(ticker || '').trim().toUpperCase();
+        const slug = SIMPLE_ICON_SLUGS[clean];
+        icon.style.setProperty('--holding-icon-hue', holdingIconHue(clean));
+        icon.innerHTML = '';
+        if (slug) {
+            const img = document.createElement('img');
+            img.alt = '';
+            img.src = `https://cdn.jsdelivr.net/npm/simple-icons@v15/icons/${slug}.svg`;
+            img.onerror = () => {
+                icon.textContent = holdingIconLabel(clean);
+            };
+            icon.appendChild(img);
+        } else {
+            icon.textContent = holdingIconLabel(clean);
+        }
+    }
+
+    function decorateHoldingIcons(type) {
+        injectHoldingIconStyles();
+        const container = document.getElementById(`${type}-inputs`);
+        if (!container) return;
+        container.querySelectorAll('input[data-field="ticker"]').forEach(input => {
+            const cell = input.parentElement;
+            if (!cell) return;
+            cell.classList.add('holding-symbol-cell');
+            let icon = cell.querySelector('.holding-icon');
+            if (!icon) {
+                icon = document.createElement('span');
+                icon.className = 'holding-icon';
+                icon.setAttribute('aria-hidden', 'true');
+                cell.insertBefore(icon, input);
+                input.addEventListener('input', () => updateHoldingIcon(icon, input.value));
+            }
+            updateHoldingIcon(icon, input.value);
+        });
+    }
+
+    const originalRenderRows = renderRows;
+    renderRows = function(type, items, symbol) {
+        originalRenderRows(type, items, symbol);
+        decorateHoldingIcons(type);
+    };
 
     const originalToggleSyncPanel = toggleSyncPanel;
     toggleSyncPanel = function() {
