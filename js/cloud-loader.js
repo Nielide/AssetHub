@@ -62,6 +62,38 @@
         return false;
     }
 
+    function applyMainChartPrivacy(chart, isPrivate) {
+        if (!chart) return;
+        if (chart.options?.plugins?.tooltip) {
+            chart.options.plugins.tooltip.enabled = !isPrivate;
+        }
+        if (Array.isArray(chart.config?.plugins)) {
+            if (isPrivate) {
+                if (!chart.publicPlugins) chart.publicPlugins = chart.config.plugins.slice();
+                chart.config.plugins = chart.config.plugins.filter(plugin => plugin?.id !== 'segmentLabels');
+            } else if (chart.publicPlugins) {
+                chart.config.plugins = chart.publicPlugins.slice();
+            }
+        }
+        const dataset = chart.data?.datasets?.[0];
+        if (dataset) {
+            if (isPrivate) {
+                if (!dataset.publicBackgroundColor) {
+                    dataset.publicBackgroundColor = Array.isArray(dataset.backgroundColor)
+                        ? dataset.backgroundColor.slice()
+                        : dataset.backgroundColor;
+                }
+                dataset.backgroundColor = ['#dadce0', '#e8eaed', '#f1f3f4', '#cfd8dc'];
+                dataset.hoverOffset = 0;
+            } else if (dataset.publicBackgroundColor) {
+                dataset.backgroundColor = Array.isArray(dataset.publicBackgroundColor)
+                    ? dataset.publicBackgroundColor.slice()
+                    : dataset.publicBackgroundColor;
+                dataset.hoverOffset = 4;
+            }
+        }
+    }
+
     const originalToggleSyncPanel = toggleSyncPanel;
     toggleSyncPanel = function() {
         originalToggleSyncPanel();
@@ -144,6 +176,24 @@
     autoSmartBackup = async function() {
         if (!cloudHasLoadedUserData && !(state.lastSavedAt > 0)) return;
         return originalAutoSmartBackup();
+    };
+
+    const originalUpdateChart = updateChart;
+    updateChart = function(chart, data) {
+        if (chart === charts.main && isPrivacyMode) {
+            applyMainChartPrivacy(chart, true);
+            return originalUpdateChart(chart, [1, 1, 1, 1]);
+        }
+        applyMainChartPrivacy(chart, false);
+        return originalUpdateChart(chart, data);
+    };
+
+    const originalTogglePrivacy = togglePrivacy;
+    togglePrivacy = function() {
+        originalTogglePrivacy();
+        if (charts.main) {
+            calculate();
+        }
     };
 
     const originalOnload = window.onload;
