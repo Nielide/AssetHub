@@ -149,7 +149,7 @@
         style.textContent = `
             .pro-grid-header,
             .pro-grid-row {
-                grid-template-columns: 24px minmax(108px, 1.15fr) minmax(70px, .55fr) minmax(78px, .62fr) minmax(78px, .62fr) minmax(102px, .78fr) minmax(154px, 1.18fr) minmax(58px, .45fr) 30px;
+                grid-template-columns: 24px 124px minmax(70px, .55fr) minmax(78px, .62fr) minmax(78px, .62fr) minmax(102px, .78fr) minmax(154px, 1.18fr) minmax(58px, .45fr) 30px;
                 gap: 8px;
             }
             .cash-grid-row {
@@ -204,7 +204,7 @@
             @media (max-width: 720px) {
                 .pro-grid-header,
                 .pro-grid-row {
-                    grid-template-columns: 22px minmax(96px, 1.05fr) minmax(68px, .52fr) minmax(72px, .56fr) minmax(72px, .56fr) minmax(92px, .72fr) minmax(148px, 1.08fr) minmax(52px, .4fr) 28px;
+                    grid-template-columns: 22px 104px minmax(68px, .52fr) minmax(72px, .56fr) minmax(72px, .56fr) minmax(92px, .72fr) minmax(148px, 1.08fr) minmax(52px, .4fr) 28px;
                     gap: 6px;
                 }
                 .cash-grid-row {
