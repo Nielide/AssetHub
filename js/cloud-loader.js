@@ -135,11 +135,76 @@
         XOM: 'exxonmobil'
     };
 
+    const HOLDING_ICON_COLORS = {
+        blue: '#1a73e8',
+        green: '#34a853',
+        yellow: '#fbbc04',
+        purple: '#9334e6'
+    };
+
     function injectHoldingIconStyles() {
         if (document.getElementById('holding-icon-styles')) return;
         const style = document.createElement('style');
         style.id = 'holding-icon-styles';
         style.textContent = `
+            .pro-grid-header,
+            .pro-grid-row {
+                grid-template-columns: 24px minmax(132px, 1.55fr) minmax(76px, .72fr) minmax(84px, .8fr) minmax(84px, .8fr) minmax(106px, 1fr) minmax(128px, 1.2fr) minmax(64px, .62fr) 32px;
+                gap: 10px;
+            }
+            .cash-grid-row {
+                grid-template-columns: 24px minmax(110px, 1.15fr) 64px minmax(94px, .8fr) minmax(104px, .9fr) 58px 32px;
+                gap: 10px;
+            }
+            .pro-grid-row > div,
+            .cash-grid-row > div {
+                min-width: 0;
+            }
+            .pro-grid-row input[data-field="shares"],
+            .pro-grid-row input[data-field="cost"],
+            .pro-grid-row input[data-field="price"],
+            .cash-grid-row input[data-field="amount"] {
+                height: 28px;
+                padding: 2px 6px;
+            }
+            .pro-grid-row input[data-field="ticker"],
+            .cash-grid-row input[data-field="ticker"] {
+                height: 28px;
+                padding: 2px 4px;
+            }
+            .cash-grid-row .ccy-select-btn {
+                width: auto;
+                min-width: 56px;
+                justify-content: flex-start;
+                gap: 3px;
+            }
+            .cash-grid-row input[data-field="amount"] {
+                max-width: 118px;
+                margin-left: auto;
+            }
+            @media (max-width: 720px) {
+                .pro-grid-header,
+                .pro-grid-row {
+                    grid-template-columns: 22px minmax(124px, 1.7fr) minmax(74px, .72fr) minmax(80px, .78fr) minmax(80px, .78fr) minmax(96px, .9fr) minmax(118px, 1fr) minmax(58px, .58fr) 30px;
+                    gap: 8px;
+                }
+                .cash-grid-row {
+                    grid-template-columns: 22px minmax(104px, 1.25fr) 58px minmax(86px, .78fr) minmax(96px, .85fr) 54px 30px;
+                    gap: 8px;
+                }
+                .holding-symbol-cell {
+                    gap: 7px;
+                }
+                .holding-icon {
+                    width: 24px;
+                    height: 24px;
+                    flex-basis: 24px;
+                }
+                .holding-icon img {
+                    width: 14px;
+                    height: 14px;
+                }
+            }
             .holding-symbol-cell {
                 display: flex;
                 align-items: center;
@@ -159,9 +224,8 @@
                 justify-content: center;
                 flex: 0 0 26px;
                 overflow: hidden;
-                background: hsl(var(--holding-icon-hue, 212) 80% 46%);
+                background: var(--holding-icon-color, #1a73e8);
                 color: #fff;
-                box-shadow: inset 0 0 0 1px rgba(255,255,255,.28);
                 font-size: 9px;
                 font-weight: 800;
                 line-height: 1;
@@ -177,10 +241,19 @@
         document.head.appendChild(style);
     }
 
-    function holdingIconHue(ticker) {
-        return Array.from(String(ticker || '').toUpperCase()).reduce((sum, char) => {
+    function holdingIconColor(ticker, type) {
+        if (type === 'cn') return HOLDING_ICON_COLORS.green;
+        if (type === 'sgov') return HOLDING_ICON_COLORS.blue;
+        const palette = [
+            HOLDING_ICON_COLORS.blue,
+            HOLDING_ICON_COLORS.purple,
+            HOLDING_ICON_COLORS.yellow,
+            HOLDING_ICON_COLORS.green
+        ];
+        const score = Array.from(String(ticker || '').toUpperCase()).reduce((sum, char) => {
             return sum + char.charCodeAt(0);
-        }, 0) % 360;
+        }, 0);
+        return palette[score % palette.length];
     }
 
     function holdingIconLabel(ticker) {
@@ -190,10 +263,10 @@
         return clean.slice(0, 3) || '--';
     }
 
-    function updateHoldingIcon(icon, ticker) {
+    function updateHoldingIcon(icon, ticker, type) {
         const clean = String(ticker || '').trim().toUpperCase();
         const slug = SIMPLE_ICON_SLUGS[clean];
-        icon.style.setProperty('--holding-icon-hue', holdingIconHue(clean));
+        icon.style.setProperty('--holding-icon-color', holdingIconColor(clean, type));
         icon.innerHTML = '';
         if (slug) {
             const img = document.createElement('img');
@@ -222,9 +295,9 @@
                 icon.className = 'holding-icon';
                 icon.setAttribute('aria-hidden', 'true');
                 cell.insertBefore(icon, input);
-                input.addEventListener('input', () => updateHoldingIcon(icon, input.value));
+                input.addEventListener('input', () => updateHoldingIcon(icon, input.value, type));
             }
-            updateHoldingIcon(icon, input.value);
+            updateHoldingIcon(icon, input.value, type);
         });
     }
 
