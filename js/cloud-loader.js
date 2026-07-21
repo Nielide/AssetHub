@@ -149,7 +149,7 @@
         style.textContent = `
             .pro-grid-header,
             .pro-grid-row {
-                grid-template-columns: 24px 124px minmax(70px, .55fr) minmax(78px, .62fr) minmax(78px, .62fr) minmax(102px, .78fr) minmax(154px, 1.18fr) minmax(58px, .45fr) 30px;
+                grid-template-columns: 24px 136px minmax(78px, .58fr) minmax(76px, .58fr) minmax(76px, .58fr) minmax(100px, .74fr) minmax(154px, 1.18fr) minmax(56px, .42fr) 30px;
                 gap: 8px;
             }
             .cash-grid-row {
@@ -173,11 +173,10 @@
                 padding: 2px 4px;
             }
             .pro-grid-row input[data-field="ticker"] {
-                max-width: 82px;
+                max-width: 94px;
             }
             .pro-grid-row input[data-field="shares"] {
-                max-width: 70px;
-                margin-left: auto;
+                max-width: 76px;
             }
             .pro-grid-row [id^="val-"],
             .pro-grid-row [id^="pl-"],
@@ -186,10 +185,6 @@
             .cash-grid-row [id^="alloc-cash-"] {
                 white-space: nowrap;
                 overflow: visible;
-            }
-            .pro-grid-row [id^="pl-"] {
-                font-size: .74rem;
-                line-height: 1.15;
             }
             .cash-grid-row .ccy-select-btn {
                 width: auto;
@@ -204,7 +199,7 @@
             @media (max-width: 720px) {
                 .pro-grid-header,
                 .pro-grid-row {
-                    grid-template-columns: 22px 104px minmax(68px, .52fr) minmax(72px, .56fr) minmax(72px, .56fr) minmax(92px, .72fr) minmax(148px, 1.08fr) minmax(52px, .4fr) 28px;
+                    grid-template-columns: 22px 116px minmax(76px, .56fr) minmax(68px, .5fr) minmax(68px, .5fr) minmax(88px, .66fr) minmax(148px, 1.08fr) minmax(50px, .38fr) 28px;
                     gap: 6px;
                 }
                 .cash-grid-row {
@@ -215,13 +210,10 @@
                     gap: 6px;
                 }
                 .pro-grid-row input[data-field="ticker"] {
-                    max-width: 66px;
+                    max-width: 78px;
                 }
                 .pro-grid-row input[data-field="shares"] {
-                    max-width: 66px;
-                }
-                .pro-grid-row [id^="pl-"] {
-                    font-size: .72rem;
+                    max-width: 74px;
                 }
                 .holding-icon {
                     width: 24px;
