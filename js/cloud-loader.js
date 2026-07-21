@@ -149,7 +149,7 @@
         style.textContent = `
             .pro-grid-header,
             .pro-grid-row {
-                grid-template-columns: 24px 136px minmax(78px, .58fr) minmax(76px, .58fr) minmax(76px, .58fr) minmax(100px, .74fr) minmax(154px, 1.18fr) minmax(56px, .42fr) 30px;
+                grid-template-columns: 24px 146px minmax(88px, .5fr) minmax(74px, .52fr) minmax(74px, .52fr) minmax(98px, .7fr) minmax(154px, 1.18fr) minmax(54px, .38fr) 30px;
                 gap: 8px;
             }
             .cash-grid-row {
@@ -173,10 +173,11 @@
                 padding: 2px 4px;
             }
             .pro-grid-row input[data-field="ticker"] {
-                max-width: 94px;
+                max-width: 104px;
             }
             .pro-grid-row input[data-field="shares"] {
-                max-width: 76px;
+                max-width: none;
+                width: 100%;
             }
             .pro-grid-row [id^="val-"],
             .pro-grid-row [id^="pl-"],
@@ -199,7 +200,7 @@
             @media (max-width: 720px) {
                 .pro-grid-header,
                 .pro-grid-row {
-                    grid-template-columns: 22px 116px minmax(76px, .56fr) minmax(68px, .5fr) minmax(68px, .5fr) minmax(88px, .66fr) minmax(148px, 1.08fr) minmax(50px, .38fr) 28px;
+                    grid-template-columns: 22px 126px minmax(82px, .52fr) minmax(66px, .46fr) minmax(66px, .46fr) minmax(86px, .62fr) minmax(148px, 1.08fr) minmax(48px, .34fr) 28px;
                     gap: 6px;
                 }
                 .cash-grid-row {
@@ -210,10 +211,11 @@
                     gap: 6px;
                 }
                 .pro-grid-row input[data-field="ticker"] {
-                    max-width: 78px;
+                    max-width: 88px;
                 }
                 .pro-grid-row input[data-field="shares"] {
-                    max-width: 74px;
+                    max-width: none;
+                    width: 100%;
                 }
                 .holding-icon {
                     width: 24px;
