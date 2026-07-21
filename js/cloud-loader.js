@@ -149,12 +149,12 @@
         style.textContent = `
             .pro-grid-header,
             .pro-grid-row {
-                grid-template-columns: 24px minmax(132px, 1.55fr) minmax(76px, .72fr) minmax(84px, .8fr) minmax(84px, .8fr) minmax(106px, 1fr) minmax(128px, 1.2fr) minmax(64px, .62fr) 32px;
-                gap: 10px;
+                grid-template-columns: 24px minmax(108px, 1.15fr) minmax(70px, .55fr) minmax(78px, .62fr) minmax(78px, .62fr) minmax(102px, .78fr) minmax(154px, 1.18fr) minmax(58px, .45fr) 30px;
+                gap: 8px;
             }
             .cash-grid-row {
                 grid-template-columns: 24px minmax(110px, 1.15fr) 64px minmax(94px, .8fr) minmax(104px, .9fr) 58px 32px;
-                gap: 10px;
+                gap: 8px;
             }
             .pro-grid-row > div,
             .cash-grid-row > div {
@@ -172,6 +172,25 @@
                 height: 28px;
                 padding: 2px 4px;
             }
+            .pro-grid-row input[data-field="ticker"] {
+                max-width: 82px;
+            }
+            .pro-grid-row input[data-field="shares"] {
+                max-width: 70px;
+                margin-left: auto;
+            }
+            .pro-grid-row [id^="val-"],
+            .pro-grid-row [id^="pl-"],
+            .pro-grid-row [id^="alloc-"],
+            .cash-grid-row [id^="val-cash-"],
+            .cash-grid-row [id^="alloc-cash-"] {
+                white-space: nowrap;
+                overflow: visible;
+            }
+            .pro-grid-row [id^="pl-"] {
+                font-size: .74rem;
+                line-height: 1.15;
+            }
             .cash-grid-row .ccy-select-btn {
                 width: auto;
                 min-width: 56px;
@@ -185,15 +204,24 @@
             @media (max-width: 720px) {
                 .pro-grid-header,
                 .pro-grid-row {
-                    grid-template-columns: 22px minmax(124px, 1.7fr) minmax(74px, .72fr) minmax(80px, .78fr) minmax(80px, .78fr) minmax(96px, .9fr) minmax(118px, 1fr) minmax(58px, .58fr) 30px;
-                    gap: 8px;
+                    grid-template-columns: 22px minmax(96px, 1.05fr) minmax(68px, .52fr) minmax(72px, .56fr) minmax(72px, .56fr) minmax(92px, .72fr) minmax(148px, 1.08fr) minmax(52px, .4fr) 28px;
+                    gap: 6px;
                 }
                 .cash-grid-row {
                     grid-template-columns: 22px minmax(104px, 1.25fr) 58px minmax(86px, .78fr) minmax(96px, .85fr) 54px 30px;
-                    gap: 8px;
+                    gap: 6px;
                 }
                 .holding-symbol-cell {
-                    gap: 7px;
+                    gap: 6px;
+                }
+                .pro-grid-row input[data-field="ticker"] {
+                    max-width: 66px;
+                }
+                .pro-grid-row input[data-field="shares"] {
+                    max-width: 66px;
+                }
+                .pro-grid-row [id^="pl-"] {
+                    font-size: .72rem;
                 }
                 .holding-icon {
                     width: 24px;
@@ -212,7 +240,7 @@
                 min-width: 0;
             }
             .holding-symbol-cell .input-google {
-                flex: 1;
+                flex: 0 1 auto;
                 min-width: 0;
             }
             .holding-icon {
