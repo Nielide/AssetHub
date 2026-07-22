@@ -974,7 +974,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                     }
 
                     stepsHTML += `
-                    <div class="flex flex-col items-center justify-center py-3 px-2 rounded-lg w-[185px] flex-shrink-0 transition-colors ${pillStyle}">
+                    <div class="flex flex-col items-center justify-center py-3 px-2 rounded-lg w-[160px] flex-shrink-0 transition-colors ${pillStyle}">
                         ${progressFill}
                         <span class="text-[0.65rem] md:text-xs font-bold ${labelColor} uppercase tracking-tighter mb-1">-${drop}%</span>
                         <span class="text-sm md:text-base font-mono font-bold ${valColor}">${stock.high > 0 ? targetPrice.toFixed(2) : '-.--'}</span>
@@ -982,26 +982,26 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                 });
 
                 const row = document.createElement('div');
-                row.className = 'dd-row px-4 md:px-10 py-5 md:py-7 flex items-center gap-4 border-b border-gray-50 dark:border-white/[0.03] last:border-0';
+                row.className = 'dd-row px-4 md:px-8 py-4 md:py-6 flex items-center gap-3 border-b border-gray-50 dark:border-white/[0.03] last:border-0';
 
                 row.innerHTML = `
-                    <div class="flex items-center gap-3 w-28 md:w-28 flex-shrink-0">
+                    <div class="flex items-center gap-3 w-[190px] flex-shrink-0">
                         <div class="drag-handle cursor-grab text-gray-300 dark:text-gray-600 hover:text-googleBlue px-1" title="Drag to reorder">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" /></svg>
                         </div>
                         <input type="text" class="input-google w-full font-bold text-lg md:text-1xl uppercase tracking-wide" value="${stock.symbol}" data-id="${stock.id}" data-field="symbol" onchange="handleDrawdownInput(this)" placeholder="SYM">
                     </div>
 
-                    <div class="flex-1 flex justify-center gap-2 overflow-hidden px-2 pl-4 md:pl-10">
-                        <div class="flex flex-col items-center justify-center py-3 px-2 rounded-lg border-2 border-green-100 dark:border-green-900/30 bg-green-50 dark:bg-green-900/10 w-[185px] flex-shrink-0">
+                    <div class="flex-1 flex justify-center gap-2 overflow-hidden px-2 pl-2 md:pl-4">
+                        <div class="flex flex-col items-center justify-center py-3 px-2 rounded-lg border-2 border-green-100 dark:border-green-900/30 bg-green-50 dark:bg-green-900/10 w-[160px] flex-shrink-0">
                             <span class="text-[0.65rem] md:text-xs font-bold text-googleGreen uppercase tracking-tighter mb-1">HIGH</span>
                             <input type="number" min="0" class="w-full text-center bg-transparent border-none p-0 text-sm md:text-base font-mono font-bold text-googleGreen focus:ring-0 outline-none" value="${stock.high || ''}" data-id="${stock.id}" data-field="high" step="0.01" onchange="handleDrawdownInput(this)" placeholder="0.00">
                         </div>
                         ${stepsHTML}
                     </div>
 
-                    <div class="flex items-center gap-4 w-32 md:w-48 flex-shrink-0 justify-end">
-                        <div class="text-right mr-4 md:mr-8">
+                    <div class="flex items-center gap-3 w-[160px] flex-shrink-0 justify-end">
+                        <div class="text-right mr-2 md:mr-4">
                             <div class="text-[0.65rem] md:text-xs font-bold text-textSecondary dark:text-darkTextSec uppercase tracking-tighter mb-1 pr-1">Current</div>
                             <div class="text-lg md:text-2xl font-mono font-bold ${currentDropPercentage > 0 ? 'text-googleRed' : 'text-googleGreen'}">${stock.current > 0 ? stock.current.toFixed(2) : '-.--'}</div>
                         </div>
