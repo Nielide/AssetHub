@@ -1753,7 +1753,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                 const displayDist = stock.distance.toFixed(1);
 
 html += `
-                <div class="flex flex-col gap-1.5 cursor-pointer ${rowClass}" title="Open ${stock.symbol} on TradingView" onclick="openTradingViewSymbol('${stock.symbol}')" style="padding: 12px 16px 16px;">
+                <div class="flex flex-col gap-3 cursor-pointer ${rowClass}" title="Open ${stock.symbol} on TradingView" onclick="openTradingViewSymbol('${stock.symbol}')" style="padding: 16px 18px 22px; min-height: 74px;">
                     <div class="flex justify-between items-center text-xs text-textPrimary dark:text-darkText">
                         <div class="flex items-baseline gap-2">
                     <span class="font-bold font-mono text-xs ${stock.symbol === 'QQQM' ? 'text-gray-900 dark:text-gray-100' : ''}">
@@ -1763,7 +1763,7 @@ html += `
                         </div>
                         <span class="text-[0.6rem] font-bold px-1.5 py-0.5 rounded ${tagBg}">${tagText}</span>
                     </div>
-                    <div class="w-full h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div class="w-full h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div class="h-full ${barColor} rounded-full transition-all duration-500" style="width: ${Math.max(0, Math.min(100, stock.progressPct))}%"></div>
                     </div>
                 </div>`;
