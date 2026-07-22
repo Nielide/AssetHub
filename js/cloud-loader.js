@@ -143,6 +143,15 @@
         purple: '#9334e6'
     };
 
+    const TRADINGVIEW_EXCHANGES = {
+        VOO: 'AMEX',
+        QQQM: 'NASDAQ',
+        META: 'NASDAQ',
+        MSFT: 'NASDAQ',
+        SGOV: 'AMEX',
+        NTDOY: 'OTC'
+    };
+
     function injectHoldingIconStyles() {
         if (document.getElementById('holding-icon-styles')) return;
         const style = document.createElement('style');
@@ -162,10 +171,10 @@
                 min-height: 46px;
             }
             .dd-row {
-                min-height: 72px;
+                min-height: 112px;
             }
             .dd-row .drawdown-symbol-cell {
-                width: 190px;
+                width: 220px;
             }
             .pro-grid-row > div,
             .cash-grid-row > div {
@@ -257,7 +266,7 @@
             .drawdown-symbol-cell .input-google {
                 flex: 1;
                 min-width: 0;
-                max-width: 112px;
+                max-width: 128px;
             }
             .holding-icon {
                 width: 30px;
@@ -274,6 +283,9 @@
                 font-weight: 800;
                 line-height: 1;
                 letter-spacing: 0;
+            }
+            .holding-icon.is-clickable {
+                cursor: pointer;
             }
             .holding-icon img {
                 width: 18px;
@@ -358,6 +370,33 @@
         return `https://img.logo.dev/ticker/${encodeURIComponent(normalized)}?${params.toString()}`;
     }
 
+    function tradingViewSymbol(ticker, type) {
+        const clean = String(ticker || '').trim().toUpperCase();
+        if (!clean || type === 'cash') return '';
+        if (type === 'cn') {
+            const match = clean.match(/^(SH|SZ)(\d{6})$/);
+            if (match) return `${match[1] === 'SH' ? 'SSE' : 'SZSE'}-${match[2]}`;
+        }
+        const safeTicker = clean.replace(/[^A-Z0-9.]/g, '');
+        if (!safeTicker) return '';
+        const exchange = TRADINGVIEW_EXCHANGES[safeTicker] || 'NASDAQ';
+        return `${exchange}-${safeTicker}`;
+    }
+
+    function applyTradingViewLink(icon, ticker, type) {
+        const tvSymbol = tradingViewSymbol(ticker, type);
+        icon.onclick = null;
+        icon.removeAttribute('title');
+        icon.classList.remove('is-clickable');
+        if (!tvSymbol) return;
+        icon.classList.add('is-clickable');
+        icon.title = `Open ${String(ticker || '').trim().toUpperCase()} on TradingView`;
+        icon.onclick = (event) => {
+            event.stopPropagation();
+            window.open(`https://www.tradingview.com/symbols/${tvSymbol}/`, '_blank', 'noopener');
+        };
+    }
+
     function nvstlyTickerIconUrl(ticker, type) {
         const clean = String(ticker || '').trim().toUpperCase();
         if (!clean || type === 'cash' || type === 'cn') return '';
@@ -370,6 +409,7 @@
         const clean = String(ticker || '').trim().toUpperCase();
         const slug = SIMPLE_ICON_SLUGS[clean];
         const nvstlyUrl = nvstlyTickerIconUrl(clean, type);
+        applyTradingViewLink(icon, clean, type);
         icon.style.setProperty('--holding-icon-color', holdingIconColor(clean, type));
         icon.innerHTML = '';
         icon.classList.remove('logo-dev-icon');
