@@ -334,6 +334,12 @@
                     min-width: 182px;
                     max-width: 182px;
                 }
+                .dd-steps .dd-card:nth-child(2) { transform: translateX(-2px); }
+                .dd-steps .dd-card:nth-child(3) { transform: translateX(-4px); }
+                .dd-steps .dd-card:nth-child(4) { transform: translateX(-6px); }
+                .dd-steps .dd-card:nth-child(5) { transform: translateX(-8px); }
+                .dd-steps .dd-card:nth-child(6) { transform: translateX(-10px); }
+                .dd-steps .dd-card:nth-child(7) { transform: translateX(-12px); }
                 .dd-current-cell {
                     width: 185px;
                     justify-self: end;
