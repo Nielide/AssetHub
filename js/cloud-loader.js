@@ -48,6 +48,19 @@
         }
     }
 
+    function mergeHistoryLists(localHistory, remoteHistory) {
+        const byDate = new Map();
+        (Array.isArray(localHistory) ? localHistory : []).forEach(record => {
+            if (record?.date) byDate.set(record.date, record);
+        });
+        (Array.isArray(remoteHistory) ? remoteHistory : []).forEach(record => {
+            if (record?.date) byDate.set(record.date, record);
+        });
+        return Array.from(byDate.values()).sort((a, b) => {
+            return String(a.date || '').localeCompare(String(b.date || ''));
+        });
+    }
+
     function mergeRemoteHistory(remote) {
         const remoteHistory = Array.isArray(remote?.history) ? remote.history : [];
         if (!remoteHistory.length) return false;
@@ -76,6 +89,7 @@
         const remoteSavedAt = remote.lastSavedAt || 0;
         const localSavedAt = state.lastSavedAt || 0;
         if (force || !cloudHasLoadedUserData || remoteSavedAt > localSavedAt) {
+            remote.history = mergeHistoryLists(state.history, remote.history);
             state = remote;
             cloudHasLoadedUserData = true;
             if (state.fxRate) document.getElementById('fx-rate').value = state.fxRate;

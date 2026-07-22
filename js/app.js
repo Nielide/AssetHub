@@ -159,6 +159,19 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
             await doPush(silent);
         }
 
+        function mergeHistoryBeforePush(remote) {
+            const byDate = new Map();
+            (Array.isArray(remote?.history) ? remote.history : []).forEach(record => {
+                if (record?.date) byDate.set(record.date, record);
+            });
+            (Array.isArray(state.history) ? state.history : []).forEach(record => {
+                if (record?.date) byDate.set(record.date, record);
+            });
+            state.history = Array.from(byDate.values()).sort((a, b) => {
+                return String(a.date || '').localeCompare(String(b.date || ''));
+            });
+        }
+
         // 真正执行 GitHub 写入的函数，手动备份和自动备份都会用到。
         async function doPush(silent = false) {
             const token = localStorage.getItem('gh_token');
@@ -175,12 +188,17 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
             const url = `https://api.github.com/repos/${repo}/contents/${path}`;
             try {
                 let sha = '';
+                let remoteState = null;
                 const getRes = await fetch(url, { headers: { Authorization: `token ${token}` } });
                 if (getRes.ok) {
                     const data = await getRes.json();
                     sha = data.sha;
+                    try {
+                        remoteState = JSON.parse(decodeURIComponent(escape(atob(data.content))));
+                    } catch (e) { remoteState = null; }
                 }
 
+                mergeHistoryBeforePush(remoteState);
                 state.lastSavedAt = Date.now();
                 const content = btoa(unescape(encodeURIComponent(JSON.stringify(state))));
                 const body = { message: silent ? "Auto sync after market close" : "Manual Backup from AssetHub", content: content, sha: sha || undefined };
