@@ -101,10 +101,6 @@
                     <label class="text-[0.65rem] font-bold text-googleBlue uppercase tracking-wider block mb-1">Finnhub Key</label>
                     <input type="password" id="finnhub-token" class="input-google w-full text-sm font-mono border-b border-gray-200 dark:border-white/[0.03] focus:border-googleBlue" placeholder="KEY">
                 </div>
-                <div>
-                    <label class="text-[0.65rem] font-bold text-googleBlue uppercase tracking-wider block mb-1">Logo.dev Key</label>
-                    <input type="password" id="logo-dev-token" class="input-google w-full text-sm font-mono border-b border-gray-200 dark:border-white/[0.03] focus:border-googleBlue" placeholder="KEY">
-                </div>
             </div>
             <input type="hidden" id="hkd-rate" value="0.93">
             <div class="flex justify-end pt-2 border-t border-gray-100 dark:border-white/[0.03]">
@@ -156,14 +152,10 @@
                         <div class="text-2xl md:text-3xl font-bold font-mono" id="total-unrealized-pl-val">--</div>
                         <div class="text-[0.65rem] font-bold font-mono px-2.5 py-1 rounded-full" id="total-unrealized-pl-pct">--</div>
                     </div>
-                    <div class="flex justify-between text-xs text-textPrimary dark:text-darkText">
+                    <div class="flex justify-start text-xs text-textPrimary dark:text-darkText">
                         <div>
                             <div class="text-[0.65rem] font-bold text-textSecondary dark:text-darkTextSec mb-0.5">COST</div>
                             <div id="total-cost-val" class="font-bold font-mono text-sm">--</div>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-[0.65rem] font-bold text-textSecondary dark:text-darkTextSec mb-0.5">VALUE</div>
-                            <div id="total-value-val" class="font-bold font-mono text-sm">--</div>
                         </div>
                     </div>
                 </div>
@@ -332,7 +324,7 @@
             </div>
 
             <div class="bg-white dark:bg-darkSurface transition-colors w-full overflow-x-auto hide-scroll pb-4">
-                <div id="drawdown-list" class="min-w-[1750px] divide-y divide-gray-50 dark:divide-white/[0.03]">
+                <div id="drawdown-list" class="min-w-[1540px] divide-y divide-gray-50 dark:divide-white/[0.03]">
                 </div>
             </div>
         </div>
@@ -437,7 +429,7 @@
         </div>
     </div>
     <!-- 本项目主要功能脚本。 -->
-    <script src="js/app.js"></script>
+    <script src="js/app.js?v=20260722-icon-cleanup"></script>
 
     <!-- 底部 TradingView 行情条。 -->
     <script type="module" src="https://widgets.tradingview-widget.com/w/en/tv-ticker-tape.js"></script>
