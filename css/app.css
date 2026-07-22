@@ -203,6 +203,7 @@
                 min-width: 182px;
                 max-width: 182px;
             }
+            .dd-steps .dd-card:nth-child(1) { transform: translateX(4px); }
             .dd-steps .dd-card:nth-child(2) { transform: translateX(-2px); }
             .dd-steps .dd-card:nth-child(3) { transform: translateX(-4px); }
             .dd-steps .dd-card:nth-child(4) { transform: translateX(-6px); }
