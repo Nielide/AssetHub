@@ -2,6 +2,7 @@
     const DEFAULT_GH_REPO = 'Nielide/AssetHub';
     const DEFAULT_GH_PATH = 'data/data.json';
     const DEFAULT_CLOUD_DATA_URL = './data/data.json';
+    const DEFAULT_LOGO_DEV_KEY = 'pk_ODSspSh3SzKcH8aUdE0HqQ';
     let cloudHasLoadedUserData = !!localStorage.getItem('portfolioData');
 
     const savedRepo = (localStorage.getItem('gh_repo') || '').trim();
@@ -156,8 +157,15 @@
                 grid-template-columns: 24px minmax(110px, 1.15fr) 64px minmax(94px, .8fr) minmax(104px, .9fr) 58px 32px;
                 gap: 8px;
             }
+            .pro-grid-row,
+            .cash-grid-row {
+                min-height: 46px;
+            }
+            .dd-row {
+                min-height: 76px;
+            }
             .dd-row .drawdown-symbol-cell {
-                width: 148px;
+                width: 156px;
             }
             .pro-grid-row > div,
             .cash-grid-row > div {
@@ -167,12 +175,12 @@
             .pro-grid-row input[data-field="cost"],
             .pro-grid-row input[data-field="price"],
             .cash-grid-row input[data-field="amount"] {
-                height: 28px;
+                height: 30px;
                 padding: 2px 6px;
             }
             .pro-grid-row input[data-field="ticker"],
             .cash-grid-row input[data-field="ticker"] {
-                height: 28px;
+                height: 30px;
                 padding: 2px 4px;
             }
             .pro-grid-row input[data-field="ticker"] {
@@ -221,13 +229,13 @@
                     width: 100%;
                 }
                 .holding-icon {
-                    width: 24px;
-                    height: 24px;
-                    flex-basis: 24px;
+                    width: 28px;
+                    height: 28px;
+                    flex-basis: 28px;
                 }
                 .holding-icon img {
-                    width: 14px;
-                    height: 14px;
+                    width: 17px;
+                    height: 17px;
                 }
             }
             .holding-symbol-cell {
@@ -251,13 +259,13 @@
                 min-width: 0;
             }
             .holding-icon {
-                width: 26px;
-                height: 26px;
+                width: 30px;
+                height: 30px;
                 border-radius: 999px;
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                flex: 0 0 26px;
+                flex: 0 0 30px;
                 overflow: hidden;
                 background: var(--holding-icon-color, #1a73e8);
                 color: #fff;
@@ -267,8 +275,8 @@
                 letter-spacing: 0;
             }
             .holding-icon img {
-                width: 15px;
-                height: 15px;
+                width: 18px;
+                height: 18px;
                 filter: brightness(0) invert(1);
                 object-fit: contain;
             }
@@ -281,17 +289,18 @@
                 border-color: rgba(255,255,255,.12);
             }
             .holding-icon.logo-dev-icon img {
-                width: 18px;
-                height: 18px;
+                width: 100%;
+                height: 100%;
                 filter: none;
-                border-radius: 4px;
+                object-fit: cover;
+                border-radius: 999px;
             }
         `;
         document.head.appendChild(style);
     }
 
     function getLogoDevKey() {
-        return (localStorage.getItem('logo_dev_key') || '').trim();
+        return (localStorage.getItem('logo_dev_key') || DEFAULT_LOGO_DEV_KEY).trim();
     }
 
     function holdingIconColor(ticker, type) {
@@ -318,7 +327,7 @@
     function holdingIconLabel(ticker) {
         const clean = String(ticker || '').trim().toUpperCase();
         if (clean === 'USD') return '$';
-        if (clean === 'CNY') return '¥';
+        if (clean === 'CNY') return 'CN';
         if (clean === 'HKD') return 'HK';
         const letters = clean.replace(/[^A-Z]/g, '');
         if (letters) return letters.slice(0, 3);
@@ -348,9 +357,18 @@
         return `https://img.logo.dev/ticker/${encodeURIComponent(normalized)}?${params.toString()}`;
     }
 
+    function nvstlyTickerIconUrl(ticker, type) {
+        const clean = String(ticker || '').trim().toUpperCase();
+        if (!clean || type === 'cash' || type === 'cn') return '';
+        const safeTicker = clean.replace(/[^A-Z0-9.]/g, '');
+        if (!safeTicker) return '';
+        return `https://raw.githubusercontent.com/nvstly/icons/main/ticker_icons/${encodeURIComponent(safeTicker)}.png`;
+    }
+
     function updateHoldingIcon(icon, ticker, type) {
         const clean = String(ticker || '').trim().toUpperCase();
         const slug = SIMPLE_ICON_SLUGS[clean];
+        const nvstlyUrl = nvstlyTickerIconUrl(clean, type);
         icon.style.setProperty('--holding-icon-color', holdingIconColor(clean, type));
         icon.innerHTML = '';
         icon.classList.remove('logo-dev-icon');
@@ -362,7 +380,9 @@
             img.src = logoUrl;
             img.onerror = () => {
                 icon.classList.remove('logo-dev-icon');
-                if (slug) {
+                if (nvstlyUrl) {
+                    updateHoldingIconFromImage(icon, nvstlyUrl, clean);
+                } else if (slug) {
                     updateHoldingIconFromSimpleIcon(icon, slug, clean);
                 } else {
                     icon.textContent = holdingIconLabel(clean);
@@ -372,9 +392,24 @@
             icon.appendChild(img);
         } else if (slug) {
             updateHoldingIconFromSimpleIcon(icon, slug, clean);
+        } else if (nvstlyUrl) {
+            updateHoldingIconFromImage(icon, nvstlyUrl, clean);
         } else {
             icon.textContent = holdingIconLabel(clean);
         }
+    }
+
+    function updateHoldingIconFromImage(icon, src, clean) {
+        icon.innerHTML = '';
+        icon.classList.add('logo-dev-icon');
+        const img = document.createElement('img');
+        img.alt = '';
+        img.src = src;
+        img.onerror = () => {
+            icon.classList.remove('logo-dev-icon');
+            icon.textContent = holdingIconLabel(clean);
+        };
+        icon.appendChild(img);
     }
 
     function updateHoldingIconFromSimpleIcon(icon, slug, clean) {
@@ -497,7 +532,7 @@
         const repoInput = document.getElementById('gh-repo');
         if (repoInput && !repoInput.value.trim()) repoInput.value = DEFAULT_GH_REPO;
         const logoInput = document.getElementById('logo-dev-token');
-        if (logoInput) localStorage.setItem('logo_dev_key', logoInput.value.trim());
+        if (logoInput) localStorage.setItem('logo_dev_key', logoInput.value.trim() || DEFAULT_LOGO_DEV_KEY);
         originalSaveSyncSettings();
         renderAllRows();
         renderDrawdown();
