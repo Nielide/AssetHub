@@ -354,6 +354,18 @@
                     grid-auto-rows: minmax(84px, 1fr);
                     align-content: stretch;
                 }
+                .dd-current-cell > .text-right {
+                    display: flex;
+                    align-items: center;
+                    margin-right: 8px;
+                }
+                .dd-current-cell > .text-right > div:first-child {
+                    display: none;
+                }
+                .dd-current-cell > .text-right > div:last-child {
+                    font-size: 1.2rem;
+                    line-height: 1;
+                }
             }
             .holding-icon {
                 width: 30px;
