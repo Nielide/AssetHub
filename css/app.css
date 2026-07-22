@@ -179,20 +179,33 @@
                 margin-left: 0;
             }
         }
-        @media (min-width: 1720px) {
+        @media (min-width: 1800px) {
             .dd-row {
+                display: grid;
+                grid-template-columns: 204px 1363px 185px;
                 justify-content: center;
+                align-items: center;
                 gap: 0;
             }
+            .dd-row .drawdown-symbol-cell {
+                width: 204px;
+                justify-self: start;
+            }
             .dd-steps {
-                flex: 0 0 auto;
+                width: 1363px;
                 grid-template-columns: repeat(7, 176px);
-                margin: 0 40px;
+                justify-content: space-between;
+                gap: 0;
+                margin: 0;
             }
             .dd-card {
                 width: 176px;
                 min-width: 176px;
                 max-width: 176px;
+            }
+            .dd-current-cell {
+                width: 185px;
+                justify-self: end;
             }
         }
         @media (min-width: 1024px) {
