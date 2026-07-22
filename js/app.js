@@ -439,14 +439,15 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
 
                 if (isPrivacyMode) {
                     unPlEl.innerText = '••••'; 
-                    totalCostEl.innerText = '••••'; totalValueEl.innerText = '••••';
+                    if (totalCostEl) totalCostEl.innerText = '••••';
+                    if (totalValueEl) totalValueEl.innerText = '••••';
                     unPlEl.className = `text-2xl md:text-3xl font-bold font-mono ${colorClassUn}`;
                 } else {
                     const startValUn = parseFloat(unPlEl.innerText.replace(/[^\d.]/g, '')) || 0;
                     const signUnPrefix = totalUnPl >= 0 ? '+' : '-';
 					animateNumber(unPlEl, startValUn, Math.abs(totalUnPl), 500, signUnPrefix, 0);
-                    totalCostEl.innerText = `¥${Math.round(currentTotalCost)}`;
-                    totalValueEl.innerText = `¥${Math.round(currentTotal)}`;
+                    if (totalCostEl) totalCostEl.innerText = `¥${Math.round(currentTotalCost)}`;
+                    if (totalValueEl) totalValueEl.innerText = `¥${Math.round(currentTotal)}`;
                     unPlEl.className = `text-2xl md:text-3xl font-bold font-mono ${colorClassUn}`;
                 }
             }
