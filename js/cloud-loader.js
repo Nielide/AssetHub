@@ -166,15 +166,23 @@
                 grid-template-columns: 24px minmax(110px, 1.15fr) 64px minmax(94px, .8fr) minmax(104px, .9fr) 58px 32px;
                 gap: 8px;
             }
+            #drawdown-list {
+                min-width: 1280px;
+            }
             .pro-grid-row,
             .cash-grid-row {
                 min-height: 46px;
             }
             .dd-row {
-                min-height: 98px;
+                min-height: 70px;
             }
             .dd-row .drawdown-symbol-cell {
-                width: 150px;
+                width: 138px;
+            }
+            .drawdown-symbol-cell .input-google {
+                flex: 0 0 6ch;
+                min-width: 6ch;
+                max-width: 6ch;
             }
             .pro-grid-row > div,
             .cash-grid-row > div {
@@ -216,6 +224,10 @@
             .cash-grid-row input[data-field="amount"] {
                 max-width: 118px;
                 margin-left: auto;
+                font-weight: 700;
+            }
+            .cash-grid-row [id^="val-cash-"] {
+                font-weight: 700;
             }
             @media (max-width: 720px) {
                 .pro-grid-header,
@@ -264,9 +276,9 @@
                 min-width: 0;
             }
             .drawdown-symbol-cell .input-google {
-                flex: 0 0 5ch;
-                min-width: 5ch;
-                max-width: 5ch;
+                flex: 0 0 6ch;
+                min-width: 6ch;
+                max-width: 6ch;
             }
             .holding-icon {
                 width: 30px;

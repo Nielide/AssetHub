@@ -844,9 +844,9 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                         </div>
                     </div>
                     <div>
-                        <input type="${inputType}" min="0" class="input-google w-full text-right font-mono text-textPrimary dark:text-darkText font-normal" data-type="cash" data-id="${item.id}" data-field="amount" value="${item.amount}">
+                        <input type="${inputType}" min="0" class="input-google w-full text-right font-mono text-textPrimary dark:text-darkText font-bold" data-type="cash" data-id="${item.id}" data-field="amount" value="${item.amount}">
                     </div>
-                    <div class="text-right font-mono font-normal text-textPrimary dark:text-darkText" id="val-cash-${item.id}">${displayVal}</div>
+                    <div class="text-right font-mono font-bold text-textPrimary dark:text-darkText" id="val-cash-${item.id}">${displayVal}</div>
                     <div class="text-right font-mono text-textSecondary dark:text-darkTextSec" id="alloc-cash-${item.id}">--</div>
                     <div class="flex justify-center"><svg onclick="toggleDeletePopover(event, 'cash', '${item.id}')" class="delete-trigger icon-glass btn-icon w-4 h-4 text-gray-300 dark:text-gray-600 cursor-pointer hover:text-red-500 transition-colors" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></div>
                 </div>`;
@@ -975,33 +975,33 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                     }
 
                     stepsHTML += `
-                    <div class="flex flex-col items-center justify-center h-[78px] px-2 rounded-lg w-[150px] flex-shrink-0 transition-colors ${pillStyle}">
+                    <div class="flex items-center justify-center gap-2 h-[54px] px-2 rounded-lg w-[136px] flex-shrink-0 transition-colors ${pillStyle}">
                         ${progressFill}
-                        <span class="text-[0.65rem] md:text-xs font-bold ${labelColor} uppercase tracking-tighter mb-1">-${drop}%</span>
-                        <span class="text-sm md:text-base font-mono font-normal ${valColor}">${stock.high > 0 ? targetPrice.toFixed(2) : '-.--'}</span>
+                        <span class="relative z-10 text-sm font-mono font-bold ${labelColor}">-${drop}%</span>
+                        <span class="relative z-10 text-sm font-mono font-normal ${valColor}">${stock.high > 0 ? targetPrice.toFixed(2) : '-.--'}</span>
                     </div>`;
                 });
 
                 const row = document.createElement('div');
-                row.className = 'dd-row px-4 md:px-8 py-2.5 md:py-3 flex items-center gap-3 border-b border-gray-50 dark:border-white/[0.03] last:border-0';
+                row.className = 'dd-row px-3 md:px-6 py-2 flex items-center gap-2 border-b border-gray-50 dark:border-white/[0.03] last:border-0';
 
                 row.innerHTML = `
-                    <div class="flex items-center gap-2 w-[150px] flex-shrink-0">
+                    <div class="drawdown-symbol-cell flex items-center gap-2 w-[138px] flex-shrink-0">
                         <div class="drag-handle cursor-grab text-gray-300 dark:text-gray-600 hover:text-googleBlue px-1" title="Drag to reorder">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" /></svg>
                         </div>
-                        <input type="text" maxlength="5" class="input-google w-[5ch] font-bold text-lg md:text-1xl uppercase tracking-wide" value="${stock.symbol}" data-id="${stock.id}" data-field="symbol" onchange="handleDrawdownInput(this)" placeholder="SYM">
+                        <input type="text" maxlength="5" class="input-google w-[6ch] font-bold text-base uppercase tracking-normal" value="${stock.symbol}" data-id="${stock.id}" data-field="symbol" onchange="handleDrawdownInput(this)" placeholder="SYM">
                     </div>
 
                     <div class="flex-1 flex justify-center gap-2 overflow-visible px-1">
-                        <div class="flex flex-col items-center justify-center h-[78px] px-2 rounded-lg border-2 border-green-100 dark:border-green-900/30 bg-green-50 dark:bg-green-900/10 w-[150px] flex-shrink-0">
-                            <span class="text-[0.65rem] md:text-xs font-bold text-googleGreen uppercase tracking-tighter mb-1">HIGH</span>
-                            <input type="number" min="0" class="w-full text-center bg-transparent border-none p-0 text-sm md:text-base font-mono font-bold text-googleGreen focus:ring-0 outline-none" value="${stock.high || ''}" data-id="${stock.id}" data-field="high" step="0.01" onchange="handleDrawdownInput(this)" placeholder="0.00">
+                        <div class="flex items-center justify-center gap-2 h-[54px] px-2 rounded-lg border-2 border-green-100 dark:border-green-900/30 bg-green-50 dark:bg-green-900/10 w-[136px] flex-shrink-0">
+                            <span class="text-sm font-bold text-googleGreen uppercase">HIGH</span>
+                            <input type="number" min="0" class="w-[6ch] text-center bg-transparent border-none p-0 text-sm font-mono font-bold text-googleGreen focus:ring-0 outline-none" value="${stock.high || ''}" data-id="${stock.id}" data-field="high" step="0.01" onchange="handleDrawdownInput(this)" placeholder="0.00">
                         </div>
                         ${stepsHTML}
                     </div>
 
-                    <div class="flex items-center gap-3 w-[142px] flex-shrink-0 justify-end">
+                    <div class="flex items-center gap-2 w-[132px] flex-shrink-0 justify-end">
                         <div class="text-right mr-2">
                             <div class="text-[0.65rem] md:text-xs font-bold text-textSecondary dark:text-darkTextSec uppercase tracking-tighter mb-1 pr-1">Current</div>
                             <div class="text-lg md:text-2xl font-mono font-bold ${currentDropPercentage > 0 ? 'text-googleRed' : 'text-googleGreen'}">${stock.current > 0 ? stock.current.toFixed(2) : '-.--'}</div>
@@ -1672,6 +1672,34 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
         }
 
         // VOO/QQQM 回撤距离的小提醒卡片。
+        function getTradingViewSymbol(symbol) {
+            const ticker = (symbol || '').trim().toUpperCase();
+            if (!ticker) return '';
+            if (ticker.startsWith('SH')) return `SSE-${ticker.slice(2)}`;
+            if (ticker.startsWith('SZ')) return `SZSE-${ticker.slice(2)}`;
+
+            const exchanges = {
+                VOO: 'AMEX',
+                SGOV: 'AMEX',
+                QQQM: 'NASDAQ',
+                META: 'NASDAQ',
+                MSFT: 'NASDAQ',
+                AMZN: 'NASDAQ',
+                GOOG: 'NASDAQ',
+                GOOGL: 'NASDAQ',
+                NTDOY: 'OTC',
+                'BRK.B': 'NYSE'
+            };
+            const exchange = exchanges[ticker] || 'NASDAQ';
+            return `${exchange}-${ticker.replace('.', '/')}`;
+        }
+
+        window.openTradingViewSymbol = function(symbol) {
+            const tvSymbol = getTradingViewSymbol(symbol);
+            if (!tvSymbol) return;
+            window.open(`https://www.tradingview.com/symbols/${tvSymbol}/`, '_blank', 'noopener');
+        };
+
         function renderDDAlerts() {
             const container = document.getElementById('dd-alert-list');
             if (!container) return;
@@ -1725,7 +1753,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                 const displayDist = stock.distance.toFixed(1);
 
 html += `
-                <div class="flex flex-col gap-1.5 ${rowClass}" style="padding-top: 14px; padding-bottom: 24px; padding-left: 20px; padding-right: 20px;">
+                <div class="flex flex-col gap-1.5 cursor-pointer ${rowClass}" title="Open ${stock.symbol} on TradingView" onclick="openTradingViewSymbol('${stock.symbol}')" style="padding: 12px 16px 16px;">
                     <div class="flex justify-between items-center text-xs text-textPrimary dark:text-darkText">
                         <div class="flex items-baseline gap-2">
                     <span class="font-bold font-mono text-xs ${stock.symbol === 'QQQM' ? 'text-gray-900 dark:text-gray-100' : ''}">
