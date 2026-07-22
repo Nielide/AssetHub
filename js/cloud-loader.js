@@ -156,6 +156,9 @@
                 grid-template-columns: 24px minmax(110px, 1.15fr) 64px minmax(94px, .8fr) minmax(104px, .9fr) 58px 32px;
                 gap: 8px;
             }
+            .dd-row .drawdown-symbol-cell {
+                width: 148px;
+            }
             .pro-grid-row > div,
             .cash-grid-row > div {
                 min-width: 0;
@@ -233,8 +236,18 @@
                 gap: 8px;
                 min-width: 0;
             }
+            .drawdown-symbol-cell {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                min-width: 0;
+            }
             .holding-symbol-cell .input-google {
                 flex: 0 1 auto;
+                min-width: 0;
+            }
+            .drawdown-symbol-cell .input-google {
+                flex: 1;
                 min-width: 0;
             }
             .holding-icon {
@@ -259,11 +272,35 @@
                 filter: brightness(0) invert(1);
                 object-fit: contain;
             }
+            .holding-icon.logo-dev-icon {
+                background: #fff;
+                border: 1px solid rgba(0,0,0,.08);
+            }
+            .dark .holding-icon.logo-dev-icon {
+                background: #f8fafc;
+                border-color: rgba(255,255,255,.12);
+            }
+            .holding-icon.logo-dev-icon img {
+                width: 18px;
+                height: 18px;
+                filter: none;
+                border-radius: 4px;
+            }
         `;
         document.head.appendChild(style);
     }
 
+    function getLogoDevKey() {
+        return (localStorage.getItem('logo_dev_key') || '').trim();
+    }
+
     function holdingIconColor(ticker, type) {
+        if (type === 'cash') {
+            const ccy = String(ticker || '').toUpperCase();
+            if (ccy === 'CNY') return HOLDING_ICON_COLORS.yellow;
+            if (ccy === 'HKD') return HOLDING_ICON_COLORS.purple;
+            return HOLDING_ICON_COLORS.green;
+        }
         if (type === 'cn') return HOLDING_ICON_COLORS.green;
         if (type === 'sgov') return HOLDING_ICON_COLORS.blue;
         const palette = [
@@ -280,9 +317,35 @@
 
     function holdingIconLabel(ticker) {
         const clean = String(ticker || '').trim().toUpperCase();
+        if (clean === 'USD') return '$';
+        if (clean === 'CNY') return '¥';
+        if (clean === 'HKD') return 'HK';
         const letters = clean.replace(/[^A-Z]/g, '');
         if (letters) return letters.slice(0, 3);
         return clean.slice(0, 3) || '--';
+    }
+
+    function logoDevTicker(ticker, type) {
+        const clean = String(ticker || '').trim().toUpperCase();
+        if (!clean || type === 'cash') return '';
+        if (type === 'cn') {
+            const match = clean.match(/^(SH|SZ)(\d{6})$/);
+            if (match) return `${match[2]}.${match[1] === 'SH' ? 'SS' : 'SZ'}`;
+        }
+        return clean.replace(/[^A-Z0-9.]/g, '');
+    }
+
+    function logoDevUrl(ticker, type) {
+        const key = getLogoDevKey();
+        const normalized = logoDevTicker(ticker, type);
+        if (!key || !normalized) return '';
+        const params = new URLSearchParams({
+            token: key,
+            size: '64',
+            format: 'png',
+            fallback: 'monogram'
+        });
+        return `https://img.logo.dev/ticker/${encodeURIComponent(normalized)}?${params.toString()}`;
     }
 
     function updateHoldingIcon(icon, ticker, type) {
@@ -290,6 +353,33 @@
         const slug = SIMPLE_ICON_SLUGS[clean];
         icon.style.setProperty('--holding-icon-color', holdingIconColor(clean, type));
         icon.innerHTML = '';
+        icon.classList.remove('logo-dev-icon');
+
+        const logoUrl = logoDevUrl(clean, type);
+        if (logoUrl) {
+            const img = document.createElement('img');
+            img.alt = '';
+            img.src = logoUrl;
+            img.onerror = () => {
+                icon.classList.remove('logo-dev-icon');
+                if (slug) {
+                    updateHoldingIconFromSimpleIcon(icon, slug, clean);
+                } else {
+                    icon.textContent = holdingIconLabel(clean);
+                }
+            };
+            icon.classList.add('logo-dev-icon');
+            icon.appendChild(img);
+        } else if (slug) {
+            updateHoldingIconFromSimpleIcon(icon, slug, clean);
+        } else {
+            icon.textContent = holdingIconLabel(clean);
+        }
+    }
+
+    function updateHoldingIconFromSimpleIcon(icon, slug, clean) {
+        icon.innerHTML = '';
+        icon.classList.remove('logo-dev-icon');
         if (slug) {
             const img = document.createElement('img');
             img.alt = '';
@@ -301,6 +391,46 @@
         } else {
             icon.textContent = holdingIconLabel(clean);
         }
+    }
+
+    function decorateCashIcons() {
+        injectHoldingIconStyles();
+        const container = document.getElementById('cash-inputs');
+        if (!container) return;
+        container.querySelectorAll('input[data-field="ticker"]').forEach(input => {
+            const cell = input.parentElement;
+            if (!cell) return;
+            cell.classList.add('holding-symbol-cell');
+            let icon = cell.querySelector('.holding-icon');
+            if (!icon) {
+                icon = document.createElement('span');
+                icon.className = 'holding-icon';
+                icon.setAttribute('aria-hidden', 'true');
+                cell.insertBefore(icon, input);
+            }
+            const item = state.cash.find(cash => String(cash.id) === String(input.dataset.id));
+            updateHoldingIcon(icon, item?.currency || input.value, 'cash');
+        });
+    }
+
+    function decorateDrawdownIcons() {
+        injectHoldingIconStyles();
+        const container = document.getElementById('drawdown-list');
+        if (!container) return;
+        container.querySelectorAll('input[data-field="symbol"]').forEach(input => {
+            const cell = input.parentElement;
+            if (!cell) return;
+            cell.classList.add('drawdown-symbol-cell');
+            let icon = cell.querySelector('.holding-icon');
+            if (!icon) {
+                icon = document.createElement('span');
+                icon.className = 'holding-icon';
+                icon.setAttribute('aria-hidden', 'true');
+                cell.insertBefore(icon, input);
+                input.addEventListener('input', () => updateHoldingIcon(icon, input.value, 'drawdown'));
+            }
+            updateHoldingIcon(icon, input.value, 'drawdown');
+        });
     }
 
     function decorateHoldingIcons(type) {
@@ -329,13 +459,33 @@
         decorateHoldingIcons(type);
     };
 
+    const originalRenderCashRows = renderCashRows;
+    renderCashRows = function() {
+        originalRenderCashRows();
+        decorateCashIcons();
+    };
+
+    const originalRenderDrawdown = renderDrawdown;
+    renderDrawdown = function() {
+        originalRenderDrawdown();
+        decorateDrawdownIcons();
+    };
+
+    const originalHandleCurrencyChange = handleCurrencyChange;
+    handleCurrencyChange = function(id, value) {
+        originalHandleCurrencyChange(id, value);
+        decorateCashIcons();
+    };
+
     const originalToggleSyncPanel = toggleSyncPanel;
     toggleSyncPanel = function() {
         originalToggleSyncPanel();
         const repoInput = document.getElementById('gh-repo');
         const pathInput = document.getElementById('gh-path');
+        const logoInput = document.getElementById('logo-dev-token');
         if (repoInput) repoInput.value = getSyncRepo();
         if (pathInput) pathInput.value = getSyncPath();
+        if (logoInput) logoInput.value = getLogoDevKey();
     };
 
     const originalSaveSyncSettings = saveSyncSettings;
@@ -346,7 +496,12 @@
         }
         const repoInput = document.getElementById('gh-repo');
         if (repoInput && !repoInput.value.trim()) repoInput.value = DEFAULT_GH_REPO;
+        const logoInput = document.getElementById('logo-dev-token');
+        if (logoInput) localStorage.setItem('logo_dev_key', logoInput.value.trim());
         originalSaveSyncSettings();
+        renderAllRows();
+        renderDrawdown();
+        if (typeof initSortable === 'function') initSortable();
     };
 
     pullFromGithub = async function() {
