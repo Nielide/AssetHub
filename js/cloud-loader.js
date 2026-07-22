@@ -313,8 +313,8 @@
             @media (min-width: 1800px) {
                 .dd-row {
                     display: grid;
-                    grid-template-columns: 204px 1363px 185px;
-                    justify-content: center;
+                    grid-template-columns: 204px minmax(0, 1fr) 185px;
+                    justify-content: stretch;
                     align-items: center;
                     gap: 0;
                 }
@@ -323,16 +323,16 @@
                     justify-self: start;
                 }
                 .dd-steps {
-                    width: 1363px;
-                    grid-template-columns: repeat(7, 176px);
+                    width: 100%;
+                    grid-template-columns: repeat(7, 182px);
                     justify-content: space-between;
                     gap: 0;
                     margin: 0;
                 }
                 .dd-card {
-                    width: 176px;
-                    min-width: 176px;
-                    max-width: 176px;
+                    width: 182px;
+                    min-width: 182px;
+                    max-width: 182px;
                 }
                 .dd-current-cell {
                     width: 185px;
