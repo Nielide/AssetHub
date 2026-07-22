@@ -162,10 +162,10 @@
                 min-height: 46px;
             }
             .dd-row {
-                min-height: 76px;
+                min-height: 72px;
             }
             .dd-row .drawdown-symbol-cell {
-                width: 156px;
+                width: 190px;
             }
             .pro-grid-row > div,
             .cash-grid-row > div {
@@ -257,6 +257,7 @@
             .drawdown-symbol-cell .input-google {
                 flex: 1;
                 min-width: 0;
+                max-width: 112px;
             }
             .holding-icon {
                 width: 30px;
@@ -281,12 +282,12 @@
                 object-fit: contain;
             }
             .holding-icon.logo-dev-icon {
-                background: #fff;
-                border: 1px solid rgba(0,0,0,.08);
+                background: transparent;
+                border: 0;
             }
             .dark .holding-icon.logo-dev-icon {
-                background: #f8fafc;
-                border-color: rgba(255,255,255,.12);
+                background: transparent;
+                border: 0;
             }
             .holding-icon.logo-dev-icon img {
                 width: 100%;
@@ -517,10 +518,8 @@
         originalToggleSyncPanel();
         const repoInput = document.getElementById('gh-repo');
         const pathInput = document.getElementById('gh-path');
-        const logoInput = document.getElementById('logo-dev-token');
         if (repoInput) repoInput.value = getSyncRepo();
         if (pathInput) pathInput.value = getSyncPath();
-        if (logoInput) logoInput.value = getLogoDevKey();
     };
 
     const originalSaveSyncSettings = saveSyncSettings;
@@ -531,8 +530,6 @@
         }
         const repoInput = document.getElementById('gh-repo');
         if (repoInput && !repoInput.value.trim()) repoInput.value = DEFAULT_GH_REPO;
-        const logoInput = document.getElementById('logo-dev-token');
-        if (logoInput) localStorage.setItem('logo_dev_key', logoInput.value.trim() || DEFAULT_LOGO_DEV_KEY);
         originalSaveSyncSettings();
         renderAllRows();
         renderDrawdown();
