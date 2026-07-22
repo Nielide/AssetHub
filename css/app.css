@@ -140,6 +140,17 @@
         .ccy-option.active { background-color: #1a73e8; color: #fff; }
         .cash-amt-prefix { color: var(--text-secondary); font-family: "Roboto Mono", monospace; font-weight: 600; flex-shrink: 0; }
 
-        #drawdown-list { min-width: 1280px; }
+        #drawdown-list {
+            width: min(1420px, calc(100vw - 32px));
+            min-width: 1280px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .dd-row .drawdown-symbol-cell { width: 150px; }
+        .drawdown-symbol-cell .input-google {
+            flex: 0 0 7ch;
+            min-width: 7ch;
+            max-width: 7ch;
+        }
         .cash-grid-row input[data-field="amount"],
         .cash-grid-row [id^="val-cash-"] { font-weight: 700; }

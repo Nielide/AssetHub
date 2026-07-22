@@ -986,11 +986,11 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                 row.className = 'dd-row px-3 md:px-6 py-2 flex items-center gap-2 border-b border-gray-50 dark:border-white/[0.03] last:border-0';
 
                 row.innerHTML = `
-                    <div class="drawdown-symbol-cell flex items-center gap-2 w-[138px] flex-shrink-0">
+                    <div class="drawdown-symbol-cell flex items-center gap-2 w-[150px] flex-shrink-0">
                         <div class="drag-handle cursor-grab text-gray-300 dark:text-gray-600 hover:text-googleBlue px-1" title="Drag to reorder">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" /></svg>
                         </div>
-                        <input type="text" maxlength="5" class="input-google w-[6ch] font-bold text-base uppercase tracking-normal" value="${stock.symbol}" data-id="${stock.id}" data-field="symbol" onchange="handleDrawdownInput(this)" placeholder="SYM">
+                        <input type="text" maxlength="5" class="input-google w-[7ch] font-bold text-base uppercase tracking-normal" value="${stock.symbol}" data-id="${stock.id}" data-field="symbol" onchange="handleDrawdownInput(this)" placeholder="GOOGL">
                     </div>
 
                     <div class="flex-1 flex justify-center gap-2 overflow-visible px-1">

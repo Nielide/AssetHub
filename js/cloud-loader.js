@@ -167,7 +167,10 @@
                 gap: 8px;
             }
             #drawdown-list {
+                width: min(1420px, calc(100vw - 32px));
                 min-width: 1280px;
+                margin-left: auto;
+                margin-right: auto;
             }
             .pro-grid-row,
             .cash-grid-row {
@@ -177,12 +180,12 @@
                 min-height: 70px;
             }
             .dd-row .drawdown-symbol-cell {
-                width: 138px;
+                width: 150px;
             }
             .drawdown-symbol-cell .input-google {
-                flex: 0 0 6ch;
-                min-width: 6ch;
-                max-width: 6ch;
+                flex: 0 0 7ch;
+                min-width: 7ch;
+                max-width: 7ch;
             }
             .pro-grid-row > div,
             .cash-grid-row > div {
@@ -276,9 +279,9 @@
                 min-width: 0;
             }
             .drawdown-symbol-cell .input-google {
-                flex: 0 0 6ch;
-                min-width: 6ch;
-                max-width: 6ch;
+                flex: 0 0 7ch;
+                min-width: 7ch;
+                max-width: 7ch;
             }
             .holding-icon {
                 width: 30px;
