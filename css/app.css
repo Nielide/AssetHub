@@ -141,12 +141,22 @@
         .cash-amt-prefix { color: var(--text-secondary); font-family: "Roboto Mono", monospace; font-weight: 600; flex-shrink: 0; }
 
         #drawdown-list {
-            width: min(1420px, calc(100vw - 32px));
+            width: 100%;
             min-width: 1280px;
-            margin-left: auto;
-            margin-right: auto;
         }
         .dd-row .drawdown-symbol-cell { width: 150px; }
+        .dd-steps {
+            justify-content: space-between;
+            gap: clamp(8px, 0.7vw, 14px);
+        }
+        .dd-card {
+            flex: 1 1 136px;
+            min-width: 132px;
+            max-width: 180px;
+        }
+        .dd-current-cell {
+            width: clamp(132px, 8vw, 172px);
+        }
         .drawdown-symbol-cell .input-google {
             flex: 0 0 7ch;
             min-width: 7ch;

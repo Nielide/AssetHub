@@ -167,10 +167,8 @@
                 gap: 8px;
             }
             #drawdown-list {
-                width: min(1420px, calc(100vw - 32px));
+                width: 100%;
                 min-width: 1280px;
-                margin-left: auto;
-                margin-right: auto;
             }
             .pro-grid-row,
             .cash-grid-row {
@@ -181,6 +179,18 @@
             }
             .dd-row .drawdown-symbol-cell {
                 width: 150px;
+            }
+            .dd-steps {
+                justify-content: space-between;
+                gap: clamp(8px, 0.7vw, 14px);
+            }
+            .dd-card {
+                flex: 1 1 136px;
+                min-width: 132px;
+                max-width: 180px;
+            }
+            .dd-current-cell {
+                width: clamp(132px, 8vw, 172px);
             }
             .drawdown-symbol-cell .input-google {
                 flex: 0 0 7ch;

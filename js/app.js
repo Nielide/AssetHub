@@ -975,7 +975,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                     }
 
                     stepsHTML += `
-                    <div class="flex items-center justify-center gap-2 h-[54px] px-2 rounded-lg w-[136px] flex-shrink-0 transition-colors ${pillStyle}">
+                    <div class="dd-card flex items-center justify-center gap-2 h-[54px] px-2 rounded-lg w-[136px] flex-shrink-0 transition-colors ${pillStyle}">
                         ${progressFill}
                         <span class="relative z-10 text-sm font-mono font-bold ${labelColor}">-${drop}%</span>
                         <span class="relative z-10 text-sm font-mono font-normal ${valColor}">${stock.high > 0 ? targetPrice.toFixed(2) : '-.--'}</span>
@@ -993,15 +993,15 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                         <input type="text" maxlength="5" class="input-google w-[7ch] font-bold text-base uppercase tracking-normal" value="${stock.symbol}" data-id="${stock.id}" data-field="symbol" onchange="handleDrawdownInput(this)" placeholder="GOOGL">
                     </div>
 
-                    <div class="flex-1 flex justify-center gap-2 overflow-visible px-1">
-                        <div class="flex items-center justify-center gap-2 h-[54px] px-2 rounded-lg border-2 border-green-100 dark:border-green-900/30 bg-green-50 dark:bg-green-900/10 w-[136px] flex-shrink-0">
+                    <div class="dd-steps flex-1 flex justify-center gap-2 overflow-visible px-1">
+                        <div class="dd-card flex items-center justify-center gap-2 h-[54px] px-2 rounded-lg border-2 border-green-100 dark:border-green-900/30 bg-green-50 dark:bg-green-900/10 w-[136px] flex-shrink-0">
                             <span class="text-sm font-bold text-googleGreen uppercase">HIGH</span>
                             <input type="number" min="0" class="w-[6ch] text-center bg-transparent border-none p-0 text-sm font-mono font-bold text-googleGreen focus:ring-0 outline-none" value="${stock.high || ''}" data-id="${stock.id}" data-field="high" step="0.01" onchange="handleDrawdownInput(this)" placeholder="0.00">
                         </div>
                         ${stepsHTML}
                     </div>
 
-                    <div class="flex items-center gap-2 w-[132px] flex-shrink-0 justify-end">
+                    <div class="dd-current-cell flex items-center gap-2 w-[132px] flex-shrink-0 justify-end">
                         <div class="text-right mr-2">
                             <div class="text-[0.65rem] md:text-xs font-bold text-textSecondary dark:text-darkTextSec uppercase tracking-tighter mb-1 pr-1">Current</div>
                             <div class="text-lg md:text-2xl font-mono font-bold ${currentDropPercentage > 0 ? 'text-googleRed' : 'text-googleGreen'}">${stock.current > 0 ? stock.current.toFixed(2) : '-.--'}</div>
