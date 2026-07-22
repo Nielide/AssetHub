@@ -171,10 +171,10 @@
                 min-height: 46px;
             }
             .dd-row {
-                min-height: 112px;
+                min-height: 98px;
             }
             .dd-row .drawdown-symbol-cell {
-                width: 220px;
+                width: 150px;
             }
             .pro-grid-row > div,
             .cash-grid-row > div {
@@ -264,9 +264,9 @@
                 min-width: 0;
             }
             .drawdown-symbol-cell .input-google {
-                flex: 1;
-                min-width: 0;
-                max-width: 128px;
+                flex: 0 0 5ch;
+                min-width: 5ch;
+                max-width: 5ch;
             }
             .holding-icon {
                 width: 30px;
