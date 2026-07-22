@@ -167,10 +167,8 @@
                 gap: 8px;
             }
             #drawdown-list {
-                width: min(1680px, calc(100vw - 32px));
+                width: 100%;
                 min-width: 1280px;
-                margin-left: auto;
-                margin-right: auto;
             }
             .pro-grid-row,
             .cash-grid-row {
@@ -296,6 +294,30 @@
                 flex: 0 0 7ch;
                 min-width: 7ch;
                 max-width: 7ch;
+            }
+            @media (min-width: 1440px) {
+                .dd-steps {
+                    display: grid;
+                    grid-template-columns: repeat(7, minmax(0, 1fr));
+                    min-width: 0;
+                }
+                .dd-card {
+                    width: 100%;
+                    min-width: 0;
+                    max-width: none;
+                }
+                .dd-current-cell {
+                    margin-left: 0;
+                }
+            }
+            @media (min-width: 1024px) {
+                #alert-card { min-height: 0; }
+                #dd-alert-list {
+                    flex: 1;
+                    display: grid;
+                    grid-auto-rows: minmax(84px, 1fr);
+                    align-content: stretch;
+                }
             }
             .holding-icon {
                 width: 30px;
