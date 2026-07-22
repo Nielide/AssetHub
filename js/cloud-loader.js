@@ -48,6 +48,29 @@
         }
     }
 
+    function mergeRemoteHistory(remote) {
+        const remoteHistory = Array.isArray(remote?.history) ? remote.history : [];
+        if (!remoteHistory.length) return false;
+        if (!Array.isArray(state.history)) state.history = [];
+
+        const localByDate = new Map(state.history.map(record => [record.date, record]));
+        let changed = false;
+
+        remoteHistory.forEach(record => {
+            if (!record?.date || localByDate.has(record.date)) return;
+            state.history.push({ ...record });
+            changed = true;
+        });
+
+        if (changed) {
+            state.history.sort((a, b) => String(a.date || '').localeCompare(String(b.date || '')));
+            localStorage.setItem('portfolioData', JSON.stringify(state));
+            localStorage.setItem('last_known_remote_save', String(remote.lastSavedAt || 0));
+        }
+
+        return changed;
+    }
+
     async function loadCloudDataIfNewer(force = false) {
         const remote = normalizePortfolioState(await fetchJsonWithTimeout(DEFAULT_CLOUD_DATA_URL));
         const remoteSavedAt = remote.lastSavedAt || 0;
@@ -60,7 +83,7 @@
             localStorage.setItem('last_known_remote_save', String(remoteSavedAt));
             return true;
         }
-        return false;
+        return mergeRemoteHistory(remote);
     }
 
     function applyMainChartPrivacy(chart, isPrivate) {
