@@ -153,14 +153,18 @@
     };
 
     const TRADINGVIEW_CN_ICON_URLS = {
+        SH588000: 'https://s3-symbol-logo.tradingview.com/china-asset-mgt-co--big.svg',
+        SH513050: 'https://s3-symbol-logo.tradingview.com/e-fund--big.svg',
+        SZ159930: 'https://s3-symbol-logo.tradingview.com/china-csi--big.svg',
+        SH518880: 'https://s3-symbol-logo.tradingview.com/guotai-junan-securities-co-ltd--big.svg',
         SH: 'https://s3-symbol-logo.tradingview.com/source/SSE.svg',
         SZ: 'https://s3-symbol-logo.tradingview.com/source/SZSE.svg'
     };
 
     const CURRENCY_ICON_URLS = {
-        USD: 'https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/us.svg',
-        CNY: 'https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/cn.svg',
-        HKD: 'https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/hk.svg'
+        USD: 'https://s3-symbol-logo.tradingview.com/country/US--big.svg',
+        CNY: 'https://s3-symbol-logo.tradingview.com/country/CN--big.svg',
+        HKD: 'https://s3-symbol-logo.tradingview.com/country/HK--big.svg'
     };
 
     function injectHoldingIconStyles() {
@@ -180,6 +184,9 @@
             #drawdown-list {
                 width: 100%;
                 min-width: 1280px;
+            }
+            .drawdown-scroll {
+                padding-top: 0;
             }
             .pro-grid-row,
             .cash-grid-row {
@@ -359,6 +366,9 @@
             }
             @media (min-width: 1024px) {
                 #alert-card { min-height: 0; }
+                .drawdown-scroll {
+                    padding-top: 12px;
+                }
                 #dd-alert-list {
                     flex: 1;
                     display: grid;
@@ -486,7 +496,7 @@
         if (type === 'cash') return CURRENCY_ICON_URLS[clean] || '';
         if (type === 'cn') {
             const match = clean.match(/^(SH|SZ)\d{6}$/);
-            if (match) return TRADINGVIEW_CN_ICON_URLS[match[1]] || '';
+            if (match) return TRADINGVIEW_CN_ICON_URLS[clean] || TRADINGVIEW_CN_ICON_URLS[match[1]] || '';
         }
         return '';
     }

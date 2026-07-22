@@ -144,6 +144,9 @@
             width: 100%;
             min-width: 1280px;
         }
+        .drawdown-scroll {
+            padding-top: 0;
+        }
         .dd-row .drawdown-symbol-cell { width: 150px; }
         .dd-steps {
             justify-content: flex-start;
@@ -217,6 +220,9 @@
         }
         @media (min-width: 1024px) {
             #alert-card { min-height: 0; }
+            .drawdown-scroll {
+                padding-top: 12px;
+            }
             #dd-alert-list {
                 flex: 1;
                 display: grid;

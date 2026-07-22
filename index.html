@@ -23,7 +23,7 @@
         <!-- 本项目自己的配置和样式文件。 -->
         <script src="js/tailwind.config.js"></script>
 
-        <link rel="stylesheet" href="css/app.css?v=20260722-cn-tv-icons">
+        <link rel="stylesheet" href="css/app.css?v=20260722-cn-currency-icons">
 </head>
 <body class="min-h-screen py-4 md:py-6 font-sans pb-16" onclick="handleBodyClick(event)">
 
@@ -300,7 +300,7 @@
 
         <!-- 回撤监控：用最高价和当前价计算距离 5%、10%、15% 等回撤档位还有多远。 -->
         <div class="g-card-static overflow-hidden mt-3 md:mt-4 w-full">
-            <div class="px-6 md:px-12 py-4 border-b border-gray-100 dark:border-white/[0.03] bg-gray-50 dark:bg-gray-800 flex justify-between items-center">
+            <div class="px-6 py-4 border-b border-gray-100 dark:border-white/[0.03] bg-gray-50 dark:bg-gray-800 flex justify-between items-center">
                 <div class="flex items-center gap-2">
                     <div class="w-1 h-4 bg-googleBlue rounded-full"></div>
                     <h2 class="text-sm font-bold text-textPrimary dark:text-darkText uppercase tracking-wide">Drawdown Tracker</h2>
@@ -317,7 +317,7 @@
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-darkSurface transition-colors w-full overflow-x-auto hide-scroll pb-4">
+            <div class="drawdown-scroll bg-white dark:bg-darkSurface transition-colors w-full overflow-x-auto hide-scroll pb-4">
                 <div id="drawdown-list" class="min-w-[1280px] divide-y divide-gray-50 dark:divide-white/[0.03]">
                 </div>
             </div>
@@ -423,7 +423,7 @@
         </div>
     </div>
     <!-- 本项目主要功能脚本。 -->
-    <script src="js/app.js?v=20260722-cn-tv-icons"></script>
+    <script src="js/app.js?v=20260722-cn-currency-icons"></script>
 
     <!-- 底部 TradingView 行情条。 -->
     <script type="module" src="https://widgets.tradingview-widget.com/w/en/tv-ticker-tape.js"></script>

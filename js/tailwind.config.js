@@ -21,6 +21,6 @@ tailwind.config = {
 // app.js 在 body 末尾执行；DOMContentLoaded 时再插入云端数据加载补丁，确保它覆盖 app.js 的启动和同步逻辑。
 document.addEventListener('DOMContentLoaded', () => {
     const script = document.createElement('script');
-    script.src = 'js/cloud-loader.js?v=20260722-cn-tv-icons';
+    script.src = 'js/cloud-loader.js?v=20260722-cn-currency-icons';
     document.body.appendChild(script);
 });
