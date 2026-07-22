@@ -23,7 +23,7 @@
         <!-- 本项目自己的配置和样式文件。 -->
         <script src="js/tailwind.config.js"></script>
 
-        <link rel="stylesheet" href="css/app.css?v=20260722-dd-density">
+        <link rel="stylesheet" href="css/app.css?v=20260722-dd-compact">
 </head>
 <body class="min-h-screen py-4 md:py-6 font-sans pb-16" onclick="handleBodyClick(event)">
 
@@ -151,12 +151,6 @@
                     <div class="flex justify-between items-center mb-4">
                         <div class="text-2xl md:text-3xl font-bold font-mono" id="total-unrealized-pl-val">--</div>
                         <div class="text-[0.65rem] font-bold font-mono px-2.5 py-1 rounded-full" id="total-unrealized-pl-pct">--</div>
-                    </div>
-                    <div class="flex justify-start text-xs text-textPrimary dark:text-darkText">
-                        <div>
-                            <div class="text-[0.65rem] font-bold text-textSecondary dark:text-darkTextSec mb-0.5">COST</div>
-                            <div id="total-cost-val" class="font-normal font-mono text-sm">--</div>
-                        </div>
                     </div>
                 </div>
 
@@ -324,7 +318,7 @@
             </div>
 
             <div class="bg-white dark:bg-darkSurface transition-colors w-full overflow-x-auto hide-scroll pb-4">
-                <div id="drawdown-list" class="min-w-[1540px] divide-y divide-gray-50 dark:divide-white/[0.03]">
+                <div id="drawdown-list" class="min-w-[1480px] divide-y divide-gray-50 dark:divide-white/[0.03]">
                 </div>
             </div>
         </div>
@@ -429,7 +423,7 @@
         </div>
     </div>
     <!-- 本项目主要功能脚本。 -->
-    <script src="js/app.js?v=20260722-dd-density"></script>
+    <script src="js/app.js?v=20260722-dd-compact"></script>
 
     <!-- 底部 TradingView 行情条。 -->
     <script type="module" src="https://widgets.tradingview-widget.com/w/en/tv-ticker-tape.js"></script>
