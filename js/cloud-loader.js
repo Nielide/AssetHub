@@ -152,6 +152,17 @@
         NTDOY: 'OTC'
     };
 
+    const TRADINGVIEW_CN_ICON_URLS = {
+        SH: 'https://s3-symbol-logo.tradingview.com/source/SSE.svg',
+        SZ: 'https://s3-symbol-logo.tradingview.com/source/SZSE.svg'
+    };
+
+    const CURRENCY_ICON_URLS = {
+        USD: 'https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/us.svg',
+        CNY: 'https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/cn.svg',
+        HKD: 'https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/hk.svg'
+    };
+
     function injectHoldingIconStyles() {
         if (document.getElementById('holding-icon-styles')) return;
         const style = document.createElement('style');
@@ -469,6 +480,17 @@
         return `https://img.logo.dev/ticker/${encodeURIComponent(normalized)}?${params.toString()}`;
     }
 
+    function preferredHoldingIconUrl(ticker, type) {
+        const clean = String(ticker || '').trim().toUpperCase();
+        if (!clean) return '';
+        if (type === 'cash') return CURRENCY_ICON_URLS[clean] || '';
+        if (type === 'cn') {
+            const match = clean.match(/^(SH|SZ)\d{6}$/);
+            if (match) return TRADINGVIEW_CN_ICON_URLS[match[1]] || '';
+        }
+        return '';
+    }
+
     function tradingViewSymbol(ticker, type) {
         const clean = String(ticker || '').trim().toUpperCase();
         if (!clean || type === 'cash') return '';
@@ -512,6 +534,12 @@
         icon.style.setProperty('--holding-icon-color', holdingIconColor(clean, type));
         icon.innerHTML = '';
         icon.classList.remove('logo-dev-icon');
+
+        const preferredUrl = preferredHoldingIconUrl(clean, type);
+        if (preferredUrl) {
+            updateHoldingIconFromImage(icon, preferredUrl, clean);
+            return;
+        }
 
         const logoUrl = logoDevUrl(clean, type);
         if (logoUrl) {
