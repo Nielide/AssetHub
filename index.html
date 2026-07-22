@@ -23,7 +23,7 @@
         <!-- 本项目自己的配置和样式文件。 -->
         <script src="js/tailwind.config.js"></script>
 
-        <link rel="stylesheet" href="css/app.css">
+        <link rel="stylesheet" href="css/app.css?v=20260722-dd-density">
 </head>
 <body class="min-h-screen py-4 md:py-6 font-sans pb-16" onclick="handleBodyClick(event)">
 
@@ -35,7 +35,7 @@
                 <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-googleBlue border border-blue-100 dark:border-blue-800 flex-shrink-0">
                     <svg class="icon-glass w-5 h-5 md:w-6 md:h-6" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                 </div>
-                <div><h1 class="text-xl font-normal text-textPrimary dark:text-darkText hidden md:block">AssetHub</h1></div>
+                <div><h1 class="text-xl font-bold text-textPrimary dark:text-darkText hidden md:block">AssetHub</h1></div>
             </div>
 
             <div class="flex items-center gap-2 md:gap-3 flex-wrap justify-end">
@@ -155,7 +155,7 @@
                     <div class="flex justify-start text-xs text-textPrimary dark:text-darkText">
                         <div>
                             <div class="text-[0.65rem] font-bold text-textSecondary dark:text-darkTextSec mb-0.5">COST</div>
-                            <div id="total-cost-val" class="font-bold font-mono text-sm">--</div>
+                            <div id="total-cost-val" class="font-normal font-mono text-sm">--</div>
                         </div>
                     </div>
                 </div>
@@ -429,7 +429,7 @@
         </div>
     </div>
     <!-- 本项目主要功能脚本。 -->
-    <script src="js/app.js?v=20260722-icon-cleanup-2"></script>
+    <script src="js/app.js?v=20260722-dd-density"></script>
 
     <!-- 底部 TradingView 行情条。 -->
     <script type="module" src="https://widgets.tradingview-widget.com/w/en/tv-ticker-tape.js"></script>
