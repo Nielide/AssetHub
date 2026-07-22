@@ -975,7 +975,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                     }
 
                     stepsHTML += `
-                    <div class="flex flex-col items-center justify-center h-[84px] px-2 rounded-lg w-[194px] flex-shrink-0 transition-colors ${pillStyle}">
+                    <div class="flex flex-col items-center justify-center h-[78px] px-2 rounded-lg w-[150px] flex-shrink-0 transition-colors ${pillStyle}">
                         ${progressFill}
                         <span class="text-[0.65rem] md:text-xs font-bold ${labelColor} uppercase tracking-tighter mb-1">-${drop}%</span>
                         <span class="text-sm md:text-base font-mono font-normal ${valColor}">${stock.high > 0 ? targetPrice.toFixed(2) : '-.--'}</span>
@@ -983,25 +983,25 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                 });
 
                 const row = document.createElement('div');
-                row.className = 'dd-row px-4 md:px-10 py-3 md:py-4 flex items-center gap-3 border-b border-gray-50 dark:border-white/[0.03] last:border-0';
+                row.className = 'dd-row px-4 md:px-8 py-2.5 md:py-3 flex items-center gap-3 border-b border-gray-50 dark:border-white/[0.03] last:border-0';
 
                 row.innerHTML = `
-                    <div class="flex items-center gap-3 w-[220px] flex-shrink-0">
+                    <div class="flex items-center gap-2 w-[150px] flex-shrink-0">
                         <div class="drag-handle cursor-grab text-gray-300 dark:text-gray-600 hover:text-googleBlue px-1" title="Drag to reorder">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" /></svg>
                         </div>
-                        <input type="text" class="input-google w-full font-bold text-lg md:text-1xl uppercase tracking-wide" value="${stock.symbol}" data-id="${stock.id}" data-field="symbol" onchange="handleDrawdownInput(this)" placeholder="SYM">
+                        <input type="text" maxlength="5" class="input-google w-[5ch] font-bold text-lg md:text-1xl uppercase tracking-wide" value="${stock.symbol}" data-id="${stock.id}" data-field="symbol" onchange="handleDrawdownInput(this)" placeholder="SYM">
                     </div>
 
-                    <div class="flex-1 flex justify-center gap-3 overflow-hidden px-1">
-                        <div class="flex flex-col items-center justify-center h-[84px] px-2 rounded-lg border-2 border-green-100 dark:border-green-900/30 bg-green-50 dark:bg-green-900/10 w-[194px] flex-shrink-0">
+                    <div class="flex-1 flex justify-center gap-2 overflow-visible px-1">
+                        <div class="flex flex-col items-center justify-center h-[78px] px-2 rounded-lg border-2 border-green-100 dark:border-green-900/30 bg-green-50 dark:bg-green-900/10 w-[150px] flex-shrink-0">
                             <span class="text-[0.65rem] md:text-xs font-bold text-googleGreen uppercase tracking-tighter mb-1">HIGH</span>
                             <input type="number" min="0" class="w-full text-center bg-transparent border-none p-0 text-sm md:text-base font-mono font-bold text-googleGreen focus:ring-0 outline-none" value="${stock.high || ''}" data-id="${stock.id}" data-field="high" step="0.01" onchange="handleDrawdownInput(this)" placeholder="0.00">
                         </div>
                         ${stepsHTML}
                     </div>
 
-                    <div class="flex items-center gap-3 w-[150px] flex-shrink-0 justify-end">
+                    <div class="flex items-center gap-3 w-[142px] flex-shrink-0 justify-end">
                         <div class="text-right mr-2">
                             <div class="text-[0.65rem] md:text-xs font-bold text-textSecondary dark:text-darkTextSec uppercase tracking-tighter mb-1 pr-1">Current</div>
                             <div class="text-lg md:text-2xl font-mono font-bold ${currentDropPercentage > 0 ? 'text-googleRed' : 'text-googleGreen'}">${stock.current > 0 ? stock.current.toFixed(2) : '-.--'}</div>
@@ -1703,23 +1703,24 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
 
             filteredDrawdown.forEach((stock, index) => {
                 let tagText, barColor, tagBg, rowClass;
+                const currentDropPercentage = stock.high > 0 ? ((stock.high - stock.current) / stock.high) * 100 : 0;
 
-				if (stock.distance < 1.0) {
-				tagText = 'Alert';
-				barColor = 'bg-googleRed';
-				tagBg = 'bg-red-50 dark:bg-red-900/30 text-googleRed';
-				rowClass = index === 0 ? 'bg-red-50/50 dark:bg-red-900/10 rounded-xl animate-pulse-bg' : 'bg-red-50/30 dark:bg-red-900/5 rounded-xl';
-			} else if (stock.distance <= 3.0) {
-				tagText = 'Monitor';
-				barColor = 'bg-googleYellow';
-				tagBg = 'bg-yellow-50 dark:bg-yellow-900/20 text-googleYellow';
-				rowClass = 'bg-yellow-50/50 dark:bg-yellow-900/10 rounded-xl';
-			} else {
-				tagText = 'Safe';
-				barColor = 'bg-gray-300 dark:bg-gray-600';
-				tagBg = 'bg-gray-100 dark:bg-gray-800 text-gray-500';
-				rowClass = 'bg-gray-50 dark:bg-gray-800/40 rounded-xl opacity-80';
-			}
+                if (currentDropPercentage >= 10) {
+                    tagText = 'Alert';
+                    barColor = 'bg-googleRed';
+                    tagBg = 'bg-red-50 dark:bg-red-900/30 text-googleRed';
+                    rowClass = index === 0 ? 'bg-red-50/50 dark:bg-red-900/10 rounded-xl animate-pulse-bg' : 'bg-red-50/30 dark:bg-red-900/5 rounded-xl';
+                } else if (currentDropPercentage >= 5) {
+                    tagText = 'Watch';
+                    barColor = 'bg-googleYellow';
+                    tagBg = 'bg-yellow-50 dark:bg-yellow-900/20 text-googleYellow';
+                    rowClass = 'bg-yellow-50/50 dark:bg-yellow-900/10 rounded-xl';
+                } else {
+                    tagText = 'Safe';
+                    barColor = 'bg-gray-300 dark:bg-gray-600';
+                    tagBg = 'bg-gray-100 dark:bg-gray-800 text-gray-500';
+                    rowClass = 'bg-gray-50 dark:bg-gray-800/40 rounded-xl opacity-80';
+                }
 
                 const displayDist = stock.distance.toFixed(1);
 
