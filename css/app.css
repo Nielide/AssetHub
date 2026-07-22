@@ -179,6 +179,22 @@
                 margin-left: 0;
             }
         }
+        @media (min-width: 1720px) {
+            .dd-row {
+                justify-content: center;
+                gap: 0;
+            }
+            .dd-steps {
+                flex: 0 0 auto;
+                grid-template-columns: repeat(7, 176px);
+                margin: 0 40px;
+            }
+            .dd-card {
+                width: 176px;
+                min-width: 176px;
+                max-width: 176px;
+            }
+        }
         @media (min-width: 1024px) {
             #alert-card { min-height: 0; }
             #dd-alert-list {
