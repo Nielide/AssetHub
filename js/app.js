@@ -1,12 +1,8 @@
 // 数字动画工具，用在总资产和盈亏数字的滚动效果上。
-        function animateNumber(element, start, end, duration = 500, prefix = '', decimals = 2) {
+function animateNumber(element, start, end, duration = 500, prefix = '', decimals = 2) {
             if (element.animationId) {
                 cancelAnimationFrame(element.animationId);
             }
-            element.classList.remove('number-settling');
-            void element.offsetWidth;
-            element.classList.add('number-settling');
-            window.setTimeout(() => element.classList.remove('number-settling'), duration + 120);
             
             let startTime = null;
             function step(timestamp) {
@@ -17,8 +13,7 @@
 
                 if (!startTime) startTime = timestamp;
                 const progress = Math.min((timestamp - startTime) / duration, 1);
-                const easedProgress = 1 - Math.pow(1 - progress, 3);
-                const current = easedProgress * (end - start) + start;
+                const current = progress * (end - start) + start;
                 element.innerText = prefix + current.toFixed(decimals);
                 
                 if (progress < 1) {
@@ -28,120 +23,6 @@
                 }
             }
             element.animationId = window.requestAnimationFrame(step);
-        }
-
-        const ACTION_ICON = {
-            success: '<svg class="action-state-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>',
-            error: '<svg class="action-state-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 6l12 12M18 6L6 18" /></svg>',
-            loading: '<span class="action-dots" aria-hidden="true"><i></i><i></i><i></i></span>'
-        };
-
-        function setActionState(button, stateName, label) {
-            if (!button) return;
-            if (!button.dataset.defaultActionHtml) {
-                button.dataset.defaultActionHtml = button.innerHTML;
-                button.style.setProperty('--action-button-width', `${button.getBoundingClientRect().width}px`);
-            }
-            if (!stateName || stateName === 'idle') {
-                button.innerHTML = button.dataset.defaultActionHtml;
-                button.removeAttribute('data-action-state');
-                return;
-            }
-            button.dataset.actionState = stateName;
-            button.innerHTML = `${ACTION_ICON[stateName] || ''}<span>${label || ''}</span>`;
-        }
-
-        function resetActionState(button, delay = 1600) {
-            if (!button) return;
-            window.setTimeout(() => setActionState(button, 'idle'), delay);
-        }
-
-        function showToast(message, options = {}) {
-            const stack = document.getElementById('toast-stack');
-            if (!stack) return null;
-            const duration = options.duration || 5000;
-            const toast = document.createElement('div');
-            toast.className = 'app-toast';
-            toast.dataset.type = options.type || 'info';
-            toast.style.setProperty('--toast-duration', `${duration}ms`);
-            const status = document.createElement('span');
-            status.className = 'toast-status';
-            status.setAttribute('aria-hidden', 'true');
-            const messageNode = document.createElement('span');
-            messageNode.className = 'toast-message';
-            messageNode.textContent = message;
-            toast.append(status, messageNode);
-            if (options.actionLabel) {
-                const actionButton = document.createElement('button');
-                actionButton.type = 'button';
-                actionButton.className = 'toast-action';
-                actionButton.textContent = options.actionLabel;
-                toast.appendChild(actionButton);
-            }
-            const timerNode = document.createElement('span');
-            timerNode.className = 'toast-timer';
-            timerNode.setAttribute('aria-hidden', 'true');
-            toast.appendChild(timerNode);
-            stack.appendChild(toast);
-
-            let closed = false;
-            const close = () => {
-                if (closed) return;
-                closed = true;
-                toast.classList.add('is-leaving');
-                window.setTimeout(() => toast.remove(), 240);
-            };
-            const timer = window.setTimeout(close, duration);
-            const action = toast.querySelector('.toast-action');
-            if (action && typeof options.onAction === 'function') {
-                action.addEventListener('click', () => {
-                    window.clearTimeout(timer);
-                    options.onAction();
-                    close();
-                });
-            }
-            return { close };
-        }
-
-        function startRefreshFeedback(icon) {
-            if (!icon) return;
-            icon.classList.remove('is-success', 'is-error');
-            icon.classList.add('refresh-feedback', 'is-loading');
-        }
-
-        function finishRefreshFeedback(icon, success) {
-            if (!icon) return;
-            icon.classList.remove('is-loading');
-            icon.classList.add('is-morphing', success ? 'is-success' : 'is-error');
-            window.setTimeout(() => icon.classList.remove('is-morphing', 'is-success', 'is-error'), 420);
-        }
-
-        function syncKineticSegments() {
-            document.querySelectorAll('.kinetic-segmented').forEach(container => {
-                let glider = container.querySelector('.segment-glider');
-                if (!glider) {
-                    glider = document.createElement('span');
-                    glider.className = 'segment-glider no-motion';
-                    container.prepend(glider);
-                }
-                const active = Array.from(container.querySelectorAll('button')).find(button => button.classList.contains('bg-white'));
-                if (!active) return;
-                glider.style.setProperty('--segment-width', `${active.offsetWidth}px`);
-                glider.style.setProperty('--segment-x', `${active.offsetLeft}px`);
-                requestAnimationFrame(() => glider.classList.remove('no-motion'));
-            });
-        }
-
-        function finishInitialLoading() {
-            document.body.classList.remove('app-loading');
-            document.body.setAttribute('aria-busy', 'false');
-            requestAnimationFrame(syncKineticSegments);
-        }
-
-        function setInputValidity(input, isValid) {
-            if (!input) return;
-            input.classList.toggle('input-invalid', !isValid);
-            input.setAttribute('aria-invalid', String(!isValid));
         }
 
         // 系统设置面板：打开时把已保存的 API 和同步配置填回表单。
@@ -161,8 +42,6 @@
 
         // 保存 GitHub、Finnhub 和汇率设置到浏览器本地。
         function saveSyncSettings() {
-            const saveBtn = document.getElementById('btn-save-config');
-            setActionState(saveBtn, 'loading', 'Saving');
             const ghToken = document.getElementById('gh-token').value;
             const ghRepo = document.getElementById('gh-repo').value;
             const ghPath = document.getElementById('gh-path').value;
@@ -176,9 +55,12 @@
             state.hkdFx = parseFloat(document.getElementById('hkd-rate').value) || 0.93;
             saveData();
             calculate();
-            setActionState(saveBtn, 'success', 'Saved');
-            resetActionState(saveBtn);
-            showToast('Settings saved on this device.', { type: 'success', duration: 2800 });
+
+            const saveBtn = document.querySelector('button[onclick="saveSyncSettings()"]');
+            const originalText = saveBtn.innerText;
+            saveBtn.innerText = 'Saved';
+
+            setTimeout(() => { saveBtn.innerText = originalText; }, 2000);
         }
 
         // GitHub 同步状态：当云端数据更新时，先暂停覆盖并等待用户选择。
@@ -296,10 +178,11 @@
             const repo = localStorage.getItem('gh_repo');
             const path = localStorage.getItem('gh_path');
 
-            let btn;
+            let btn, spanText;
             if (!silent) {
                 btn = document.getElementById('btn-push');
-                setActionState(btn, 'loading', 'Backing up');
+                spanText = btn.querySelector('span') ? btn.querySelector('span').innerText : btn.innerText;
+                if(btn.querySelector('span')) btn.querySelector('span').innerText = 'Pushing...'; else btn.innerText = 'Pushing...';
             }
 
             const url = `https://api.github.com/repos/${repo}/contents/${path}`;
@@ -333,21 +216,25 @@
 
                 if (!silent) {
                     if (putRes.ok) {
-                        setActionState(btn, 'success', 'Saved');
-                        showToast('Cloud backup completed.', { type: 'success', duration: 2800 });
+                        if(btn.querySelector('span')) btn.querySelector('span').innerText = 'Success'; else btn.innerText = 'Success';
+                        btn.classList.add('bg-googleGreen');
+                        btn.classList.remove('bg-googleBlue');
                     } else {
-                        setActionState(btn, 'error', 'Failed');
-                        showToast('Cloud backup failed. Your local changes are still safe.', { type: 'error' });
+                        if(btn.querySelector('span')) btn.querySelector('span').innerText = 'Failed'; else btn.innerText = 'Failed';
+                        btn.classList.add('bg-googleRed');
+                        btn.classList.remove('bg-googleBlue');
                     }
                 }
             } catch (e) {
                 if (!silent) {
-                    setActionState(btn, 'error', 'Retry');
-                    showToast('Cloud backup could not connect. Try again shortly.', { type: 'error' });
+                    if(btn.querySelector('span')) btn.querySelector('span').innerText = 'Error'; else btn.innerText = 'Error';
                 }
             } finally {
                 if (!silent) {
-                    resetActionState(btn);
+                    setTimeout(() => {
+                        if(btn.querySelector('span')) btn.querySelector('span').innerText = spanText; else btn.innerText = spanText;
+                        btn.className = 'btn-action text-white bg-googleBlue border-transparent hover:bg-blue-600 shadow-sm';
+                    }, 2000);
                 }
             }
         }
@@ -1102,7 +989,7 @@
                         let progressPct = ((currentDropPercentage - prevDrop) / (drop - prevDrop)) * 100;
                         progressPct = Math.max(0, Math.min(100, progressPct));
 
-                        progressFill = `<div class="elastic-progress-fill absolute left-0 top-0 bottom-0 bg-yellow-100 dark:bg-yellow-900/40" style="--progress-width: ${progressPct}%;"></div>`;
+                        progressFill = `<div class="absolute left-0 top-0 bottom-0 bg-yellow-100 dark:bg-yellow-900/40 transition-all duration-500" style="width: ${progressPct}%;"></div>`;
                     }
 
                     stepsHTML += `
@@ -1147,9 +1034,6 @@
                 `;
                 container.appendChild(row);
             });
-            requestAnimationFrame(() => {
-                container.querySelectorAll('.elastic-progress-fill').forEach(fill => fill.classList.add('is-settled'));
-            });
         }
 
         // 在日历的每日视图和年度视图之间切换。
@@ -1185,7 +1069,6 @@
                 viewDaily.classList.add('hidden');
                 controlsDaily.classList.add('hidden');
             }
-            requestAnimationFrame(syncKineticSegments);
         }
 
         // 日历显示模式：每日盈亏、每日百分比、总资产。
@@ -1205,7 +1088,6 @@
                 }
             }
             renderCalendar();
-            requestAnimationFrame(syncKineticSegments);
         }
 
         // 从年度汇总跳转到指定月份。
@@ -1393,14 +1275,13 @@
         }
 
         // 通过腾讯行情接口更新 A 股价格。
-        function updateCnStockPrices(silent = false) {
+        function updateCnStockPrices() {
             const icon = document.getElementById('refresh-icon-cn');
-            startRefreshFeedback(icon);
+            if (icon) icon.classList.add('animate-spin');
 
             const rawSymbols = state.cn.map(item => item.ticker.toLowerCase()).filter(t => t && t !== 'new');
             if (rawSymbols.length === 0) {
-                finishRefreshFeedback(icon, false);
-                if (!silent) showToast('No A-share symbols to refresh.', { type: 'info', duration: 2600 });
+                if (icon) icon.classList.remove('animate-spin');
                 return;
             }
 
@@ -1420,28 +1301,22 @@
                 });
 
                 if (updatedCount > 0) { saveData(); renderAllRows(); calculate(); }
-                finishRefreshFeedback(icon, updatedCount > 0);
-                if (!silent) showToast(updatedCount > 0 ? `Updated ${updatedCount} A-share price${updatedCount > 1 ? 's' : ''}.` : 'No A-share price update was returned.', { type: updatedCount > 0 ? 'success' : 'info', duration: 2800 });
+                if (icon) icon.classList.remove('animate-spin');
                 document.body.removeChild(script);
             };
             script.onerror = function() {
-                finishRefreshFeedback(icon, false);
-                if (!silent) showToast('A-share price refresh failed. Please try again later.', { type: 'error' });
-                script.remove();
+                if (icon) icon.classList.remove('animate-spin');
             };
             document.body.appendChild(script);
         }
 
         // 通过 Finnhub 更新美股价格。
-        async function updateUsStockPrices(silent = false) {
+        async function updateUsStockPrices() {
             const apiKey = localStorage.getItem('finnhub_key');
-            if (!apiKey) {
-                if (!silent) showToast('Add a Finnhub key in Settings before refreshing US stocks.', { type: 'error' });
-                return;
-            }
+            if (!apiKey) return alert('Please configure Finnhub API Key in System Settings first');
 
             const icon = document.getElementById('refresh-icon');
-            startRefreshFeedback(icon);
+            if(icon) icon.classList.add('animate-spin');
             let updatedCount = 0;
 
             for (let item of state.usd) {
@@ -1454,20 +1329,16 @@
             }
 
             if (updatedCount > 0) { saveData(); renderAllRows(); calculate(); }
-            finishRefreshFeedback(icon, updatedCount > 0);
-            if (!silent) showToast(updatedCount > 0 ? `Updated ${updatedCount} US stock price${updatedCount > 1 ? 's' : ''}.` : 'No US stock price update was returned.', { type: updatedCount > 0 ? 'success' : 'info', duration: 2800 });
+            if(icon) icon.classList.remove('animate-spin');
         }
 
         // 单独更新 SGOV 价格，方便作为类现金资产显示。
-        async function updateSgovPrices(silent = false) {
+        async function updateSgovPrices() {
             const apiKey = localStorage.getItem('finnhub_key');
-            if (!apiKey) {
-                if (!silent) showToast('Add a Finnhub key in Settings before refreshing SGOV.', { type: 'error' });
-                return;
-            }
+            if (!apiKey) return alert('Please configure Finnhub API Key in System Settings first');
 
             const icon = document.getElementById('refresh-icon-sgov');
-            startRefreshFeedback(icon);
+            if(icon) icon.classList.add('animate-spin');
             let updatedCount = 0;
 
             for (let item of state.sgov) {
@@ -1480,17 +1351,16 @@
             }
 
             if (updatedCount > 0) { saveData(); renderAllRows(); calculate(); }
-            finishRefreshFeedback(icon, updatedCount > 0);
-            if (!silent) showToast(updatedCount > 0 ? `Updated ${updatedCount} SGOV price${updatedCount > 1 ? 's' : ''}.` : 'No SGOV price update was returned.', { type: updatedCount > 0 ? 'success' : 'info', duration: 2800 });
+            if(icon) icon.classList.remove('animate-spin');
         }
 
         // 刷新回撤监控使用的当前价格。
-        async function fetchDrawdownPrices(silent = false) {
+        async function fetchDrawdownPrices() {
             const fhKey = localStorage.getItem('finnhub_key');
             if (!fhKey) return;
 
             const icon = document.getElementById('refresh-icon-dd');
-            startRefreshFeedback(icon);
+            if(icon) icon.classList.add('animate-spin');
 
             let hasChanges = false;
             for (let i = 0; i < state.drawdown.length; i++) {
@@ -1505,28 +1375,22 @@
                 } catch (err) {}
             }
             if (hasChanges) { saveData(); renderDrawdown(); renderDDAlerts(); }
-            finishRefreshFeedback(icon, hasChanges);
-            if (!silent) showToast(hasChanges ? 'Drawdown prices refreshed.' : 'No drawdown price update was returned.', { type: hasChanges ? 'success' : 'info', duration: 2800 });
+            if(icon) icon.classList.remove('animate-spin');
         }
 
         // 获取最新 USD/CNY 汇率，并重新计算页面。
-        async function fetchLiveRate(silent = false) {
+        async function fetchLiveRate() {
             const icon = document.querySelector('svg[onclick="fetchLiveRate()"]');
-            startRefreshFeedback(icon);
-            let updated = false;
+            if(icon) icon.classList.add('animate-spin');
             try {
                 const res = await fetch('https://open.er-api.com/v6/latest/USD');
                 const data = await res.json();
                 if (data.rates.CNY) {
                     document.getElementById('fx-rate').value = data.rates.CNY.toFixed(4);
                     saveData(); calculate();
-                    updated = true;
                 }
             } catch (error) {}
-            finally {
-                finishRefreshFeedback(icon, updated);
-                if (!silent) showToast(updated ? 'USD/CNY rate refreshed.' : 'Exchange-rate refresh failed. Please try again later.', { type: updated ? 'success' : 'error', duration: 2800 });
-            }
+            finally { if(icon) icon.classList.remove('animate-spin'); }
         }
 
         // 给指定资产区域新增一行。
@@ -1546,13 +1410,6 @@
             localStorage.setItem('portfolio_privacy', isPrivacyMode);
             const openEye = document.getElementById('eye-open');
             const closedEye = document.getElementById('eye-closed');
-            const privacyButton = document.getElementById('privacy-btn');
-            if (privacyButton) {
-                privacyButton.classList.remove('is-morphing');
-                void privacyButton.offsetWidth;
-                privacyButton.classList.add('is-morphing');
-                window.setTimeout(() => privacyButton.classList.remove('is-morphing'), 300);
-            }
             if (isPrivacyMode) { openEye.classList.add('hidden'); closedEye.classList.remove('hidden'); }
             else { openEye.classList.remove('hidden'); closedEye.classList.add('hidden'); }
 
@@ -1565,19 +1422,6 @@
         function toggleTheme() {
             const isDark = document.documentElement.classList.toggle('dark');
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
-            const themeButton = document.getElementById('theme-btn');
-            const moon = document.getElementById('theme-moon');
-            const sun = document.getElementById('theme-sun');
-            if (moon && sun) {
-                moon.classList.toggle('hidden', isDark);
-                sun.classList.toggle('hidden', !isDark);
-            }
-            if (themeButton) {
-                themeButton.classList.remove('is-morphing');
-                void themeButton.offsetWidth;
-                themeButton.classList.add('is-morphing');
-                window.setTimeout(() => themeButton.classList.remove('is-morphing'), 300);
-            }
             updateChartTheme(isDark);
             setTimeout(loadTradingViewTicker, 50);
             renderCalendar();
@@ -1587,15 +1431,8 @@
 
         // 页面加载时恢复上次选择的主题。
         function loadTheme() {
-            const isDark = localStorage.getItem('theme') === 'dark';
-            if (isDark) {
+            if (localStorage.getItem('theme') === 'dark') {
                 document.documentElement.classList.add('dark');
-            }
-            const moon = document.getElementById('theme-moon');
-            const sun = document.getElementById('theme-sun');
-            if (moon && sun) {
-                moon.classList.toggle('hidden', isDark);
-                sun.classList.toggle('hidden', !isDark);
             }
         }
 
@@ -1618,39 +1455,19 @@
         // 在点击的删除图标旁显示确认删除浮层。
         function toggleDeletePopover(event, type, id) {
             event.stopPropagation();
-            const list = state[type];
-            if (!Array.isArray(list)) return;
-            const index = list.findIndex(item => item.id === id);
-            if (index < 0) return;
-            const removed = list.splice(index, 1)[0];
-            saveData();
-            renderAllRows();
-            renderDrawdown();
-            renderDDAlerts();
-            calculate();
-            initSortable();
-            const name = type === 'drawdown' ? (removed.symbol || 'Drawdown item') : (removed.ticker || 'Asset');
-            showToast(`${name} removed.`, {
-                type: 'warning', actionLabel: 'Undo', duration: 5600,
-                onAction: () => {
-                    if (!state[type].some(item => item.id === removed.id)) {
-                        state[type].splice(Math.min(index, state[type].length), 0, removed);
-                        saveData();
-                        renderAllRows();
-                        renderDrawdown();
-                        renderDDAlerts();
-                        calculate();
-                        initSortable();
-                        showToast(`${name} restored.`, { type: 'success', duration: 2200 });
-                    }
-                }
-            });
+            const popover = document.getElementById('delete-popover');
+            if(itemToDelete && itemToDelete.id === id && !popover.classList.contains('hidden')) return closePopover();
+            itemToDelete = { type, id };
+            const rect = event.currentTarget.getBoundingClientRect();
+            popover.style.top = (window.scrollY + rect.top + 20) + 'px';
+            popover.style.left = (window.scrollX + rect.left - 130) + 'px';
+            popover.classList.remove('hidden');
+            requestAnimationFrame(() => { popover.classList.remove('opacity-0', 'scale-95'); popover.classList.add('opacity-100', 'scale-100'); });
         }
 
         // 隐藏确认删除浮层。
         function closePopover() {
             const popover = document.getElementById('delete-popover');
-            if (!popover) { itemToDelete = null; return; }
             popover.classList.remove('opacity-100', 'scale-100');
             popover.classList.add('opacity-0', 'scale-95');
             setTimeout(() => { popover.classList.add('hidden'); itemToDelete = null; }, 100);
@@ -1658,16 +1475,14 @@
 
         // 点击页面其他位置时，关闭浮动菜单。
         function handleBodyClick(event) {
-            const popover = document.getElementById('delete-popover');
-            if (popover && !popover.contains(event.target) && !event.target.closest('.delete-trigger')) closePopover();
+            if (!document.getElementById('delete-popover').contains(event.target) && !event.target.closest('.delete-trigger')) closePopover();
             if (!event.target.closest('.ccy-select-wrap') && !event.target.closest('.ccy-menu')) {
                 closeAllCcyMenus(null);
             }
         }
 
         // 确认删除当前选中的资产行。
-        const popoverConfirmBtn = document.getElementById('popover-confirm-btn');
-        if (popoverConfirmBtn) popoverConfirmBtn.addEventListener('click', () => {
+        document.getElementById('popover-confirm-btn').addEventListener('click', () => {
             if (itemToDelete) {
                 if (itemToDelete.type === 'drawdown') {
                     state.drawdown = state.drawdown.filter(i => i.id !== itemToDelete.id);
@@ -1686,47 +1501,20 @@
 
         // 处理资产行输入变化，并立即重新计算。
         function handleInput(t) {
-            if(t.id==='fx-rate'){
-                const validRate = t.value !== '' && Number.isFinite(Number(t.value)) && Number(t.value) > 0;
-                setInputValidity(t, validRate);
-                if (validRate) calculate();
-                return;
-            }
-            const isNumeric = t.type === 'number' || t.type === 'password';
-            const type = t.dataset.type;
-            const field = t.dataset.field;
-            let valid = true;
-            if (field === 'ticker') {
-                const ticker = (t.value || '').trim().toUpperCase();
-                if (type === 'cash') valid = ticker === 'CASH';
-                else if (type === 'cn') valid = /^(SH|SZ)\d{6}$/.test(ticker);
-                else valid = /^[A-Z0-9.-]{1,12}$/.test(ticker);
-            } else if (isNumeric) {
-                valid = t.value !== '' && Number.isFinite(Number(t.value)) && Number(t.value) >= 0;
-            }
-            setInputValidity(t, valid);
-            if (!valid) return;
-            let val = isNumeric ? parseFloat(t.value) : t.value.trim().toUpperCase();
-            if (isNumeric && val < 0) { val = 0; t.value = 0; }
-            const item=state[type].find(x=>x.id===t.dataset.id);
+            if(t.id==='fx-rate'){calculate();return;}
+            let val = t.type==='number' ? parseFloat(t.value)||0 : t.value;
+            if (t.type === 'number' && val < 0) { val = 0; t.value = 0; }
+            const item=state[t.dataset.type].find(x=>x.id===t.dataset.id);
             if(item){
-                if(type==='cash'&&field==='amount') item.amount=val;
-                else item[field]=val;
+                if(t.dataset.type==='cash'&&t.dataset.field==='amount') item.amount=val;
+                else item[t.dataset.field]=val;
                 calculate();
             }
         }
 
         // 处理回撤监控行的输入变化。
         function handleDrawdownInput(t) {
-            const isSymbol = t.dataset.field === 'symbol';
-            const ticker = (t.value || '').trim().toUpperCase();
-            const valid = isSymbol
-                ? /^[A-Z0-9.-]{1,12}$/.test(ticker)
-                : t.value !== '' && Number.isFinite(Number(t.value)) && Number(t.value) >= 0;
-            setInputValidity(t, valid);
-            if (!valid) return;
-
-            let val = t.type === 'number' ? parseFloat(t.value) || 0 : ticker;
+            let val = t.type === 'number' ? parseFloat(t.value) || 0 : t.value.toUpperCase();
             if (t.type === 'number' && val < 0) { val = 0; t.value = 0; }
             const item = state.drawdown.find(x => x.id === t.dataset.id);
             if(item) {
@@ -1737,7 +1525,7 @@
                 saveData();
                 renderDrawdown();
                 renderDDAlerts();
-                if (t.dataset.field === 'symbol' && item.symbol) fetchDrawdownPrices(true);
+                if (t.dataset.field === 'symbol' && item.symbol) fetchDrawdownPrices();
             }
         }
 
@@ -1863,12 +1651,12 @@
             const cooldown = 10 * 60 * 1000;
 
             if (force || !lastRefresh || (now - parseInt(lastRefresh)) > cooldown) {
-                updateCnStockPrices(true);
-                fetchLiveRate(true);
+                updateCnStockPrices();
+                fetchLiveRate();
                 if (localStorage.getItem('finnhub_key')) {
-                    updateUsStockPrices(true);
-                    updateSgovPrices(true);
-                    fetchDrawdownPrices(true);
+                    updateUsStockPrices();
+                    updateSgovPrices();
+                    fetchDrawdownPrices();
                 }
                 localStorage.setItem('last_auto_refresh', now.toString());
             }
@@ -1994,15 +1782,12 @@ html += `
                         <span class="text-[0.6rem] font-bold px-1.5 py-0.5 rounded ${tagBg}">${tagText}</span>
                     </div>
                     <div class="w-full h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                        <div class="alert-progress-fill h-full ${barColor} rounded-full" style="--progress-width: ${Math.max(0, Math.min(100, stock.progressPct))}%"></div>
+                        <div class="h-full ${barColor} rounded-full transition-all duration-500" style="width: ${Math.max(0, Math.min(100, stock.progressPct))}%"></div>
                     </div>
                 </div>`;
             });
 
             container.innerHTML = html;
-            requestAnimationFrame(() => {
-                container.querySelectorAll('.alert-progress-fill').forEach(fill => fill.classList.add('is-settled'));
-            });
         }
 
         // 页面启动顺序：恢复状态、绘制界面、再刷新外部数据。
@@ -2023,6 +1808,4 @@ html += `
             initScrollReveal();
             autoRefreshPrices();
             autoSmartBackup();
-            window.addEventListener('resize', syncKineticSegments);
-            window.setTimeout(finishInitialLoading, 80);
         };
