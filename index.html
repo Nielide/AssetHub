@@ -23,11 +23,35 @@
         <!-- 本项目自己的配置和样式文件。 -->
         <script src="js/tailwind.config.js"></script>
 
-        <link rel="stylesheet" href="css/app.css?v=20260722-history-preserve">
+        <link rel="stylesheet" href="css/app.css?v=20260812-kinetics">
 </head>
-<body class="min-h-screen py-4 md:py-6 font-sans pb-16" onclick="handleBodyClick(event)">
+<body class="app-loading min-h-screen py-4 md:py-6 font-sans pb-16" onclick="handleBodyClick(event)" aria-busy="true">
 
-    <div class="w-full px-2 md:px-[10px]">
+    <div id="app-loading-shell" role="status" aria-label="Loading portfolio data">
+        <div class="skeleton-toolbar">
+            <span class="skeleton-circle"></span>
+            <span class="skeleton-line skeleton-line-brand"></span>
+            <span class="skeleton-toolbar-spacer"></span>
+            <span class="skeleton-pill"></span>
+            <span class="skeleton-pill skeleton-pill-wide"></span>
+        </div>
+        <div class="skeleton-dashboard">
+            <div class="skeleton-summary">
+                <span class="skeleton-block skeleton-block-small"></span>
+                <span class="skeleton-block skeleton-block-medium"></span>
+                <span class="skeleton-block skeleton-block-small"></span>
+                <span class="skeleton-block skeleton-block-small"></span>
+            </div>
+            <span class="skeleton-block skeleton-chart"></span>
+            <div class="skeleton-tables">
+                <span class="skeleton-block skeleton-table"></span>
+                <span class="skeleton-block skeleton-table-short"></span>
+                <span class="skeleton-block skeleton-table"></span>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-shell" class="w-full px-2 md:px-[10px]">
 
         <!-- 顶部工具栏：Logo、主题切换、同步按钮、汇率输入。 -->
         <header class="mb-4 md:mb-6 flex justify-between items-center px-1">
@@ -40,7 +64,10 @@
 
             <div class="flex items-center gap-2 md:gap-3 flex-wrap justify-end">
                 <button onclick="toggleTheme()" class="btn-action" id="theme-btn" title="Toggle Theme">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                    <span class="icon-morph-box" aria-hidden="true">
+                        <svg id="theme-moon" class="icon-morph-layer w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                        <svg id="theme-sun" class="icon-morph-layer w-4 h-4 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="4" stroke-width="2"></circle><path stroke-linecap="round" stroke-width="2" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg>
+                    </span>
                 </button>
                 <button onclick="toggleSyncPanel()" class="btn-action" title="System Settings">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" /></svg>
@@ -104,7 +131,7 @@
             </div>
             <input type="hidden" id="hkd-rate" value="0.93">
             <div class="flex justify-end pt-2 border-t border-gray-100 dark:border-white/[0.03]">
-                <button onclick="saveSyncSettings()" class="btn-action bg-googleBlue text-white hover:bg-blue-600 shadow-sm border-transparent">Save Config</button>
+                <button id="btn-save-config" onclick="saveSyncSettings()" class="btn-action bg-googleBlue text-white hover:bg-blue-600 shadow-sm border-transparent">Save Config</button>
             </div>
         </div>
 
@@ -115,7 +142,7 @@
                 <div class="g-card-static p-4 md:p-6 flex-shrink-0">
                     <div class="flex items-center gap-2 mb-1">
                         <p class="text-xs font-medium text-textSecondary dark:text-darkTextSec">Total Net Worth</p>
-                        <button onclick="togglePrivacy()" class="text-textSecondary dark:text-darkTextSec hover:text-googleBlue focus:outline-none transition-colors" title="Toggle Privacy">
+                        <button id="privacy-btn" onclick="togglePrivacy()" class="icon-toggle-button text-textSecondary dark:text-darkTextSec hover:text-googleBlue focus:outline-none transition-colors" title="Toggle Privacy">
                             <svg id="eye-open" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                             <svg id="eye-closed" class="w-4 h-4 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
                         </button>
@@ -327,12 +354,12 @@
         <div class="g-card-static p-4 md:p-6 mt-3 w-full bg-white dark:bg-darkSurface transition-colors border-none shadow-sm">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-3">
 
-                <div class="flex gap-1.5 bg-gray-100 dark:bg-darkBg p-1 rounded-lg w-full md:w-auto">
+                <div id="calendar-view-tabs" class="kinetic-segmented flex gap-1.5 bg-gray-100 dark:bg-darkBg p-1 rounded-lg w-full md:w-auto">
                     <button id="tab-daily" onclick="switchView('daily')" class="flex-1 md:flex-none px-4 md:px-6 py-1.5 md:py-2 text-xs md:text-sm font-bold rounded-md bg-white dark:bg-darkSurface shadow-sm text-textPrimary dark:text-darkText transition-all">Daily View</button>
                     <button id="tab-yearly" onclick="switchView('yearly')" class="flex-1 md:flex-none px-4 md:px-6 py-1.5 md:py-2 text-xs md:text-sm font-bold rounded-md text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText transition-all">Yearly View</button>
                 </div>
 
-                <div id="controls-daily" class="flex gap-1 bg-gray-100 dark:bg-darkBg p-1 rounded-lg w-full md:w-auto">
+                <div id="controls-daily" class="kinetic-segmented flex gap-1 bg-gray-100 dark:bg-darkBg p-1 rounded-lg w-full md:w-auto">
                     <button id="view-mode-0" onclick="setCalendarView(0)" class="flex-1 md:flex-none px-4 py-1 md:py-1.5 text-xs font-bold rounded-md bg-white dark:bg-darkSurface shadow-sm text-blue-600 dark:text-blue-400 transition-all">P/L</button>
                     <button id="view-mode-1" onclick="setCalendarView(1)" class="flex-1 md:flex-none px-4 py-1 md:py-1.5 text-xs font-bold rounded-md text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText transition-all">Rate</button>
                     <button id="view-mode-2" onclick="setCalendarView(2)" class="flex-1 md:flex-none px-4 py-1 md:py-1.5 text-xs font-bold rounded-md text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText transition-all">Total</button>
@@ -385,7 +412,7 @@
                     <div class="w-1 h-4 bg-googleBlue rounded-full"></div>
                     <h2 class="text-sm font-bold text-textPrimary dark:text-darkText uppercase tracking-wide">Net Worth Curve</h2>
                 </div>
-                <div class="flex gap-1 bg-gray-100 dark:bg-darkBg p-1 rounded-lg">
+                <div id="nw-range-control" class="kinetic-segmented flex gap-1 bg-gray-100 dark:bg-darkBg p-1 rounded-lg">
                     <button class="nw-range-btn px-3 py-1 text-xs font-bold rounded-md transition-all" data-range="30" onclick="setNwRange(30)">1M</button>
                     <button class="nw-range-btn px-3 py-1 text-xs font-bold rounded-md transition-all" data-range="90" onclick="setNwRange(90)">3M</button>
                     <button class="nw-range-btn px-3 py-1 text-xs font-bold rounded-md transition-all" data-range="365" onclick="setNwRange(365)">1Y</button>
@@ -414,16 +441,9 @@
 
     </div>
 
-    <!-- 删除确认浮层：点击资产行的删除按钮时显示。 -->
-    <div id="delete-popover" class="hidden absolute z-50 bg-white dark:bg-[#303134] shadow-lg border border-gray-200 dark:border-gray-600 rounded-lg p-2 opacity-0 transform scale-95 origin-top-right w-40">
-        <p class="text-xs text-textPrimary dark:text-darkText font-medium text-center mb-2 p-1">Confirm Delete?</p>
-        <div class="flex gap-2 justify-center">
-            <button onclick="closePopover()" class="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors rounded text-textSecondary dark:text-darkTextSec font-bold">Cancel</button>
-            <button id="popover-confirm-btn" class="px-2 py-1 text-xs bg-googleRed text-white rounded hover:bg-red-600 shadow-sm font-bold transition-colors">Delete</button>
-        </div>
-    </div>
+    <div id="toast-stack" class="toast-stack" aria-live="polite" aria-atomic="false"></div>
     <!-- 本项目主要功能脚本。 -->
-    <script src="js/app.js?v=20260722-history-preserve"></script>
+    <script src="js/app.js?v=20260812-kinetics"></script>
 
     <!-- 底部 TradingView 行情条。 -->
     <script type="module" src="https://widgets.tradingview-widget.com/w/en/tv-ticker-tape.js"></script>
