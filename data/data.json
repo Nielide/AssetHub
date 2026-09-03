@@ -5,7 +5,7 @@
       "ticker": "VOO",
       "shares": 13.14,
       "cost": 637.99,
-      "price": 703.41
+      "price": 710.72
     },
     {
       "id": "2",
@@ -35,28 +35,28 @@
       "ticker": "SH518880",
       "shares": 1800,
       "cost": 10.275,
-      "price": 8.902
+      "price": 9.105
     },
     {
       "id": "1772715468763",
       "ticker": "SZ159930",
       "shares": 2100,
       "cost": 1.63,
-      "price": 1.743
+      "price": 1.738
     },
     {
       "id": "1772520779722",
       "ticker": "SH588000",
       "shares": 1400,
       "cost": 1.476,
-      "price": 1.708
+      "price": 1.703
     },
     {
       "id": "5",
       "ticker": "SH513050",
       "shares": 1600,
       "cost": 1.262,
-      "price": 1.05
+      "price": 1.035
     }
   ],
   "cash": [
@@ -79,7 +79,7 @@
       "currency": "USD"
     }
   ],
-  "fxRate": 6.7369,
+  "fxRate": 6.7365,
   "isDark": false,
   "theme": "light",
   "history": [
@@ -1486,6 +1486,15 @@
       "rate": 0.1946164039477067,
       "netFlow": 22,
       "value": 253319
+    },
+    {
+      "date": "2026-09-04",
+      "total": 254277,
+      "cost": 244385,
+      "pl": 970,
+      "rate": 0.38291640184905196,
+      "netFlow": -12,
+      "value": 254277
     }
   ],
   "drawdown": [
@@ -1502,7 +1511,7 @@
       "id": "d1773504801045",
       "symbol": "VOO",
       "high": 714.95,
-      "current": 703.41,
+      "current": 710.72,
       "distance": 3.5929085950066355,
       "progressPct": 28.14182809986729,
       "nextDrop": 5
@@ -1517,7 +1526,7 @@
       "id": "d1784787569387",
       "symbol": "MSFT",
       "high": 538.66,
-      "current": 496.82
+      "current": 510.12
     },
     {
       "id": "d1784787695196",
@@ -1535,7 +1544,7 @@
       "id": "d1784787740051",
       "symbol": "NVDA",
       "high": 235.47,
-      "current": 224.41
+      "current": 228.45
     },
     {
       "id": "d1784787571107",
@@ -1547,7 +1556,7 @@
       "id": "d1784787570163",
       "symbol": "BRK.B",
       "high": 539.8,
-      "current": 505.24
+      "current": 508.13
     }
   ],
   "sgov": [
@@ -1560,5 +1569,5 @@
     }
   ],
   "hkdFx": 0.93,
-  "lastSavedAt": 1788391241987
+  "lastSavedAt": 1788477584024
 }
