@@ -86,7 +86,7 @@
       "currency": "USD"
     }
   ],
-  "fxRate": 6.7144,
+  "fxRate": 6.7201,
   "isDark": false,
   "theme": "light",
   "history": [
@@ -1772,6 +1772,15 @@
       "rate": -0.0019615458550574535,
       "netFlow": 0,
       "value": 254896
+    },
+    {
+      "date": "2026-10-05",
+      "total": 255086,
+      "cost": 239295,
+      "pl": 16,
+      "rate": 0.006277069863787584,
+      "netFlow": 174,
+      "value": 255086
     }
   ],
   "drawdown": [
@@ -1864,5 +1873,5 @@
     }
   ],
   "hkdFx": 0.93,
-  "lastSavedAt": 1791071262499
+  "lastSavedAt": 1791158305207
 }
