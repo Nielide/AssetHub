@@ -5,35 +5,35 @@
       "ticker": "VOO",
       "shares": 13.14,
       "cost": 637.99,
-      "price": 712.32
+      "price": 716.2
     },
     {
       "id": "2",
       "ticker": "QQQM",
       "shares": 30.75,
       "cost": 254.07,
-      "price": 311.4
+      "price": 312.76
     },
     {
       "id": "3",
       "ticker": "META",
       "shares": 3,
       "cost": 652.57,
-      "price": 741.9
+      "price": 738.88
     },
     {
       "id": "1790211577453",
       "ticker": "GOOGL",
       "shares": 1,
       "cost": 339.56,
-      "price": 346.47
+      "price": 347.68
     },
     {
       "id": "1778077914573",
       "ticker": "NTDOY",
       "shares": 70,
       "cost": 12.74,
-      "price": 12.44
+      "price": 12.33
     }
   ],
   "cn": [
@@ -86,7 +86,7 @@
       "currency": "USD"
     }
   ],
-  "fxRate": 6.7145,
+  "fxRate": 6.7119,
   "isDark": false,
   "theme": "light",
   "history": [
@@ -1790,6 +1790,15 @@
       "rate": 0.4978713061477306,
       "netFlow": -171,
       "value": 256185
+    },
+    {
+      "date": "2026-10-07",
+      "total": 256622,
+      "cost": 239045,
+      "pl": 516,
+      "rate": 0.2014169447859945,
+      "netFlow": -79,
+      "value": 256622
     }
   ],
   "drawdown": [
@@ -1797,7 +1806,7 @@
       "id": "d1773504802357",
       "symbol": "QQQM",
       "high": 306.87,
-      "current": 311.4,
+      "current": 312.76,
       "distance": 3.794277707172422,
       "progressPct": 24.11444585655156,
       "nextDrop": 5
@@ -1806,7 +1815,7 @@
       "id": "d1773504801045",
       "symbol": "VOO",
       "high": 714.95,
-      "current": 712.32,
+      "current": 716.2,
       "distance": 3.707601930204908,
       "progressPct": 25.84796139590183,
       "nextDrop": 5
@@ -1815,61 +1824,61 @@
       "id": "d1773504819492",
       "symbol": "META",
       "high": 787.42,
-      "current": 741.9
+      "current": 738.88
     },
     {
       "id": "d1784787569387",
       "symbol": "MSFT",
       "high": 538.66,
-      "current": 525.18
+      "current": 529.3
     },
     {
       "id": "d1784787695196",
       "symbol": "GOOGL",
       "high": 402.38,
-      "current": 346.47
+      "current": 347.68
     },
     {
       "id": "d1784787569899",
       "symbol": "AMZN",
       "high": 274.99,
-      "current": 251.4
+      "current": 256.29
     },
     {
       "id": "d1784787740051",
       "symbol": "NVDA",
       "high": 235.47,
-      "current": 238.9
+      "current": 239.24
     },
     {
       "id": "d1784787571107",
       "symbol": "V",
       "high": 370.38,
-      "current": 369.71
+      "current": 370.64
     },
     {
       "id": "d1784787570163",
       "symbol": "BRK.B",
       "high": 539.8,
-      "current": 504.26
+      "current": 505.54
     },
     {
       "id": "d1790038981487",
       "symbol": "SPCX",
       "high": 201.8,
-      "current": 171.09
+      "current": 171.92
     },
     {
       "id": "d1790039232956",
       "symbol": "AAPL",
       "high": 338.98,
-      "current": 332.89
+      "current": 333.63
     },
     {
       "id": "d1790039249603",
       "symbol": "TSLA",
       "high": 481.2,
-      "current": 378.73
+      "current": 380.68
     }
   ],
   "sgov": [
@@ -1878,9 +1887,9 @@
       "ticker": "SGOV",
       "shares": 85,
       "cost": 100.48,
-      "price": 100.45
+      "price": 100.46
     }
   ],
   "hkdFx": 0.93,
-  "lastSavedAt": 1791251176957
+  "lastSavedAt": 1791333939426
 }
