@@ -14,7 +14,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                 if (!startTime) startTime = timestamp;
                 const progress = Math.min((timestamp - startTime) / duration, 1);
                 const current = progress * (end - start) + start;
-                element.innerText = prefix + current.toFixed(decimals);
+                element.innerText = prefix + current.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
                 
                 if (progress < 1) {
                     element.animationId = window.requestAnimationFrame(step);

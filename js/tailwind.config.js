@@ -5,14 +5,15 @@ tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['"Google Sans"', 'Roboto', 'sans-serif'],
-                        mono: ['"Roboto Mono"', 'monospace'],
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Inter', 'sans-serif'],
                     },
                     colors: {
-                        googleBlue: '#1a73e8', googleRed: '#ea4335', googleYellow: '#fbbc04', googleGreen: '#34a853',
+                        googleBlue: '#345d49', googleRed: '#b85e53', googleYellow: '#b69c69', googleGreen: '#41785b',
                         googlePurple: '#9334e6',
-                        darkSurface: '#303134', darkBg: '#202124', darkBorder: '#5f6368', darkText: '#e8eaed', darkTextSec: '#9aa0a6',
-                        stockRed: '#f04a4a', stockRedBg: '#fef1f1', stockGreen: '#0fa968', stockGreenBg: '#ecfdf5',
+                        darkSurface: '#202920', darkBg: '#151c17', darkBorder: '#354037', darkText: '#e3e9df', darkTextSec: '#98a697',
+                        textPrimary: '#252e25', textSecondary: '#7c857b',
+                        stockRed: '#b85e53', stockRedBg: '#f8eeeb', stockGreen: '#41785b', stockGreenBg: '#edf3ec',
                     }
                 }
             }

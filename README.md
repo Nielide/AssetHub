@@ -10,18 +10,24 @@ AssetHub 是原生 HTML、CSS 和 JavaScript 编写的个人资产仪表盘，�
 - 持仓管理：支持美股、A 股、SGOV、现金资产的新增、编辑、删除和拖拽排序
 - 自动计算：自动计算市值、成本、盈亏、占比、总资产
 - 汇率换算：支持 USD/CNY、HKD/CNY 汇率换算
-- 图表展示：资产配置环形图、净值曲线、年度/月度盈亏日历
+- 图表展示：资产配置条、净值曲线、年度/月度盈亏日历
 - 回撤监控：自动同步持仓，支持自选、自定义排序和展开 5%～30% 目标价
 - 隐私模式：一键隐藏敏感金额
 - 深色模式：支持亮色/暗色主题切换
 - GitHub 同步：可通过 GitHub API 把数据备份到 `data/data.json`
 - 行情更新：支持通过外部接口刷新股票价格和汇率
 
-## 自适应仪表盘
+## Wealth workspace
 
-顶部四张摘要卡展示总资产、币种资产、今日盈亏和累计盈亏。资产配置、VOO/QQQM 对比和 Risk Radar 按内容决定高度，持仓增加不会撑大旁边卡片。股票表格独立滚动，美股表头固定；支持搜索、分组折叠、行内编辑和拖拽排序。搜索时暂时禁用持仓拖拽，避免隐藏行造成排序错位。
+界面采用四个独立工作区，导航保留在页面顶部，支持地址中的 `#overview`、`#holdings`、`#drawdown`、`#activity` 以及浏览器前进/后退。使用暖白、墨绿、低饱和金色和 Inter 数字排版；深色模式采用对应的森林色系。
 
-Risk Radar 显示回撤最大的四个追踪标的，并统计达到 5% 回撤的数量。保留净值曲线、盈亏日历、深色主题、隐私模式、汇率和 GitHub 备份；手机支持正常缩放和原生滚动。
+**Overview** 以总资产和真实历史净值曲线为中心，展示今日盈亏、累计浮动盈亏和区间收益；右侧用配置条及金额解释资产分布。最大持仓按统一 CNY 市值排序，展示五个标的，点击可直接进入对应持仓。深色风险面板显示回撤最大的三个有效标的，点击可进入已筛选的监控列表。持仓增加不会改变首页结构。
+
+**Holdings** 是连续的资产表格，支持分类筛选、搜索、分组折叠和固定表头。默认采用只读浏览模式，点击 **Edit positions** 后可编辑、添加、删除或拖拽；改动继续自动保存在本机，Backup 负责云端备份。搜索时禁用持仓拖拽，避免隐藏行导致错位。手机浏览模式只展示核心数据并自然滚动，编辑时可横向滚动查看完整字段。
+
+**Drawdown** 有独立的持仓、自选、关注数量和待设置高点摘要，日常监控与 **Edit references** 分开；点击缺少高点的字段可以直接开始设置。**Activity** 保留每日及年度盈亏日历。Esc 可结束编辑并关闭操作浮层。
+
+汇率和连接配置放入 Settings；底部行情条可在设置中开启，默认隐藏。设计参考 [Wealthfolio](https://wealthfolio.app/) 的净值视觉层级及 [Copilot Money](https://help.copilot.money/en/articles/5377645-investments-tab-overview) 的资产、持仓和表现分区，图表和内容均使用本项目实际数据。
 
 ## Drawdown Tracker
 
@@ -48,6 +54,7 @@ AssetHub/
 │  ├─ app.js                  # 资产计算、图表和已有交互
 │  ├─ cloud-loader.js         # 云端加载、历史合并、图标和同步保护
 │  ├─ dashboard.js            # 自适应布局交互、紧凑回撤列表
+│  ├─ workspace.js            # 工作区导航、浏览/编辑模式、配置及风险视图
 │  ├─ drawdown-model.js       # 浏览器和自动更新共用的同步及回撤计算
 │  └─ tailwind.config.js      # Tailwind 配置
 ├─ scripts/update_data_improved.js
@@ -63,8 +70,9 @@ AssetHub/
 ```sh
 node --test tests/drawdown-model.test.js
 node --check js/dashboard.js
+node --check js/workspace.js
 node --check scripts/update_data_improved.js
 git diff --check
 ```
 
-页面通过 CDN 加载 Tailwind、Chart.js 和 Sortable，图标和底部行情条也需要网络。UI 本地验收使用仓库数据快照，未写入真实云端账户或修改持仓数据文件。
+页面通过 CDN 加载 Tailwind、Chart.js 和 Sortable，字体、图标和可选行情条也需要网络。UI 本地验收使用仓库数据快照，覆盖桌面、平板、手机、工作区导航、浏览/编辑模式、排序持久化、筛选、主题和隐私。未写入真实云端账户或修改持仓数据文件。
