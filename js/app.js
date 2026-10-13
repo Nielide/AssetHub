@@ -830,7 +830,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                     <div class="flex justify-center"><svg onclick="toggleDeletePopover(event, '${type}', '${item.id}')" class="delete-trigger icon-glass btn-icon w-4 h-4 text-gray-300 dark:text-gray-600 cursor-pointer hover:text-red-500 transition-colors" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></div>
                 </div>`;
             }).join('');
-            container.querySelectorAll('input').forEach(i => i.addEventListener('input', e => handleInput(e.target)));
+            container.querySelectorAll('input').forEach(i => i.addEventListener(i.dataset.field === 'ticker' ? 'change' : 'input', e => handleInput(e.target)));
         }
 
         // 渲染现金可编辑行，并显示币种选择器。
@@ -869,7 +869,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                     <div class="flex justify-center"><svg onclick="toggleDeletePopover(event, 'cash', '${item.id}')" class="delete-trigger icon-glass btn-icon w-4 h-4 text-gray-300 dark:text-gray-600 cursor-pointer hover:text-red-500 transition-colors" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></div>
                 </div>`;
             }).join('');
-            container.querySelectorAll('input').forEach(i => i.addEventListener('input', e => handleInput(e.target)));
+            container.querySelectorAll('input').forEach(i => i.addEventListener(i.dataset.field === 'ticker' ? 'change' : 'input', e => handleInput(e.target)));
         }
 
         // 关闭某一个浮动币种菜单。
@@ -1631,18 +1631,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
             document.querySelectorAll('.reveal-card').forEach(el => observer.observe(el));
         }
 
-        // 页面平滑滚动引擎。
-        const lenis = new Lenis({
-            duration: 1.2,
-            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-            smooth: true
-        });
-
-        function raf(time) {
-            lenis.raf(time);
-            requestAnimationFrame(raf);
-        }
-        requestAnimationFrame(raf);
+        // Native scrolling keeps long tables, keyboard navigation and touch scrolling consistent.
 
         // 后台刷新行情和汇率，并设置冷却时间避免频繁请求。
         function autoRefreshPrices(force = false) {
@@ -1805,7 +1794,6 @@ html += `
             initSortable();
             document.getElementById('fx-rate').addEventListener('input', calculate);
             loadTradingViewTicker();
-            initScrollReveal();
             autoRefreshPrices();
             autoSmartBackup();
         };

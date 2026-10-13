@@ -1,8 +1,8 @@
 # AssetHub
 
-AssetHub 是一个个人资产管理仪表盘，用原生 HTML、CSS 和 JavaScript 开发，不依赖复杂前端框架。它主要用于记录和查看个人投资组合，包括美股、A 股、现金、SGOV 类现金资产，以及 VOO/QQQM 回撤监控。
+AssetHub 是原生 HTML、CSS 和 JavaScript 编写的个人资产仪表盘，用于管理美股、A 股、SGOV、现金及回撤观察列表。
 
-项目适合直接部署在 GitHub Pages 上，也可以本地打开 `index.html` 使用。
+适合部署到 GitHub Pages；建议通过本地 HTTP 服务预览，以便读取 `data/data.json`。
 
 ## 主要功能
 
@@ -11,14 +11,31 @@ AssetHub 是一个个人资产管理仪表盘，用原生 HTML、CSS 和 JavaScr
 - 自动计算：自动计算市值、成本、盈亏、占比、总资产
 - 汇率换算：支持 USD/CNY、HKD/CNY 汇率换算
 - 图表展示：资产配置环形图、净值曲线、年度/月度盈亏日历
-- 回撤监控：跟踪 VOO、QQQM 等标的距离 5%、10%、15%、20%、25%、30% 回撤档位的距离
+- 回撤监控：自动同步持仓，支持自选、自定义排序和展开 5%～30% 目标价
 - 隐私模式：一键隐藏敏感金额
 - 深色模式：支持亮色/暗色主题切换
-- GitHub 同步：可通过 GitHub API 把数据备份到 `data.json`
+- GitHub 同步：可通过 GitHub API 把数据备份到 `data/data.json`
 - 行情更新：支持通过外部接口刷新股票价格和汇率
 
-![AssetHub 界面截图](assets/screenshots/Snipaste_2026-06-26_11-24-25.png)
-![AssetHub 界面截图](assets/screenshots/Snipaste_2026-06-26_11-24-36.png)
+## 自适应仪表盘
+
+顶部四张摘要卡展示总资产、币种资产、今日盈亏和累计盈亏。资产配置、VOO/QQQM 对比和 Risk Radar 按内容决定高度，持仓增加不会撑大旁边卡片。股票表格独立滚动，美股表头固定；支持搜索、分组折叠、行内编辑和拖拽排序。搜索时暂时禁用持仓拖拽，避免隐藏行造成排序错位。
+
+Risk Radar 显示回撤最大的四个追踪标的，并统计达到 5% 回撤的数量。保留净值曲线、盈亏日历、深色主题、隐私模式、汇率和 GitHub 备份；手机支持正常缩放和原生滚动。
+
+## Drawdown Tracker
+
+正股数的美股、A 股和 SGOV 会自动加入监控。现金、空代码、占位代码和零持仓不自动添加；代码按大小写和前后空格归一化，重复持仓只出现一条。
+
+默认采用 **Holdings first**：持仓在前，自选在后。拖拽手柄或使用 ↑ / ↓ 会切换到 **Custom order**，并把顺序保存到浏览器及投资组合数据中；云端 Backup 包含该顺序。本机显式选择的排序优先于行情数据刷新，避免每日云端报价更新覆盖手动顺序；新设备在未设置本机偏好时采用云端保存的顺序。自定义模式下，新持仓追加到末尾。选择 Holdings first 可恢复分组排序。筛选时调整的是可见条目，隐藏条目会保留。
+
+卖出或移除持仓后，该标的转入 Watchlist，并保留参考高点和最后价格。自动监控的持仓随投资组合同步；自选条目可以删除。修改持仓代码在输入完成后生效，避免把输入中的中间代码加入观察列表。
+
+主行展示来源、参考高点、当前价、当前回撤及下一档目标价。展开 **Levels** 可查看 5%、10%、15%、20%、25%、30% 对应价格。支持持仓、自选、达到 5% 回撤的标的筛选及代码搜索。
+
+**Reference high 是用户填写的参考高点，不等同于已经验证的历史最高价。** 原有高点会保留；新加入的持仓没有参考高点时显示待设置，不能把当前价当成历史高点。缺少当前价时显示等待报价。回撤超过 30% 显示已经达到最后档位；当前价超过参考高点时显示 Above reference。
+
+持仓当前价跟随投资组合；Refresh 在配置 Finnhub Key 后更新美元报价，失败时保留原价并报告成功数量。人民币持仓跟随 CN Stocks 的行情更新；人民币自选可手动填写当前价。无 Key 时仍可同步持仓价格及手动维护自选价格。浏览器和每日自动更新脚本共用同一份同步规则，自动更新不会重置自定义排序。
 
 ## 项目结构
 
@@ -28,9 +45,26 @@ AssetHub/
 ├─ css/
 │  └─ app.css                 # 页面样式
 ├─ js/
-│  ├─ app.js                  # 主要功能逻辑
+│  ├─ app.js                  # 资产计算、图表和已有交互
+│  ├─ cloud-loader.js         # 云端加载、历史合并、图标和同步保护
+│  ├─ dashboard.js            # 自适应布局交互、紧凑回撤列表
+│  ├─ drawdown-model.js       # 浏览器和自动更新共用的同步及回撤计算
 │  └─ tailwind.config.js      # Tailwind 配置
-├─ data.json                  # 云端同步数据
-├─ logo.png                   # 网页图标
-├─ apple-touch-icon3.png      # 移动端收藏图标
-└─ README.md
+├─ scripts/update_data_improved.js
+├─ tests/drawdown-model.test.js
+├─ data/data.json             # 云端同步数据
+└─ assets/                   # 图标和旧版截图
+```
+
+## 验证
+
+无需安装依赖即可运行同步、排序和回撤边界的单元测试：
+
+```sh
+node --test tests/drawdown-model.test.js
+node --check js/dashboard.js
+node --check scripts/update_data_improved.js
+git diff --check
+```
+
+页面通过 CDN 加载 Tailwind、Chart.js 和 Sortable，图标和底部行情条也需要网络。UI 本地验收使用仓库数据快照，未写入真实云端账户或修改持仓数据文件。
