@@ -67,8 +67,25 @@
         const rows = selected(state,days);
         return {
             usd:marketSeries(state,'usd',days),cn:marketSeries(state,'cn',days),
-            total:{profit:rows.length ? rows.reduce((sum,row)=>sum+(finite(row.pl)?Number(row.pl):0),0) : null,rate:rows.length ? compound(rows,row=>row.rate) : null}
+            total:{profit:rows.some(row=>finite(row.pl)) ? rows.reduce((sum,row)=>sum+(finite(row.pl)?Number(row.pl):0),0) : null,rate:rows.some(row=>finite(row.rate)) ? compound(rows,row=>row.rate) : null}
         };
+    }
+    // This drawdown measures the displayed asset balance, including cash flows.
+    // Retain the amount from the same peak/trough pair as the largest percentage.
+    function riskSummary(state, days) {
+        const rows = selected(state, days);
+        const values = rows.filter(row => finite(row.total ?? row.value) && Number(row.total ?? row.value) >= 0);
+        let peak = null, peakDate = null, drawdown = 0, amount = 0, from = null, to = null;
+        values.forEach(row => {
+            const value = Number(row.total ?? row.value);
+            if (peak === null || value > peak) { peak = value; peakDate = row.date; }
+            const decline = peak > 0 ? (peak - value) / peak * 100 : 0;
+            if (decline > drawdown) { drawdown = decline; amount = peak - value; from = peakDate; to = row.date; }
+        });
+        const rates = rows.filter(row => finite(row.rate)).map(row => Number(row.rate));
+        const mean = rates.length ? rates.reduce((sum, value) => sum + value, 0) / rates.length : 0;
+        const variance = rates.length > 1 ? rates.reduce((sum, value) => sum + (value - mean) ** 2, 0) / (rates.length - 1) : null;
+        return { drawdown: values.length > 1 ? -drawdown || 0 : null, amount: values.length > 1 ? -amount || 0 : null, from, to, volatility: variance === null ? null : Math.sqrt(variance * 252) };
     }
     function mergeRecords(previous, incoming) {
         const byDate=new Map();
@@ -80,5 +97,5 @@
         });
         return [...byDate.values()].sort((a,b)=>a.date.localeCompare(b.date));
     }
-    return {category,selected,weights,record,marketSeries,summary,mergeRecords};
+    return {category,selected,weights,record,marketSeries,summary,riskSummary,mergeRecords};
 });

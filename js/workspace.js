@@ -123,8 +123,10 @@
         const tone = !data.ready ? 'muted' : data.drop >= 5 ? 'negative' : 'positive';
         const high = row.high > 0 ? money(row.high, item.currency, item.type === 'cn' ? 3 : 2) : '设高点';
         const drop = !data.ready ? '—' : isPrivacyMode ? '••••' : (data.drop < 0 ? '+' : '−') + Math.abs(data.drop).toFixed(2) + '%';
-        const next = !data.ready ? '<b>—</b>' : data.next === null ? '<b class="risk-final-level">已达 −30%</b>' : `<small>−${data.next}%</small><b>${money(data.target, item.currency, item.type === 'cn' ? 3 : 2)}</b>`;
-        return `<span class="position-risk-high ${row.high > 0 ? '' : 'risk-unset'}" data-label="参考高点"><b>${high}</b></span><span class="position-risk-drop ${tone}" data-label="回撤"><b>${drop}</b></span><span class="position-risk-next" data-label="下一档">${next}</span>`;
+        const threshold = !data.ready ? '—' : data.next === null ? '−30%+' : '−' + data.next + '%';
+        const target = !data.ready || data.next === null ? '—' : money(data.target, item.currency, item.type === 'cn' ? 3 : 2);
+        return `<span class="position-risk-high ${row.high > 0 ? '' : 'risk-unset'}" data-label="参考高点"><b>${high}</b></span><span class="position-risk-drop ${tone}" data-label="回撤"><b>${drop}</b></span><span class="position-risk-threshold" data-label="档位"><small class="${data.ready ? '' : 'is-empty'}">${threshold}</small></span><span class="position-risk-next" data-label="下一档价格"><b>${target}</b></span>`;
+
     }
     function renderOverviewRisks() {
         const positions = visibleOverviewPositions();

@@ -31,6 +31,22 @@ test('legacy cloud history cannot erase recorded market snapshots',()=>{
     assert.deepEqual(model.mergeRecords(local,[{date:'2026-01-01',pl:5,markets:{cn:{value:7}}}])[0].markets,{usd:{value:10},cn:{value:7}});
     assert.equal(local[0].pl,3);assert.equal(local[0].markets.cn,undefined);
 });
+test('drawdown amount belongs to the maximum percentage peak/trough, not the biggest cash decline',()=>{
+    const state={history:[{date:'2026-01-01',total:10000,pl:0,rate:0},{date:'2026-01-02',total:8000,pl:-2000,rate:-20},{date:'2026-01-03',total:30000,pl:22000,rate:0},{date:'2026-01-04',total:27000,pl:-3000,rate:-10}]};
+    const risk=model.riskSummary(state,0);
+    assert.equal(risk.drawdown,-20);assert.equal(risk.amount,-2000);
+    assert.equal(risk.from,'2026-01-01');assert.equal(risk.to,'2026-01-02');
+    assert.ok(Math.abs(risk.volatility-Math.sqrt(23100))<1e-8);
+});
+test('range summaries handle legacy values, missing records and monotonic assets',()=>{
+    assert.equal(model.riskSummary({history:[{date:'2026-01-01',total:100}]},0).amount,null);
+    assert.equal(model.riskSummary({history:[{date:'2026-01-01'},{date:'2026-01-02'}]},0).drawdown,null);
+    assert.deepEqual(model.summary({history:[{date:'2026-01-01',value:100}]},0).total,{profit:null,rate:null});
+    const state={history:[{date:'2020-01-01',total:100,pl:100,rate:1},{date:'2026-01-01',value:150,pl:50,rate:2},{date:'2026-01-02',value:200,pl:50,rate:3}]};
+    assert.equal(model.riskSummary(state,30).drawdown,0);assert.equal(model.riskSummary(state,30).amount,0);
+    assert.equal(model.summary(state,30).total.profit,100);
+    assert.equal(model.summary(state,0).total.profit,200);
+});
 test('a long offline interval is not reported as a one-month market return',()=>{
     const state={history:[{date:'2026-01-01',markets:{usd:{value:100,cost:100,pl:null,rate:null}}},{date:'2026-04-01',markets:{usd:{value:120,cost:100,pl:20,rate:20,fromDate:'2026-01-01'}}}]};
     assert.equal(model.summary(state,30).usd.profit,null);assert.equal(model.summary(state,30).usd.rate,null);

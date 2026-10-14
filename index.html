@@ -13,12 +13,12 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-  <script src="js/tailwind.config.js?v=20261014-11"></script>
-  <link rel="stylesheet" href="css/app.css?v=20261014-11">
-  <link rel="stylesheet" href="css/folio.css?v=20261014-11">
-  <link rel="stylesheet" href="css/detail.css?v=20261014-11">
-  <link rel="stylesheet" href="css/overview.css?v=20261014-11">
-  <link rel="stylesheet" href="css/overview-upgrade.css?v=20261014-11">
+  <script src="js/tailwind.config.js?v=20261014-12"></script>
+  <link rel="stylesheet" href="css/app.css?v=20261014-12">
+  <link rel="stylesheet" href="css/folio.css?v=20261014-12">
+  <link rel="stylesheet" href="css/detail.css?v=20261014-12">
+  <link rel="stylesheet" href="css/overview.css?v=20261014-12">
+  <link rel="stylesheet" href="css/overview-upgrade.css?v=20261014-12">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="AssetHub">
 </head>
@@ -55,9 +55,9 @@
       <div class="settings-footer"><label class="ticker-choice"><input id="ticker-toggle" type="checkbox" onchange="toggleMarketTicker(this.checked)"> 底部行情条</label><div><button id="btn-pull" class="btn-action" onclick="pullFromGithub()"><svg  class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M6 6a8 8 0 0 1 13 2M18 18a8 8 0 0 1-13-2"/></svg><span>载入云端</span></button><button class="btn-action primary-action" onclick="saveSyncSettings()">保存</button></div></div>
     </section>
     <section id="panel-overview" class="workspace-panel" data-panel="overview">
-      <div class="folio-head"><div><div class="networth-label"><span>总资产</span><span class="currency-label">CNY</span></div><h1 class="wealth-value" id="total-nw-cny">¥0</h1></div><div class="overview-summary"><div class="wealth-metrics"><div><span>今日盈亏</span><div><strong id="today-pl-val">—</strong><small id="today-pl-pct">—</small></div></div><div><span>美股盈亏</span><div><strong id="us-pl-value">—</strong><small id="us-pl-pct">—</small></div></div><div><span>A股盈亏</span><div><strong id="cn-pl-value">—</strong><small id="cn-pl-pct">—</small></div></div><div><span>总盈亏</span><div><strong id="total-unrealized-pl-val">—</strong><small id="total-unrealized-pl-pct">—</small></div></div><div><span>最大回撤</span><div><strong id="nw-max-drawdown">—</strong></div></div><div><span>年化波动</span><div><strong id="nw-volatility">—</strong></div></div></div></div></div>
-      <div class="wealth-hero"><section class="wealth-main" aria-label="资产走势"><div class="networth-chart"><canvas id="chart-networth" aria-label="资产历史走势" role="img"></canvas><div id="chart-hover" class="chart-hover" aria-live="off" hidden></div></div><p id="nw-empty-hint" class="muted"></p><div class="performance-heading"><span class="chart-label"><i></i>总资产</span><div class="range-control" role="group" aria-label="时间范围"><button class="nw-range-btn" data-range="30" onclick="setNwRange(30)">1月</button><button class="nw-range-btn" data-range="90" onclick="setNwRange(90)">3月</button><button class="nw-range-btn" data-range="180" onclick="setNwRange(180)">6月</button><button class="nw-range-btn" data-range="365" onclick="setNwRange(365)">1年</button><button class="nw-range-btn" data-range="1095" onclick="setNwRange(1095)">3年</button><button class="nw-range-btn" data-range="1825" onclick="setNwRange(1825)">5年</button><button class="nw-range-btn" data-range="3650" onclick="setNwRange(3650)">10年</button><button class="nw-range-btn" data-range="0" onclick="setNwRange(0)">全部</button></div></div><span id="nw-period-return" hidden></span></section></div>
-      <section class="positions-surface overview-positions" aria-label="持仓与回撤"><div class="overview-paired-columns"><section class="overview-holdings-panel" aria-label="持仓"><div class="paired-panel-heading position-heading-main"><h2 id="positions-title">持仓</h2><div class="segmented-control position-markets" role="group" aria-label="持仓分类"><button data-overview-market="usd" onclick="setOverviewMarket('usd')" aria-pressed="true">美股</button><button data-overview-market="cn" onclick="setOverviewMarket('cn')" aria-pressed="false">A股</button><button data-overview-market="all" onclick="setOverviewMarket('all')" aria-pressed="false">全部</button></div></div><div class="overview-position-table"><div class="positions-list-heading" aria-hidden="true"><span>资产</span><span>股数</span><span>平均成本</span><span>现价</span><span>市值</span><span>浮动盈亏</span><span>收益率</span><span>持仓占比</span></div><div id="vooqqqm-rows" aria-label="持仓明细"></div></div></section><section class="overview-risk-panel" aria-label="回撤"><div class="paired-panel-heading"><h2 class="overview-risk-title">回撤</h2></div><div class="overview-risk-table"><div class="position-risk-heading" aria-hidden="true"><span>参考高点</span><span>回撤</span><span>下一档</span></div><div id="overview-risk-rows" aria-label="对应持仓回撤"></div></div></section></div></section>
+      <div class="folio-head"><div><div class="networth-label"><span>总资产</span><span class="currency-label">CNY</span></div><h1 class="wealth-value" id="total-nw-cny">¥0</h1></div><div class="overview-summary"><div class="wealth-metrics"><div><span>今日盈亏</span><div><strong id="today-pl-val">—</strong><small id="today-pl-pct">—</small></div></div><div><span>美股盈亏</span><div><strong id="us-pl-value">—</strong><small id="us-pl-pct">—</small></div></div><div><span>A股盈亏</span><div><strong id="cn-pl-value">—</strong><small id="cn-pl-pct">—</small></div></div><div title="所选区间的每日盈亏汇总"><span>总盈亏</span><div><strong id="total-unrealized-pl-val">—</strong><small id="total-unrealized-pl-pct">—</small></div></div><div class="drawdown-metric" title="所选区间的资产高点到低点回落，包含资金进出的影响"><span>最大回撤</span><div><strong id="nw-max-drawdown">—</strong><small id="nw-drawdown-amount">—</small></div></div></div></div></div>
+      <div class="wealth-hero"><section class="wealth-main" aria-label="资产走势"><div class="networth-chart"><canvas id="chart-networth" aria-label="资产历史走势" role="img"></canvas><div id="chart-hover" class="chart-hover" aria-live="off" hidden></div></div><p id="nw-empty-hint" class="muted"></p><div class="performance-heading"><span class="chart-label"><i></i>总资产</span><div class="range-control" role="group" aria-label="时间范围"><button class="nw-range-btn" data-range="30" onclick="setNwRange(30)">1月</button><button class="nw-range-btn" data-range="90" onclick="setNwRange(90)">3月</button><button class="nw-range-btn" data-range="180" onclick="setNwRange(180)">6月</button><button class="nw-range-btn" data-range="365" onclick="setNwRange(365)">1年</button><button class="nw-range-btn" data-range="1095" onclick="setNwRange(1095)">3年</button><button class="nw-range-btn" data-range="1825" onclick="setNwRange(1825)">5年</button><button class="nw-range-btn" data-range="3650" onclick="setNwRange(3650)">10年</button><button class="nw-range-btn" data-range="0" onclick="setNwRange(0)">全部</button></div><div class="chart-analysis" title="每日收益率标准差 × √252，用于衡量波动幅度，不代表收益高低"><span>年化波动</span><strong id="nw-volatility">—</strong></div></div><span id="nw-period-return" hidden></span></section></div>
+      <section class="positions-surface overview-positions" aria-label="持仓与回撤"><div class="overview-paired-columns"><section class="overview-holdings-panel" aria-label="持仓"><div class="paired-panel-heading position-heading-main"><h2 id="positions-title">持仓</h2><div class="segmented-control position-markets" role="group" aria-label="持仓分类"><button data-overview-market="usd" onclick="setOverviewMarket('usd')" aria-pressed="true">美股</button><button data-overview-market="cn" onclick="setOverviewMarket('cn')" aria-pressed="false">A股</button><button data-overview-market="all" onclick="setOverviewMarket('all')" aria-pressed="false">全部</button></div></div><div class="overview-position-table"><div class="positions-list-heading" aria-hidden="true"><span>资产</span><span>股数</span><span>平均成本</span><span>现价</span><span>市值</span><span>浮动盈亏</span><span>收益率</span><span>持仓占比</span></div><div id="vooqqqm-rows" aria-label="持仓明细"></div></div></section><section class="overview-risk-panel" aria-label="回撤"><div class="paired-panel-heading"><h2 class="overview-risk-title">回撤</h2></div><div class="overview-risk-table"><div class="position-risk-heading" aria-hidden="true"><span>参考高点</span><span>回撤</span><span>档位</span><span>下一档价格</span></div><div id="overview-risk-rows" aria-label="对应持仓回撤"></div></div></section></div></section>
     <section id="panel-activity" class="overview-calendar"><div class="page-heading"><div><h2>收益日历</h2></div></div>        <!-- 盈亏日历：可以在每日视图和年度视图之间切换。 -->
         <div class="calendar-surface">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-3">
@@ -80,11 +80,11 @@
             <!-- 每日视图：按日期显示每日盈亏、收益率或总资产。 -->
             <div id="view-daily" class="w-full">
                 <div class="flex justify-center items-center gap-4 mb-2">
-                    <button onclick="changeMonth(-1)" aria-label="上个月" class="p-1 text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText bg-gray-50 dark:bg-darkBg rounded-full transition-all focus:outline-none">
+                    <button onclick="changeMonth(-1)" aria-label="上个月" class="calendar-arrow p-1 text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText bg-gray-50 dark:bg-darkBg rounded-full transition-all focus:outline-none">
                         <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
                     </button>
                     <div id="cal-month-display" class="text-sm md:text-base font-bold text-textPrimary dark:text-darkText w-24 md:w-32 text-center tracking-wide">...</div>
-                    <button onclick="changeMonth(1)" aria-label="下个月" class="p-1 text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText bg-gray-50 dark:bg-darkBg rounded-full transition-all focus:outline-none">
+                    <button onclick="changeMonth(1)" aria-label="下个月" class="calendar-arrow p-1 text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText bg-gray-50 dark:bg-darkBg rounded-full transition-all focus:outline-none">
                         <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
                     </button>
                 </div>
@@ -95,11 +95,11 @@
             <!-- 年度视图：按月份汇总当年盈亏。 -->
             <div id="view-yearly" class="hidden w-full">
                 <div class="flex justify-center items-center gap-4 mb-4">
-                    <button onclick="changeYear(-1)" aria-label="上一年" class="p-1 text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText bg-gray-50 dark:bg-darkBg rounded-full transition-all focus:outline-none">
+                    <button onclick="changeYear(-1)" aria-label="上一年" class="calendar-arrow p-1 text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText bg-gray-50 dark:bg-darkBg rounded-full transition-all focus:outline-none">
                         <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
                     </button>
                     <div id="cal-year-display" class="text-sm md:text-base font-bold text-textPrimary dark:text-darkText w-24 md:w-32 text-center tracking-wide">...</div>
-                    <button onclick="changeYear(1)" aria-label="下一年" class="p-1 text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText bg-gray-50 dark:bg-darkBg rounded-full transition-all focus:outline-none">
+                    <button onclick="changeYear(1)" aria-label="下一年" class="calendar-arrow p-1 text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText bg-gray-50 dark:bg-darkBg rounded-full transition-all focus:outline-none">
                         <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
                     </button>
                 </div>
@@ -170,7 +170,7 @@
     </div>
 
 
-      <nav class="workspace-nav" aria-label="页面导航"><a href="#overview" data-workspace="overview"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V5m0 14h16M7 14l4-4 4 2 5-7"/></svg>总览</a><a href="#allocation" data-workspace="allocation"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M10 3a9 9 0 1 0 11 11H10V3Z"/><path d="M14 3v7h7a8 8 0 0 0-7-7Z"/></svg>分布</a><a href="#holdings" data-workspace="holdings"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5"/></svg>持仓</a><a href="#drawdown" data-workspace="drawdown"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16M4 19h16M5 8l5 3 4-2 5 6m-5 0h5v-5"/></svg>回撤<span id="nav-risk-count"></span></a><a href="#activity" data-workspace="activity"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4m8-4v4M4 10h16m-11 4h2m3 0h2m-7 3h2"/></svg>收益</a><a href="#transactions" data-workspace="transactions"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>交易</a></nav>
+      <nav class="workspace-nav" aria-label="页面导航"><a href="#overview" data-workspace="overview"><svg class="ui-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 13h4v8H3zm7-5h4v13h-4zm7-5h4v18h-4z"/></svg><span class="nav-label">总览</span></a><a href="#allocation" data-workspace="allocation"><svg class="ui-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10 2a10 10 0 1 0 12 12H10V2zM13 2v9h9a10 10 0 0 0-9-9z"/></svg><span class="nav-label">分布</span></a><a href="#holdings" data-workspace="holdings"><svg class="ui-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 2 10 5-10 5L2 7l10-5zm-9.5 8.5 9.5 4.8 9.5-4.8.5 2.5-10 5L2 13l.5-2.5zm0 6 9.5 4.8 9.5-4.8.5 2.5-10 5L2 19l.5-2.5z"/></svg><span class="nav-label">持仓</span></a><a href="#drawdown" data-workspace="drawdown"><svg class="ui-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 4h3v7l4-3 7 7v-5h4v11H10v-4h4l-5-5-6 4V4z"/></svg><span class="nav-label">回撤</span><span id="nav-risk-count"></span></a><a href="#activity" data-workspace="activity"><svg class="ui-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7 2h2v3h6V2h2v3h2a3 3 0 0 1 3 3v11a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3h2V2zm-1 9v3h3v-3H6zm5 0v3h3v-3h-3zm5 0v3h3v-3h-3zM6 16v3h3v-3H6zm5 0v3h3v-3h-3z"/></svg><span class="nav-label">收益</span></a><a href="#transactions" data-workspace="transactions"><svg class="ui-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5 2h14a2 2 0 0 1 2 2v18l-4-2-5 2-5-2-4 2V4a2 2 0 0 1 2-2zm2 4v2h10V6H7zm0 5v2h10v-2H7zm0 5v2h6v-2H7z"/></svg><span class="nav-label">交易</span></a></nav>
   <dialog id="transaction-dialog" class="transaction-dialog" aria-labelledby="transaction-dialog-title">
     <form id="transaction-form"><div class="surface-heading"><h2 id="transaction-dialog-title">添加交易</h2><button class="icon-button" type="button" onclick="closeTransactionEditor()" aria-label="关闭交易编辑">×</button></div><input id="trade-id" type="hidden">
     <div class="trade-fields"><label>类型<select id="trade-type"><option value="buy">买入</option><option value="sell">卖出</option><option value="fee">手续费</option></select></label><label>代码<input id="trade-symbol" required maxlength="24" autocomplete="off"></label><label>日期<input id="trade-date" type="date" required></label><label>币种<select id="trade-currency"><option>USD</option><option>CNY</option><option>HKD</option></select></label></div>
@@ -178,17 +178,17 @@
     <div class="trade-total"><span>总额</span><strong id="trade-total"></strong></div><label class="trade-sync"><input id="trade-sync" type="checkbox">同步持仓</label><p id="trade-error" role="alert"></p><div class="trade-editor-actions"><button id="trade-delete" class="text-link negative" type="button" onclick="deleteCurrentTransaction()">删除</button><button type="button" class="btn-action" onclick="closeTransactionEditor()">取消</button><button type="submit" class="btn-action primary-action">保存</button></div></form>
   </dialog>
   <div id="tv-ticker-container" class="ticker-position" hidden></div>
-  <script src="js/drawdown-model.js?v=20261014-11"></script>
-  <script src="js/portfolio-model.js?v=20261014-11"></script>
-  <script src="js/performance-model.js?v=20261014-11"></script>
-  <script src="js/app.js?v=20261014-11"></script>
-  <script src="js/cloud-loader.js?v=20261014-11"></script>
-  <script src="js/dashboard.js?v=20261014-11"></script>
-  <script src="js/transactions-model.js?v=20261014-11"></script>
-  <script src="js/workspace.js?v=20261014-11"></script>
-  <script src="js/navigation-dock.js?v=20261014-11"></script>
-  <script src="js/overview-performance.js?v=20261014-11"></script>
-  <script src="js/transactions.js?v=20261014-11"></script>
-  <script src="js/asset-detail.js?v=20261014-11"></script>
+  <script src="js/drawdown-model.js?v=20261014-12"></script>
+  <script src="js/portfolio-model.js?v=20261014-12"></script>
+  <script src="js/performance-model.js?v=20261014-12"></script>
+  <script src="js/app.js?v=20261014-12"></script>
+  <script src="js/cloud-loader.js?v=20261014-12"></script>
+  <script src="js/dashboard.js?v=20261014-12"></script>
+  <script src="js/transactions-model.js?v=20261014-12"></script>
+  <script src="js/workspace.js?v=20261014-12"></script>
+  <script src="js/navigation-dock.js?v=20261014-12"></script>
+  <script src="js/overview-performance.js?v=20261014-12"></script>
+  <script src="js/transactions.js?v=20261014-12"></script>
+  <script src="js/asset-detail.js?v=20261014-12"></script>
 </body>
 </html>

@@ -608,26 +608,12 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
             const emptyHint = document.getElementById('nw-empty-hint');
             if (!canvas) return;
 
-            let records = (state.history || []).slice().sort((a, b) => a.date.localeCompare(b.date));
-            
-            // 按真实自然日过滤，而不是简单取最近 N 条记录。
-            if (nwRangeDays > 0 && records.length > 0) {
-                const lastDateObj = new Date(records[records.length - 1].date);
-                lastDateObj.setDate(lastDateObj.getDate() - nwRangeDays);
-                const y = lastDateObj.getFullYear();
-                const m = String(lastDateObj.getMonth() + 1).padStart(2, '0');
-                const d = String(lastDateObj.getDate()).padStart(2, '0');
-                const cutoffDateStr = `${y}-${m}-${d}`;
-                
-                records = records.filter(r => r.date >= cutoffDateStr);
-            }
+            const records = PerformanceModel.selected(state, nwRangeDays);
 
             if (records.length < 2) {
                 if (charts.networth) { charts.networth.destroy(); charts.networth = null; }
                 emptyHint.innerText = '暂无历史数据';
                 document.getElementById('nw-period-return').innerText = '--';
-                document.getElementById('nw-max-drawdown').innerText = '--';
-                document.getElementById('nw-volatility').innerText = '--';
                 return;
             }
             emptyHint.innerText = '';
@@ -644,28 +630,6 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
             
             prEl.innerText = (periodReturn >= 0 ? '+' : '') + periodReturn.toFixed(2) + '%';
             prEl.className = `text-base md:text-xl font-bold font-mono ${periodReturn >= 0 ? 'text-googleGreen' : 'text-googleRed'}`;
-
-            let peak = -Infinity, maxDD = 0;
-            records.forEach(r => {
-                const v = r.total || r.value || 0;
-                if (v > peak) peak = v;
-                if (peak > 0) {
-                    const dd = ((peak - v) / peak) * 100;
-                    if (dd > maxDD) maxDD = dd;
-                }
-            });
-            document.getElementById('nw-max-drawdown').innerText = '-' + maxDD.toFixed(2) + '%';
-
-            const rates = records.map(r => r.rate || 0).filter(r => r !== 0 || true);
-            if (rates.length > 1) {
-                const mean = rates.reduce((a, b) => a + b, 0) / rates.length;
-                const variance = rates.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / (rates.length - 1);
-                const dailyStd = Math.sqrt(variance);
-                const annualizedVol = dailyStd * Math.sqrt(252);
-                document.getElementById('nw-volatility').innerText = annualizedVol.toFixed(2) + '%';
-            } else {
-                document.getElementById('nw-volatility').innerText = '--';
-            }
 
             const isDark = document.documentElement.classList.contains('dark');
             const lineColor = '#1a73e8';
