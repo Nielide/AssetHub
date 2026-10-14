@@ -1,5 +1,31 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const model=require('../js/performance-model'),portfolio=require('../js/portfolio-model');
+test('investment calendar excludes deposits, cash FX and holding FX movements',()=>{
+    const state={usd:[{id:1,shares:2,cost:100,price:100}],cn:[{id:2,shares:10,cost:5,price:5}],cash:[{id:3,currency:'USD',amount:1000}],history:[{date:'2026-01-01',total:10000,pl:8,rate:1}]};
+    model.record(state,'2026-01-01',7);
+    state.cash[0].amount=2000;state.history.push({date:'2026-01-02',pl:1400,rate:14});
+    model.record(state,'2026-01-02',8);
+    assert.equal(model.investmentPoint(state.history[1]).pl,0);assert.equal(model.investmentPoint(state.history[1]).rate,0);
+    assert.equal(state.history[1].pl,1400);
+    state.usd[0].price=110;state.cn[0].price=4;
+    model.record(state,'2026-01-02',8);
+    assert.equal(model.investmentPoint(state.history[1]).pl,150);
+    assert.equal(model.investmentPoint(state.history[1]).total,1800);
+});
+test('legacy calendar totals remain marked and month return compounds actual rates',()=>{
+    const rows=[{date:'2026-01-01',pl:10,rate:10,total:1000},{date:'2026-01-02',pl:999,investmentPerformance:{pl:-5,rate:-10,total:950}}];
+    const summary=model.calendarMonth(rows);
+    assert.equal(summary.profit,5);assert.ok(Math.abs(summary.rate+1)<1e-10);
+    assert.equal(summary.total,950);assert.equal(summary.totalLegacy,false);assert.equal(summary.legacy,true);
+    assert.equal(model.investmentPoint(rows[0]).legacy,true);assert.equal(model.investmentPoint(rows[1]).pl,-5);
+    assert.equal(model.calendarMonth([]).profit,null);assert.equal(rows[1].pl,999);
+});
+test('missing previous day is unknown rather than a fabricated daily return',()=>{
+    const state={usd:[],cn:[],history:[{date:'2026-01-01',pl:5},{date:'2026-01-03',pl:8}]};
+    model.record(state,'2026-01-01',7);model.record(state,'2026-01-03',7);
+    assert.equal(model.investmentPoint(state.history[1]).pl,null);
+    assert.equal(model.investmentPoint(state.history[1]).legacy,false);
+});
 test('overview weights use market holdings and exclude cash; all converts currencies',()=>{
     const state={usd:[{id:1,shares:2,price:100,cost:80}],sgov:[{id:2,shares:1,price:100,cost:100}],cn:[{id:3,shares:10,price:7,cost:5}],cash:[{currency:'CNY',amount:10000}],fxRate:7};
     const positions=portfolio.snapshot(state).positions;

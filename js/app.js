@@ -1035,6 +1035,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                 viewDaily.classList.add('hidden');
                 controlsDaily.classList.add('hidden');
             }
+            if (view === 'daily') renderCalendar(); else renderYearlySummary();
         }
 
         // 日历显示模式：每日盈亏、每日百分比、总资产。
@@ -1059,6 +1060,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
 
         // 从年度汇总跳转到指定月份。
         function jumpToMonth(monthIndex) {
+            displayDate.setDate(1);
             displayDate.setMonth(monthIndex);
             renderCalendar();
             renderYearlySummary();
@@ -1067,180 +1069,60 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
 
         // 每日历按月份前后切换。
         function changeMonth(offset) {
+            displayDate.setDate(1);
             displayDate.setMonth(displayDate.getMonth() + offset);
             renderCalendar();
         }
 
         // 年度汇总按年份前后切换。
         function changeYear(offset) {
+            displayDate.setDate(1);
             displayDate.setFullYear(displayDate.getFullYear() + offset);
             renderYearlySummary();
             renderCalendar();
         }
 
-        // 渲染当前年份 12 个月的盈亏汇总。
+
+        // Legacy mixed-asset records stay intact and are explicitly marked.
         function renderYearlySummary() {
-            const currentYear = displayDate.getFullYear();
-            const yearBadge = document.getElementById('current-year-badge');
-            if (yearBadge) yearBadge.innerText = currentYear;
-
-            const yearDisplay = document.getElementById('cal-year-display');
-            if (yearDisplay) yearDisplay.innerText = currentYear + '年';
-
-            const monthlyData = new Array(12).fill(0);
-            const monthlyRecords = new Array(12).fill(0);
-            let ytdTotal = 0;
-
-            state.history.forEach(record => {
-                if (!record.date) return;
-                const parts = record.date.split('-');
-                const year = parseInt(parts[0]);
-                const month = parseInt(parts[1]) - 1;
-
-                if (year === currentYear) {
-                    const pl = calendarAmount(record, 'pl');
-                    monthlyData[month] += pl;
-                    monthlyRecords[month]++;
-                    ytdTotal += pl;
-                }
-            });
-
-            const monthNames = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
-            const grid = document.getElementById('monthly-grid');
-
-            if (grid) {
-                grid.innerHTML = monthlyData.map((val, index) => {
-                    const isPos = val >= 0;
-                    const valText = !monthlyRecords[index] ? '—' : isPrivacyMode ? '••••' : calendarMoney(val, true, 2);
-
-                    let colorClass = 'text-gray-400 dark:text-gray-500';
-                    let bgClass = 'bg-gray-50 dark:bg-darkBg';
-
-                    if (!isPrivacyMode) {
-                        if (val > 0) {
-                            colorClass = 'text-stockGreen dark:text-green-300';
-                            bgClass = 'bg-stockGreenBg dark:bg-green-900/20';
-                        } else if (val < 0) {
-                            colorClass = 'text-stockRed dark:text-red-300';
-                            bgClass = 'bg-stockRedBg dark:bg-red-900/20';
-                        }
-                    }
-
-                    return `
-                        <div data-month="${index}" data-has-record="${monthlyRecords[index] > 0}" data-level="${Math.max(1, Math.ceil(Math.abs(val) / (Math.max(...monthlyData.map(Math.abs)) || 1) * 4))}" data-tone="${val > 0 ? 'gain' : val < 0 ? 'loss' : 'flat'}" onclick="jumpToMonth(${index})" class="py-4 md:py-6 px-2 md:px-3 min-h-[140px] md:min-h-[200px] rounded-lg ${bgClass} flex flex-col items-center justify-center cursor-pointer hover:-translate-y-1.5 transition-all duration-300">
-                            <span class="text-xs md:text-sm font-bold text-gray-500 dark:text-darkTextSec uppercase mb-2 md:mb-3">${monthNames[index]}</span>
-                            <span data-monthly-value="${val}" class="text-xl md:text-2xl font-bold font-mono tracking-tight ${colorClass}">${valText}</span>
-                        </div>
-                    `;
-                }).join('');
-            }
-
-            const totalEl = document.getElementById('yearly-total');
-            if (totalEl) {
-                totalEl.dataset.tone = ytdTotal > 0 ? 'gain' : ytdTotal < 0 ? 'loss' : 'flat';
-                if (isPrivacyMode) {
-                    totalEl.innerText = '••••';
-                    totalEl.className = 'text-2xl md:text-3xl font-bold font-mono tracking-tight text-gray-400 dark:text-gray-500';
-                } else {
-                    const isPos = ytdTotal >= 0;
-                    totalEl.innerText = calendarMoney(ytdTotal, true, 2);
-
-                    if (ytdTotal > 0) {
-                        totalEl.className = 'text-2xl md:text-3xl font-bold font-mono tracking-tight text-stockGreen dark:text-green-300';
-                    } else if (ytdTotal < 0) {
-                        totalEl.className = 'text-2xl md:text-3xl font-bold font-mono tracking-tight text-stockRed dark:text-red-300';
-                    } else {
-                        totalEl.className = 'text-2xl md:text-3xl font-bold font-mono tracking-tight text-gray-400 dark:text-gray-500';
-                    }
-                }
-            }
+            const year=displayDate.getFullYear();
+            const badge=document.getElementById('current-year-badge');if(badge)badge.textContent=year;
+            document.getElementById('cal-year-display').textContent=year+'年';
+            const rows=state.history.filter(row=>row.date?.startsWith(year+'-'));
+            const months=Array.from({length:12},(_,index)=>PerformanceModel.calendarMonth(rows.filter(row=>Number(row.date.slice(5,7))===index+1)));
+            const max=Math.max(1,...months.map(m=>Math.abs(m.profit||0)));
+            document.getElementById('monthly-grid').innerHTML=months.map((m,index)=>{
+                const tone=m.profit>0?'gain':m.profit<0?'loss':'flat';
+                const profit=m.profit===null?'—':isPrivacyMode?'••••':calendarMoney(m.profit,true,2);
+                const rate=m.rate===null?'—':isPrivacyMode?'••••':(m.rate>=0?'+':'−')+Math.abs(m.rate).toFixed(2)+'%';
+                const total=m.total===null?'—':isPrivacyMode?'••••':calendarMoney(m.total,false,0);
+                return '<button type="button" data-month="'+index+'" data-has-record="'+(m.profit!==null)+'" data-level="'+Math.max(1,Math.ceil(Math.abs(m.profit||0)/max*4))+'" data-tone="'+tone+'" onclick="jumpToMonth('+index+')" class="flex flex-col items-center justify-center" aria-label="'+(index+1)+'月收益，查看月历"><span>'+(index+1)+'月</span><span data-monthly-value="'+(m.profit??'')+'">'+profit+'</span><span data-monthly-rate>'+rate+'</span><span class="monthly-balance"><span>'+(m.totalLegacy?'总资产':'投资市值')+'</span><span data-monthly-total>'+total+'</span></span>'+(m.legacy?'<span class="monthly-legacy-label" title="包含旧口径记录">旧口径</span>':'')+'</button>';
+            }).join('');
+            const summary=PerformanceModel.calendarMonth(rows), total=document.getElementById('yearly-total');
+            total.dataset.tone=summary.profit>0?'gain':summary.profit<0?'loss':'flat';
+            total.textContent=summary.profit===null?'—':isPrivacyMode?'••••':calendarMoney(summary.profit,true,2);
+            if (!document.getElementById('view-yearly').classList.contains('hidden')) document.getElementById('calendar-basis-legend').hidden=!summary.legacy;
         }
-
-        // 根据每日历史记录渲染月历。
         function renderCalendar() {
-            const year = displayDate.getFullYear();
-            const month = displayDate.getMonth();
-            const monthNames = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
-
-            document.getElementById('cal-month-display').innerText = `${year}年${monthNames[month]}`;
-            const grid = document.getElementById('calendar-grid');
-            if(!grid) return;
-            grid.innerHTML = ['日', '一', '二', '三', '四', '五', '六'].map(day => `<div class="calendar-weekday">${day}</div>`).join('');
-
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-            const calData = {};
-            state.history.forEach(item => {
-                calData[item.date] = {
-                    total: calendarAmount({ ...item, total: item.total ?? item.value ?? 0 }, 'total'),
-                    pl: calendarAmount(item, 'pl'),
-                    rate: item.rate || 0,
-                    netFlow: calendarAmount(item, 'netFlow')
-                };
-            });
-
-            for (let i = 0; i < firstDay; i++) { grid.innerHTML += `<div></div>`; }
-
-            const localDate = new Date();
-            const todayStr = `${localDate.getFullYear()}-${String(localDate.getMonth()+1).padStart(2,'0')}-${String(localDate.getDate()).padStart(2,'0')}`;
-
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const data = calData[dateStr];
-                const isToday = (dateStr === todayStr);
-
-                let bgClass = "bg-transparent";
-                let textClass = "text-gray-400 dark:text-darkTextSec";
-                let dayText = day;
-                let valHtml = `<span class="text-xs md:text-sm text-transparent">0</span>`;
-                let flowHtml = '';
-
-                if (data) {
-                    const isPos = data.pl >= 0;
-                    let displayVal = '';
-
-                    if (isPrivacyMode && calViewMode !== 1) {
-                        displayVal = '••••';
-                        textClass = "text-gray-500 dark:text-darkTextSec";
-                        bgClass = "bg-gray-100 dark:bg-[#3c4043]";
-                    } else {
-                        if (calViewMode === 0) {
-                            displayVal = calendarMoney(data.pl, true);
-                            textClass = isPos ? "text-stockGreen dark:text-green-300" : "text-stockRed dark:text-red-300";
-                            bgClass = isPos ? "bg-stockGreenBg dark:bg-green-900/20" : "bg-stockRedBg dark:bg-red-900/20";
-                        } else if (calViewMode === 1) {
-                            displayVal = isPos ? `+${data.rate.toFixed(1)}%` : `${data.rate.toFixed(1)}%`;
-                            textClass = isPos ? "text-stockGreen dark:text-green-300" : "text-stockRed dark:text-red-300";
-                            bgClass = isPos ? "bg-stockGreenBg dark:bg-green-900/20" : "bg-stockRedBg dark:bg-red-900/20";
-                        } else {
-                            displayVal = calendarMoney(data.total, false, 0);
-                            textClass = "text-gray-900 dark:text-gray-100";
-                            bgClass = isPos ? "bg-stockGreenBg dark:bg-green-900/20" : "bg-stockRedBg dark:bg-red-900/20";
-                        }
-
-                        if (!isPrivacyMode && data.netFlow && Math.abs(data.netFlow) > 5) {
-                            let fv = data.netFlow;
-                            let sign = fv > 0 ? '+' : '-';
-                            let fText = sign + calendarMoney(Math.abs(fv), false, 0);
-                            const fColor = 'text-yellow-400 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-300 dark:border-yellow-800/50';
-                            flowHtml = `<div class="calendar-flow absolute top-1.5 right-1 md:top-1.5 md:right-1.5 text-[0.5rem] md:text-[0.55rem] font-bold ${fColor} px-1 rounded shadow-sm tracking-tighter leading-none h-[14px] md:h-[16px] flex items-center justify-center" title="资金流入或流出">${fText}</div>`;
-                        }
-                    }
-
-                    valHtml = `<span data-calendar-value data-amount="${calViewMode === 0 ? data.pl : calViewMode === 2 ? data.total : data.rate}" class="text-[0.6rem] md:text-sm lg:text-base font-bold font-mono tracking-tighter leading-none text-center w-full px-0.5 ${textClass}">${displayVal}</span>`;
-                } else if (isToday) {
-                    bgClass = "bg-transparent";
-                }
-
-                grid.innerHTML += `
-                    <div data-date="${dateStr}" data-has-record="${!!data}" data-level="${Math.abs(data?.rate || 0) < .25 ? 1 : Math.abs(data?.rate || 0) < .75 ? 2 : Math.abs(data?.rate || 0) < 1.5 ? 3 : 4}" data-today="${isToday}" data-tone="${data?.pl > 0 ? 'gain' : data?.pl < 0 ? 'loss' : 'flat'}" class="relative flex flex-col justify-center items-center pt-3 pb-1 md:pt-0 md:pb-0 md:py-4 min-h-[50px] md:min-h-[80px] rounded-lg w-full transition-all hover:brightness-95 cursor-default ${bgClass}">
-                        ${flowHtml}
-                        <span class="calendar-day-number absolute top-1.5 left-1.5 md:static md:top-auto md:left-auto text-[0.6rem] md:text-xs font-bold text-gray-400 dark:text-gray-500 leading-none h-[14px] md:h-auto flex items-center md:mb-1">${dayText}</span>
-                        ${valHtml}
-                    </div>
-                `;
+            const year=displayDate.getFullYear(),month=displayDate.getMonth();
+            document.getElementById('cal-month-display').textContent=year+'年'+(month+1)+'月';
+            const grid=document.getElementById('calendar-grid'),byDate=new Map(state.history.map(row=>[row.date,PerformanceModel.investmentPoint(row)]));
+            const firstDay=new Date(year,month,1).getDay(),days=new Date(year,month+1,0).getDate();
+            const d=new Date(),today=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+            let markup=['日','一','二','三','四','五','六'].map(day=>'<div class="calendar-weekday">'+day+'</div>').join('');
+            for(let slot=0;slot<42;slot++){
+                const day=slot-firstDay+1;
+                if(day<1||day>days){markup+='<div aria-hidden="true"></div>';continue;}
+                const date=year+'-'+String(month+1).padStart(2,'0')+'-'+String(day).padStart(2,'0'),point=byDate.get(date);
+                const value=point?(calViewMode===0?point.pl:calViewMode===1?point.rate:point.total):null;
+                const known=value!==null&&value!==undefined;
+                const text=!point?'':!known?'—':isPrivacyMode?'••••':calViewMode===1?(value>=0?'+':'−')+Math.abs(value).toFixed(1)+'%':calendarMoney(value,calViewMode===0,0);
+                const tone=point?.pl>0?'gain':point?.pl<0?'loss':'flat';
+                const title=!point?'':point.legacy?'旧口径：包含现金和汇率贡献':point.pl===null?'投资口径：缺少前一天的持仓记录':'投资口径：不含现金及汇率变动';
+                markup+='<div data-date="'+date+'" data-has-record="'+known+'" data-today="'+(date===today)+'" data-level="'+(Math.abs(point?.rate||0)<.25?1:Math.abs(point?.rate||0)<.75?2:Math.abs(point?.rate||0)<1.5?3:4)+'" data-tone="'+tone+'" class="relative flex flex-col items-center justify-center" title="'+title+'"><span class="calendar-day-number">'+day+'</span>'+(point?.legacy?'<i class="calendar-legacy-mark" aria-label="旧口径"></i>':'')+'<span data-calendar-value data-amount="'+(value??'')+'">'+text+'</span></div>';
             }
+            grid.innerHTML=markup;
+            if (!document.getElementById('view-daily').classList.contains('hidden')) document.getElementById('calendar-basis-legend').hidden=!state.history.some(row=>row.date?.startsWith(year+'-'+String(month+1).padStart(2,'0'))&&PerformanceModel.investmentPoint(row).legacy);
         }
 
         // 通过腾讯行情接口更新 A 股价格。

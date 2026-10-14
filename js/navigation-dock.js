@@ -5,7 +5,8 @@
     let frame, floating = null;
     function update() {
         const bounds = header.getBoundingClientRect();
-        const next = floating ? bounds.bottom < 20 : bounds.bottom < -8;
+        const mobile = matchMedia('(max-width: 980px)').matches;
+        const next = mobile || (floating ? bounds.bottom < 20 : bounds.bottom < -8);
         if (next !== floating) {
             floating = next; dock.classList.toggle('is-floating', floating);
             if (dock.dataset.ready && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -13,9 +14,10 @@
                 dock.animate([{opacity:.5},{opacity:1}], {duration:220,easing:'ease-out'});
             }
         }
-        home.style.setProperty('--navigation-width', dock.offsetWidth + 'px');
+        if (!floating) home.style.setProperty('--navigation-width', dock.offsetWidth + 'px');
         const active = dock.querySelector('[aria-current="page"]');
         if (!active) return;
+        if (dock.scrollWidth > dock.clientWidth && (active.offsetLeft < dock.scrollLeft || active.offsetLeft + active.offsetWidth > dock.scrollLeft + dock.clientWidth)) dock.scrollLeft = active.offsetLeft - (dock.clientWidth - active.offsetWidth) / 2;
         dock.style.setProperty('--nav-active-x', active.offsetLeft + 'px');
         dock.style.setProperty('--nav-active-width', active.offsetWidth + 'px');
         if (!dock.dataset.ready) requestAnimationFrame(() => { dock.dataset.ready = 'true'; });

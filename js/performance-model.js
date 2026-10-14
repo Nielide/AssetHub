@@ -36,6 +36,30 @@
             const pl = baseline ? value - baseline.value - netFlow : null;
             row.markets[type] = {value,cost,netFlow,pl,fromDate:previous?.date || null,rate:baseline && baseline.value > 0 ? pl / baseline.value * 100 : null,currency:type === 'usd' ? 'USD' : 'CNY'};
         });
+        const previous = history(state).filter(point => point.date < date && ['usd','cn'].every(type => finite(point.markets?.[type]?.value) && finite(point.markets?.[type]?.cost))).pop();
+        const span = previous ? Math.round((Date.parse(date)-Date.parse(previous.date))/86400000) : null;
+        let profit = null, baseline = null;
+        if (previous && span === 1) {
+            const old = previous.markets, current = row.markets;
+            const change = type => current[type].value - old[type].value - (current[type].cost - old[type].cost);
+            profit = change('usd') * snapshot.fx + change('cn');
+            baseline = old.usd.value * snapshot.fx + old.cn.value;
+        }
+        row.investmentPerformance = {pl:profit,rate:baseline > 0 ? profit / baseline * 100 : null,total:row.investmentTotal,fromDate:previous?.date || null,fxRate:snapshot.fx};
+    }
+
+    // Calendar returns compare native holdings at one common FX rate: no cash or FX P/L.
+    function investmentPoint(row) {
+        const modern = row.investmentPerformance;
+        return modern ? {pl:modern.pl,rate:modern.rate,total:modern.total,legacy:false,fromDate:modern.fromDate}
+            : {pl:finite(row.pl)?Number(row.pl):null,rate:finite(row.rate)?Number(row.rate):null,total:finite(row.total??row.value)?Number(row.total??row.value):null,legacy:true};
+    }
+    function calendarMonth(rows) {
+        const points=rows.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(investmentPoint);
+        const profits=points.filter(p=>finite(p.pl)), rates=points.filter(p=>finite(p.rate));
+        return {profit:profits.length?profits.reduce((sum,p)=>sum+Number(p.pl),0):null,
+            rate:rates.length?compound(rates,p=>p.rate):null, total:points.at(-1)?.total??null,
+            legacy:points.some(p=>p.legacy), totalLegacy:points.at(-1)?.legacy??false, count:points.length};
     }
     function compound(rows, getRate) {
         return (rows.reduce((growth,row) => growth * (1 + (finite(getRate(row)) ? Number(getRate(row)) : 0) / 100),1)-1)*100;
@@ -99,5 +123,5 @@
         });
         return [...byDate.values()].sort((a,b)=>a.date.localeCompare(b.date));
     }
-    return {category,selected,weights,record,marketSeries,summary,riskSummary,mergeRecords};
+    return {category,selected,weights,record,marketSeries,summary,riskSummary,mergeRecords,investmentPoint,calendarMonth};
 });

@@ -43,7 +43,7 @@
                 else name = 'overview';
             } catch { name = 'overview'; }
         }
-        if (!['overview', 'allocation', 'holdings', 'drawdown', 'activity', 'transactions', 'asset'].includes(name)) name = 'overview';
+        if (!['overview', 'allocation', 'holdings', 'drawdown', 'activity', 'transactions', 'funds', 'asset'].includes(name)) name = 'overview';
         const previousPanel = currentPanel;
         currentPanel = name;
         document.querySelectorAll('[data-panel]').forEach(panel => { panel.hidden = panel.dataset.panel !== name; });
@@ -56,6 +56,7 @@
         if (name === 'overview') requestAnimationFrame(() => charts.networth?.resize());
         if (name === 'asset' && window.renderAssetDetail) renderAssetDetail();
         if (name === 'transactions' && window.renderTransactions) renderTransactions();
+        if (name === 'funds' && window.renderFunds) renderFunds();
         closePopover(); closeAllCcyMenus();
         if (calendarRoute) requestAnimationFrame(() => el('panel-activity').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start'}));
         else if (updateHash && (previousPanel !== name || name === 'overview')) window.scrollTo({top: 0, behavior: 'instant'});
@@ -165,19 +166,22 @@
         const data = PortfolioModel.assetOverview(portfolioValues());
         const percent = value => isPrivacyMode ? '••••' : value.toFixed(1) + '%';
         el('asset-grand-total').textContent = money(data.total, 'CNY', 2);
-        el('asset-investment-total').textContent = money(data.investment, 'CNY', 2);
-        el('asset-cash-total').textContent = money(data.cash, 'CNY', 2);
         el('asset-investment-weight').textContent = percent(data.investmentWeight);
         el('asset-investment-legend').textContent = percent(data.investmentWeight);
         el('asset-cash-weight').textContent = percent(data.cashWeight);
-        const circumference = 2 * Math.PI * 96, investmentLength = circumference * data.investmentWeight / 100, cashLength = circumference * data.cashWeight / 100;
-        el('asset-ring-investment').setAttribute('stroke-dasharray', investmentLength + ' ' + (circumference - investmentLength));
-        el('asset-ring-cash').setAttribute('stroke-dasharray', cashLength + ' ' + (circumference - cashLength));
-        el('asset-ring-cash').setAttribute('stroke-dashoffset', -investmentLength);
-        document.querySelector('.asset-ring').setAttribute('aria-label', isPrivacyMode ? '资产配置已隐藏' : '投资 ' + percent(data.investmentWeight) + '，现金 ' + percent(data.cashWeight));
+
+        const circumference = 2 * Math.PI * 96; let offset = 0;
+        data.groups.forEach(group => {
+            el('asset-top-' + group.key).textContent = money(group.value, group.currency, 2);
+            const ring = el('asset-ring-' + group.key), length = circumference * group.weight / 100;
+            ring.setAttribute('stroke-dasharray', length + ' ' + (circumference - length));
+            ring.setAttribute('stroke-dashoffset', -offset); offset += length;
+        });
+        el('asset-chart-legend').innerHTML = data.groups.map(group => '<span style="--group-color:'+group.color+'"><i></i>'+group.label+'</span>').join('');
+        document.querySelector('.asset-ring').setAttribute('aria-label', isPrivacyMode ? '资产配置已隐藏' : data.groups.map(group=>group.label+' '+percent(group.weight)).join('，'));
         el('asset-investment-track').style.width = data.investmentWeight + '%';
         el('asset-cash-track').style.width = data.cashWeight + '%';
-        el('allocation-breakdown').innerHTML = data.groups.map(group => `<button class="asset-category-row" data-asset-group="${group.key}" data-market="${group.market}" type="button" aria-label="查看${group.label}明细" style="--group-color:${group.color}"><span class="asset-category-name"><i class="asset-category-icon" aria-hidden="true">${group.currency === 'USD' ? '$' : group.currency === 'HKD' ? 'HK' : '¥'}</i><span><b>${group.label}</b><small>${group.key === 'us-investment' ? 'USD · 含 SGOV' : group.currency}</small></span></span><strong class="asset-category-native" data-label="原币金额">${money(group.value, group.currency, 2)}</strong><span class="asset-category-converted" data-label="人民币折算">${money(group.converted, 'CNY', 2)}</span><span class="asset-category-weight" data-label="资产占比"><b>${percent(group.weight)}</b><i><em style="width:${group.weight}%"></em></i></span></button>`).join('');
+        el('allocation-breakdown').innerHTML = data.groups.map(group => `<button class="asset-category-row" data-asset-group="${group.key}" data-market="${group.market}" type="button" aria-label="查看${group.label}明细" style="--group-color:${group.color}"><span class="asset-category-name"><i class="asset-category-icon" aria-hidden="true">${group.currency === 'USD' ? '$' : group.currency === 'HKD' ? 'HK' : '¥'}</i><span><b>${group.label}</b></span></span><strong class="asset-category-native" data-label="原币金额">${money(group.value, group.currency, 2)}</strong><span class="asset-category-converted" data-label="人民币折算">${money(group.converted, 'CNY', 2)}</span><span class="asset-category-weight" data-label="资产占比"><b>${percent(group.weight)}</b><i><em style="width:${group.weight}%"></em></i></span></button>`).join('');
         el('allocation-breakdown').querySelectorAll('button').forEach(button => button.addEventListener('click', () => {
             if (button.dataset.market !== 'cash') {
                 navigateWorkspace('overview'); setOverviewMarket(button.dataset.market);
@@ -186,12 +190,8 @@
                 navigateWorkspace('holdings'); el('holdings-search').value = ''; el('holdings-search').dispatchEvent(new Event('input')); setHoldingMarket('cash');
             }
         }));
-        data.currencies.forEach(item => {
-            const weight = el('currency-weight-' + item.currency.toLowerCase());
-            weight.textContent = percent(item.weight);
-            weight.nextElementSibling.querySelector('em').style.width = item.weight + '%';
-        });
         document.body.classList.toggle('privacy-mode', isPrivacyMode);
+        if (window.renderFunds) renderFunds();
         document.querySelector('.privacy-button').setAttribute('aria-pressed', String(isPrivacyMode));
     }
     renderVooQqqm = function () {
