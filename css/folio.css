@@ -59,6 +59,9 @@ body { font-family: Geist, sans-serif; }
 .range-control { gap: 8px; }
 .nw-range-btn { font-size: 13px; padding: 7px 11px; border-radius: 18px; }
 .nw-range-btn[aria-pressed="true"] { background: var(--folio-paper) !important; color: var(--text-primary); box-shadow: 0 2px 5px rgba(46,51,26,.06) !important; }
+.range-control .nw-range-btn[aria-pressed="true"] { color: var(--text-primary); }
+.calendar-surface .text-blue-600, .calendar-surface .dark\:text-blue-400 { color: var(--accent); }
+.calendar-surface .bg-blue-50 { background: var(--soft); }
 .chart-caption { font-size: 11px; padding-top: 3px; opacity: .85; }
 .chart-caption b { font-weight: 500; }
 .overview-detail-grid { display: grid; grid-template-columns: minmax(320px, 1fr) minmax(580px, 1.65fr) minmax(280px, .85fr); gap: 30px; margin-top: 24px; align-items: start; }
