@@ -1,5 +1,6 @@
 const fs = require('fs');
 const DrawdownModel = require('../js/drawdown-model.js');
+const PerformanceModel = require('../js/performance-model.js');
 
 // 读取你的数据文件
 const dataPath = './data/data.json';
@@ -178,6 +179,7 @@ function calculateAssets() {
 // ============ 历史记录更新 ============
 function updateHistory(assets) {
     const { grandTotal, currentTotalCost } = assets;
+    const fx = Number(state.fxRate) || 7.25;
     
     // 获取北京时间
     const bjTime = new Date(new Date().getTime() + 8 * 3600 * 1000);
@@ -223,7 +225,7 @@ function updateHistory(assets) {
         });
     }
 
-    if (state.history.length > 730) state.history.shift(); // 前端改成了 730天，这里对齐
+    PerformanceModel.record(state, todayStr, fx);
 
     return { todayStr, pl, rate, netFlow };
 }

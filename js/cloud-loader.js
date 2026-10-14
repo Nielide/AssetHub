@@ -49,16 +49,7 @@
     }
 
     function mergeHistoryLists(localHistory, remoteHistory) {
-        const byDate = new Map();
-        (Array.isArray(localHistory) ? localHistory : []).forEach(record => {
-            if (record?.date) byDate.set(record.date, record);
-        });
-        (Array.isArray(remoteHistory) ? remoteHistory : []).forEach(record => {
-            if (record?.date) byDate.set(record.date, record);
-        });
-        return Array.from(byDate.values()).sort((a, b) => {
-            return String(a.date || '').localeCompare(String(b.date || ''));
-        });
+        return PerformanceModel.mergeRecords(localHistory, remoteHistory);
     }
 
     function mergeRemoteHistory(remote) {
@@ -70,7 +61,15 @@
         let changed = false;
 
         remoteHistory.forEach(record => {
-            if (!record?.date || localByDate.has(record.date)) return;
+            if (!record?.date) return;
+            if (localByDate.has(record.date)) {
+                const local = localByDate.get(record.date);
+                if (record.markets) {
+                    const markets = {...record.markets,...local.markets};
+                    if (JSON.stringify(markets) !== JSON.stringify(local.markets)) { local.markets = markets; changed = true; }
+                }
+                return;
+            }
             state.history.push({ ...record });
             changed = true;
         });

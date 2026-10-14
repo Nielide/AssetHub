@@ -1,0 +1,73 @@
+.workspace-nav { position: fixed; left: 50%; bottom: max(22px,env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 60; margin: 0; width: max-content; max-width: calc(100vw - 32px); height: auto; padding: 6px; gap: 5px; background: color-mix(in srgb,var(--bg-card) 94%,transparent); border: 1px solid var(--line); border-radius: 28px; box-shadow: 0 8px 32px rgba(35,42,23,.13); backdrop-filter: blur(16px); }
+.workspace-nav a { padding: 11px 18px; font-size: 14px; border-radius: 22px; }
+.app-shell { padding-bottom: 112px; }
+#panel-overview .folio-head .wealth-metrics { grid-template-columns: repeat(6,minmax(0,1fr)); padding: 18px 0; }
+#panel-overview .folio-head .wealth-metrics > div { padding: 0 16px; }
+#panel-overview .folio-head .wealth-metrics > div:first-child { padding-left: 0; }
+#panel-overview .folio-head .wealth-metrics strong { font-size: 23px !important; }
+#panel-overview .folio-head .wealth-metrics small { font-size: 11px !important; }
+#panel-overview .folio-head { gap: 30px; }
+.overview-paired-columns { gap: 18.67px; }
+.overview-positions { --holding-columns: 150px 80px minmax(100px,1fr) minmax(100px,1fr) minmax(130px,1.25fr) minmax(135px,1.3fr) minmax(100px,.95fr) minmax(75px,.75fr); }
+.position-risk-next small { padding: 5px 8px; border-radius: 7px; font-size: 15px; background: var(--soft); }
+.overview-comparison, .overview-calendar { margin-top: 44px; }
+.comparison-heading { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 22px; }
+.comparison-heading h2, .overview-calendar h2 { font-size: 23px; font-weight: 600; }
+.comparison-ranges { display: flex; gap: 4px; flex-wrap: wrap; }
+.comparison-ranges button { font-size: 14px; padding: 7px 13px; border-radius: 18px; color: var(--text-secondary); }
+.comparison-ranges button[aria-pressed=true] { background: var(--folio-paper); color: var(--text-primary); box-shadow: 0 2px 5px rgba(46,51,26,.06); }
+.market-chart-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px; }
+.market-chart-panel { min-width: 0; padding: 22px 24px 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--folio-paper); }
+.market-chart-panel.is-empty { background: transparent; }
+.market-chart-heading { display: flex; gap: 14px; align-items: baseline; flex-wrap: wrap; }
+.market-chart-heading h3 { font-size: 17px; font-weight: 600; }
+.market-chart-heading strong { font-size: 23px; font-family: 'Geist Mono',monospace; font-weight: 500; margin-left: auto; }
+.market-chart-heading > span { font-size: 16px; font-family: 'Geist Mono',monospace; }
+.market-chart-area { height: 235px; position: relative; margin-top: 20px; }
+.market-chart-area canvas { max-width: 100%; }
+.market-chart-empty { position: absolute; top: 45%; width: 100%; text-align: center; font-size: 14px; color: var(--text-secondary); pointer-events: none; }
+.market-record { display: block; font-size: 11px; color: var(--text-secondary); text-align: right; min-height: 16px; }
+.overview-calendar .page-heading { padding-top: 0; margin-bottom: 20px; }
+.overview-calendar .calendar-surface { background: transparent; padding: 24px; }
+.overview-calendar [data-has-record=false] { background: transparent !important; box-shadow: none !important; }
+.overview-calendar [data-date]:has([data-calendar-value][data-amount="0"]), .overview-calendar [data-month]:has([data-monthly-value="0"]) { background: transparent !important; }
+.overview-position-table:has(.empty-state), .overview-risk-table:has(.empty-state) { background: transparent; }
+.overview-calendar .calendar-surface .font-mono { font-family: 'Geist Mono',monospace; }
+@media(max-width:1599px) {
+    #panel-overview .folio-head { flex-wrap: wrap; }
+    #panel-overview .folio-head .overview-summary { flex: 1 0 100%; }
+    #panel-overview .folio-head .wealth-metrics { padding: 6px 0; }
+    .overview-positions { --holding-columns: 145px 60px minmax(78px,.85fr) minmax(78px,.85fr) minmax(112px,1.15fr) minmax(115px,1.25fr) minmax(86px,.85fr) minmax(60px,.65fr); }
+    .position-risk-next small { font-size: 13px; padding: 5px 6px; }
+}
+@media(max-width:1199px) {
+    #panel-overview .folio-head .wealth-metrics { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 20px; }
+    #panel-overview .folio-head .wealth-metrics > div { border: 0; padding-left: 0; }
+}
+@media(max-width:980px) {
+    .workspace-nav { order: initial; justify-content: center; }
+    .workspace-nav a { padding: 10px 14px; font-size: 13px; }
+    .position-risk-next small { font-size: 15px; }
+}
+@media(max-width:767px) {
+    .workspace-nav { gap: 1px; padding: 5px; }
+    .workspace-nav a { padding: 10px 10px; gap: 2px; font-size: 13px; }
+    #panel-overview .folio-head .wealth-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px 16px; }
+    #panel-overview .folio-head .wealth-metrics > div { border: 0; padding: 0; }
+    #panel-overview .folio-head .wealth-metrics strong { font-size: 22px !important; }
+    .comparison-heading { align-items: flex-start; flex-direction: column; gap: 16px; }
+    .comparison-ranges { gap: 1px; }
+    .comparison-ranges button { font-size: 13px; padding: 7px 9px; }
+    .market-chart-grid { gap: 12px; }
+    .market-chart-panel { padding: 16px 12px 10px; }
+    .market-chart-heading { gap: 8px; }
+    .market-chart-heading h3 { font-size: 16px; }
+    .market-chart-heading strong { font-size: 18px; margin: 0; }
+    .market-chart-heading > span { font-size: 13px; }
+    .market-chart-area { height: 180px; }
+    .market-chart-empty { font-size: 12px; }
+    .market-record { font-size: 10px; }
+    .position-risk-next small { font-size: 13px; }
+    .overview-calendar .calendar-surface { padding: 16px 10px; }
+    .overview-calendar .page-heading { flex-wrap: wrap; gap: 16px; }
+}

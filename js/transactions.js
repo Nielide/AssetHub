@@ -2,9 +2,9 @@
 (function() {
     const model = TransactionsModel, el = id => document.getElementById(id);
     const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
-    const number = value => Number(value).toLocaleString('en-US', { maximumFractionDigits: 6 });
-    const money = (value, currency) => isPrivacyMode ? '••••' : ({USD:'$', CNY:'¥', HKD:'HK$'}[currency] || '') + Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    const priceMoney = (value, currency) => isPrivacyMode ? '••••' : ({USD:'$', CNY:'¥', HKD:'HK$'}[currency] || '') + Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 });
+    const number = value => Number(value).toLocaleString('en-US', { useGrouping: false, maximumFractionDigits: 6 });
+    const money = (value, currency) => isPrivacyMode ? '••••' : ({USD:'$', CNY:'¥', HKD:'HK$'}[currency] || '') + Number(value).toLocaleString('en-US', { useGrouping: false, minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const priceMoney = (value, currency) => isPrivacyMode ? '••••' : ({USD:'$', CNY:'¥', HKD:'HK$'}[currency] || '') + Number(value).toLocaleString('en-US', { useGrouping: false, minimumFractionDigits: 2, maximumFractionDigits: 6 });
     const date = () => { const now = new Date(); return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0'); };
     const storageKey = () => 'assethub_transactions:' + (localStorage.getItem('gh_repo') || 'Nielide/AssetHub') + ':' + (localStorage.getItem('gh_path') || 'data/data.json');
     let ledger = { rows: [], updatedAt: 0 }, loadedKey, statusTimer, view = localStorage.getItem('assethub_transactions_view') === 'table' ? 'table' : 'list';

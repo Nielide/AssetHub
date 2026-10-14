@@ -2,7 +2,7 @@
 (function () {
     const el = id => document.getElementById(id);
     const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
-    const money = (value, currency = 'CNY', decimals = 0) => isPrivacyMode ? '••••' : ({ CNY: '¥', USD: '$', HKD: 'HK$' }[currency] || currency + ' ') + Number(value).toLocaleString('en-US', { maximumFractionDigits: decimals, minimumFractionDigits: decimals });
+    const money = (value, currency = 'CNY', decimals = 0) => isPrivacyMode ? '••••' : ({ CNY: '¥', USD: '$', HKD: 'HK$' }[currency] || currency + ' ') + Number(value).toLocaleString('en-US', { useGrouping: false, maximumFractionDigits: decimals, minimumFractionDigits: decimals });
     const arrow = '<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>';
     let currentPanel = 'overview', market = 'all', editingHoldings = false, editingReferences = false, overviewMarket = 'usd';
     const overviewCategory = type => type === 'sgov' ? 'usd' : type;
@@ -34,6 +34,8 @@
 
     window.navigateWorkspace = (name, updateHash = true) => {
         const route = name;
+        const calendarRoute = name === 'activity';
+        if (calendarRoute) name = 'overview';
         if (name.startsWith('asset/')) {
             try {
                 const asset = decodeURIComponent(name.slice(6)).toUpperCase();
@@ -45,7 +47,7 @@
         currentPanel = name;
         document.querySelectorAll('[data-panel]').forEach(panel => { panel.hidden = panel.dataset.panel !== name; });
         document.querySelectorAll('[data-workspace]').forEach(link => {
-            const active = link.dataset.workspace === name || (name === 'asset' && link.dataset.workspace === 'holdings');
+            const active = link.dataset.workspace === (calendarRoute ? 'activity' : name) || (name === 'asset' && link.dataset.workspace === 'holdings');
             link.classList.toggle('active', active);
             if (active) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current');
         });
@@ -54,6 +56,7 @@
         if (name === 'asset' && window.renderAssetDetail) renderAssetDetail();
         if (name === 'transactions' && window.renderTransactions) renderTransactions();
         closePopover(); closeAllCcyMenus();
+        if (calendarRoute) requestAnimationFrame(() => el('panel-activity').scrollIntoView({behavior: 'smooth', block: 'start'}));
     };
     window.setHoldingMarket = value => { market = value; applyMarketFilter(); };
     function applyMarketFilter() {
@@ -111,18 +114,6 @@
     };
 
     function portfolioValues() { return PortfolioModel.snapshot(state, el('fx-rate').value); }
-    function renderMarketProfits(positions) {
-        [['usd', 'us', 'USD'], ['cn', 'cn', 'CNY']].forEach(([type, id, currency]) => {
-            const items = positions.filter(item => overviewCategory(item.type) === type);
-            const profit = items.reduce((sum, item) => sum + item.profit, 0);
-            const cost = items.reduce((sum, item) => sum + item.costValue, 0);
-            const tone = profit < 0 ? 'negative' : 'positive';
-            el(id + '-pl-value').textContent = isPrivacyMode ? '••••' : (profit < 0 ? '−' : '+') + money(Math.abs(profit), currency);
-            el(id + '-pl-value').className = tone;
-            el(id + '-pl-pct').textContent = isPrivacyMode ? '••••' : cost > 0 ? (profit < 0 ? '' : '+') + (profit / cost * 100).toFixed(2) + '%' : '—';
-            el(id + '-pl-pct').className = tone;
-        });
-    }
     function overviewRiskMarkup(item, references) {
         const symbol = DrawdownModel.symbol(item.ticker);
         const row = { ...references.get(symbol), symbol, current: item.price, currency: item.currency };
@@ -168,7 +159,6 @@
     };
     function renderAllocation() {
         const { positions, values, total, fx } = portfolioValues();
-        renderMarketProfits(positions);
         el('allocation-bar').innerHTML = values.map(item => `<span style="width:${total ? item.value / total * 100 : 25}%;background:${item.color}" title="${item.label}"></span>`).join('');
         el('allocation-breakdown').innerHTML = values.map(item => {
             const pct = total > 0 ? item.value / total * 100 : 0;
@@ -182,24 +172,23 @@
             weight.textContent = isPrivacyMode ? '••••' : item.weight.toFixed(1) + '%';
             weight.nextElementSibling.querySelector('em').style.width = item.weight + '%';
         });
-        const stamp = Number(state.lastSavedAt);
-        el('snapshot-date').textContent = stamp > 0 ? '更新 ' + new Date(stamp).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }) : '本机数据';
         document.body.classList.toggle('privacy-mode', isPrivacyMode);
         document.querySelector('.privacy-button').setAttribute('aria-pressed', String(isPrivacyMode));
     }
     renderVooQqqm = function () {
         const container = el('vooqqqm-rows');
         const positions = visibleOverviewPositions();
+        const weights = PerformanceModel.weights(portfolioValues().positions, overviewMarket);
         document.querySelectorAll('[data-overview-market]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.overviewMarket === overviewMarket)));
         container.innerHTML = positions.map(item => {
             const cost = item.costValue, pct = item.returnPct;
             const icon = document.querySelector(`#${item.type}-inputs input[data-id="${CSS.escape(String(item.id))}"][data-field="ticker"]`)?.parentElement.querySelector('.holding-icon');
-            const quantity = isPrivacyMode ? '••••' : item.shares.toLocaleString('en-US', {maximumFractionDigits:6});
+            const quantity = isPrivacyMode ? '••••' : item.shares.toLocaleString('en-US', { useGrouping: false,maximumFractionDigits:6});
             const tone = cost > 0 ? item.profit < 0 ? 'negative' : 'positive' : '';
             const profit = cost > 0 ? isPrivacyMode ? '••••' : (item.profit >= 0 ? '+' : '−') + money(Math.abs(item.profit), item.currency, 2) : '—';
             const percent = cost > 0 ? isPrivacyMode ? '••••' : (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%' : '—';
-            const weight = isPrivacyMode ? '••••' : item.weight.toFixed(1) + '%';
-            return `<article class="position-item" data-position-key="${escapeHTML(PortfolioModel.positionKey(item))}" data-symbol="${escapeHTML(item.ticker)}" data-currency="${item.currency}" data-id="${escapeHTML(item.id)}" data-type="${item.type}"><div class="position-holding-data"><div class="position-symbol"><button class="position-logo position-drag-icon" type="button" aria-label="拖动 ${escapeHTML(item.ticker)} 排序，方向键上下调整" title="拖动排序">${icon?.innerHTML || escapeHTML(item.ticker.slice(0,1))}</button><button class="position-open" type="button" aria-label="查看 ${escapeHTML(item.ticker)}"><b>${escapeHTML(item.ticker)}</b></button></div><span class="position-quantity" data-label="股数">${quantity}</span><span class="position-cost" data-label="平均成本">${money(item.cost,item.currency,item.type === 'cn' ? 3 : 2)}</span><span class="position-price" data-label="现价">${money(item.price,item.currency,item.type === 'cn' ? 3 : 2)}</span><span class="position-value" data-label="市值">${money(item.value,item.currency,2)}</span><span class="position-profit ${tone}" data-label="浮动盈亏">${profit}</span><span class="position-return ${tone}" data-label="收益率"><b>${percent}</b></span><span class="position-weight" data-label="组合占比"><b>${weight}</b></span></div></article>`;
+            const weight = isPrivacyMode ? '••••' : (weights.get(PortfolioModel.positionKey(item)) || 0).toFixed(1) + '%';
+            return `<article class="position-item" data-position-key="${escapeHTML(PortfolioModel.positionKey(item))}" data-symbol="${escapeHTML(item.ticker)}" data-currency="${item.currency}" data-id="${escapeHTML(item.id)}" data-type="${item.type}"><div class="position-holding-data"><div class="position-symbol"><button class="position-logo position-drag-icon" type="button" aria-label="拖动 ${escapeHTML(item.ticker)} 排序，方向键上下调整" title="拖动排序">${icon?.innerHTML || escapeHTML(item.ticker.slice(0,1))}</button><button class="position-open" type="button" aria-label="查看 ${escapeHTML(item.ticker)}"><b>${escapeHTML(item.ticker)}</b></button></div><span class="position-quantity" data-label="股数">${quantity}</span><span class="position-cost" data-label="平均成本">${money(item.cost,item.currency,item.type === 'cn' ? 3 : 2)}</span><span class="position-price" data-label="现价">${money(item.price,item.currency,item.type === 'cn' ? 3 : 2)}</span><span class="position-value" data-label="市值">${money(item.value,item.currency,2)}</span><span class="position-profit ${tone}" data-label="浮动盈亏">${profit}</span><span class="position-return ${tone}" data-label="收益率"><b>${percent}</b></span><span class="position-weight" data-label="持仓占比"><b>${weight}</b></span></div></article>`;
         }).join('') || '<div class="empty-state">暂无持仓</div>';
         container.querySelectorAll('.position-open').forEach(button => button.addEventListener('click', () => {
             const row = button.closest('.position-item');
@@ -287,7 +276,6 @@
     const originalRange = setNwRange;
     setNwRange = function (days) {
         originalRange(days);
-        el('hero-period-label').textContent = ({ 30: '近 1 月', 90: '近 3 月', 180: '近 6 月', 365: '近 1 年', 1095: '近 3 年', 1825: '近 5 年', 3650: '近 10 年', 0: '全部记录' })[days];
         document.querySelectorAll('#panel-overview .nw-range-btn').forEach(button => button.setAttribute('aria-pressed', String(Number(button.dataset.range) === days)));
     };
     const originalRenderAll = renderAllRows;

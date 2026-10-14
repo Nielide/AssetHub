@@ -14,7 +14,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                 if (!startTime) startTime = timestamp;
                 const progress = Math.min((timestamp - startTime) / duration, 1);
                 const current = progress * (end - start) + start;
-                element.innerText = prefix + current.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+                element.innerText = prefix + current.toLocaleString('en-US', { useGrouping: false, minimumFractionDigits: decimals, maximumFractionDigits: decimals });
                 
                 if (progress < 1) {
                     element.animationId = window.requestAnimationFrame(step);
@@ -166,16 +166,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
         }
 
         function mergeHistoryBeforePush(remote) {
-            const byDate = new Map();
-            (Array.isArray(remote?.history) ? remote.history : []).forEach(record => {
-                if (record?.date) byDate.set(record.date, record);
-            });
-            (Array.isArray(state.history) ? state.history : []).forEach(record => {
-                if (record?.date) byDate.set(record.date, record);
-            });
-            state.history = Array.from(byDate.values()).sort((a, b) => {
-                return String(a.date || '').localeCompare(String(b.date || ''));
-            });
+            state.history = PerformanceModel.mergeRecords(remote?.history, state.history);
         }
 
         // 真正执行 GitHub 写入的函数，手动备份和自动备份都会用到。
@@ -289,7 +280,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
         let isPrivacyMode = localStorage.getItem('portfolio_privacy') === 'true';
         let charts = {};
         let itemToDelete = null;
-        let nwRangeDays = 90;
+        let nwRangeDays = 0;
 
         let displayDate = new Date();
         let calViewMode = 0;
@@ -301,7 +292,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
         }
         function calendarAmount(record, field) { return PortfolioModel.calendarAmount(record, field, calendarCurrency, document.getElementById('fx-rate').value); }
         function calendarMoney(value, signed = false, decimals = calendarCurrency === 'USD' ? 2 : 0) {
-            return (signed && value >= 0 ? '+' : '') + Number(value).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+            return (value < 0 ? '−' : signed ? '+' : '') + (calendarCurrency === 'USD' ? '$' : '¥') + Math.abs(Number(value)).toLocaleString('en-US', { useGrouping: false, minimumFractionDigits: decimals, maximumFractionDigits: decimals });
         }
         function decorateCalendarCurrency() {
             document.querySelectorAll('[data-calendar-currency]').forEach(button => {
@@ -397,7 +388,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                 });
             }
 
-            if (state.history.length > 730) state.history.shift();
+            PerformanceModel.record(state, todayStr, fx);
 
             const totalNwEl = document.getElementById('total-nw-cny');
             if (totalNwEl) {
@@ -741,7 +732,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                         },
                         scales: {
                             x: { grid: { display: false }, ticks: { maxTicksLimit: 6, color: isDark ? '#9aa0a6' : '#5f6368' } },
-                            y: { grid: { color: isDark ? '#3c4043' : '#e5e7eb' }, ticks: { color: isDark ? '#9aa0a6' : '#5f6368', callback: v => isPrivacyMode ? '••••' : '¥' + v.toLocaleString() } }
+                            y: { grid: { color: isDark ? '#3c4043' : '#e5e7eb' }, ticks: { color: isDark ? '#9aa0a6' : '#5f6368', callback: v => isPrivacyMode ? '••••' : '¥' + v.toLocaleString('en-US', {useGrouping:false}) } }
                         },
                         plugins: {
                             legend: { display: false },
@@ -749,7 +740,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                                 enabled: !isPrivacyMode, 
                                 intersect: false,
                                 mode: 'index',
-                                callbacks: { label: ctx => `¥${ctx.raw.toLocaleString()}` } 
+                                callbacks: { label: ctx => `¥${ctx.raw.toLocaleString('en-US', {useGrouping:false})}` }
                             }
                         }
                     }
@@ -1143,6 +1134,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
             if (yearDisplay) yearDisplay.innerText = currentYear + '年';
 
             const monthlyData = new Array(12).fill(0);
+            const monthlyRecords = new Array(12).fill(0);
             let ytdTotal = 0;
 
             state.history.forEach(record => {
@@ -1154,6 +1146,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                 if (year === currentYear) {
                     const pl = calendarAmount(record, 'pl');
                     monthlyData[month] += pl;
+                    monthlyRecords[month]++;
                     ytdTotal += pl;
                 }
             });
@@ -1164,7 +1157,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
             if (grid) {
                 grid.innerHTML = monthlyData.map((val, index) => {
                     const isPos = val >= 0;
-                    const valText = isPrivacyMode ? '••••' : calendarMoney(val, true, 2);
+                    const valText = !monthlyRecords[index] ? '—' : isPrivacyMode ? '••••' : calendarMoney(val, true, 2);
 
                     let colorClass = 'text-gray-400 dark:text-gray-500';
                     let bgClass = 'bg-gray-50 dark:bg-darkBg';
@@ -1180,7 +1173,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                     }
 
                     return `
-                        <div data-month="${index}" onclick="jumpToMonth(${index})" class="py-4 md:py-6 px-2 md:px-3 min-h-[140px] md:min-h-[200px] rounded-lg ${bgClass} flex flex-col items-center justify-center cursor-pointer hover:-translate-y-1.5 transition-all duration-300">
+                        <div data-month="${index}" data-has-record="${monthlyRecords[index] > 0}" onclick="jumpToMonth(${index})" class="py-4 md:py-6 px-2 md:px-3 min-h-[140px] md:min-h-[200px] rounded-lg ${bgClass} flex flex-col items-center justify-center cursor-pointer hover:-translate-y-1.5 transition-all duration-300">
                             <span class="text-xs md:text-sm font-bold text-gray-500 dark:text-darkTextSec uppercase mb-2 md:mb-3">${monthNames[index]}</span>
                             <span data-monthly-value="${val}" class="text-xl md:text-2xl font-bold font-mono tracking-tight ${colorClass}">${valText}</span>
                         </div>
@@ -1195,7 +1188,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                     totalEl.className = 'text-2xl md:text-3xl font-bold font-mono tracking-tight text-gray-400 dark:text-gray-500';
                 } else {
                     const isPos = ytdTotal >= 0;
-                    totalEl.innerText = (calendarCurrency === 'USD' ? '$' : '¥') + calendarMoney(ytdTotal, true, 2);
+                    totalEl.innerText = calendarMoney(ytdTotal, true, 2);
 
                     if (ytdTotal > 0) {
                         totalEl.className = 'text-2xl md:text-3xl font-bold font-mono tracking-tight text-stockGreen dark:text-green-300';
@@ -1243,7 +1236,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                 const data = calData[dateStr];
                 const isToday = (dateStr === todayStr);
 
-                let bgClass = "bg-gray-50 dark:bg-darkBg";
+                let bgClass = "bg-transparent";
                 let textClass = "text-gray-400 dark:text-darkTextSec";
                 let dayText = day;
                 let valHtml = `<span class="text-xs md:text-sm text-transparent">0</span>`;
@@ -1283,11 +1276,11 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
 
                     valHtml = `<span data-calendar-value data-amount="${calViewMode === 0 ? data.pl : calViewMode === 2 ? data.total : data.rate}" class="text-[0.6rem] md:text-sm lg:text-base font-bold font-mono tracking-tighter leading-none text-center w-full px-0.5 ${textClass}">${displayVal}</span>`;
                 } else if (isToday) {
-                    bgClass = "bg-gray-50 dark:bg-darkBg";
+                    bgClass = "bg-transparent";
                 }
 
                 grid.innerHTML += `
-                    <div data-date="${dateStr}" class="relative flex flex-col justify-center items-center pt-3 pb-1 md:pt-0 md:pb-0 md:py-4 min-h-[50px] md:min-h-[80px] rounded-lg w-full transition-all hover:brightness-95 cursor-default ${bgClass}">
+                    <div data-date="${dateStr}" data-has-record="${!!data}" class="relative flex flex-col justify-center items-center pt-3 pb-1 md:pt-0 md:pb-0 md:py-4 min-h-[50px] md:min-h-[80px] rounded-lg w-full transition-all hover:brightness-95 cursor-default ${bgClass}">
                         ${flowHtml}
                         <span class="absolute top-1.5 left-1.5 md:static md:top-auto md:left-auto text-[0.6rem] md:text-xs font-bold text-gray-400 dark:text-gray-500 leading-none h-[14px] md:h-auto flex items-center md:mb-1">${dayText}</span>
                         ${valHtml}
@@ -1811,7 +1804,7 @@ html += `
             loadTheme();
             renderAllRows();
             renderDrawdown();
-            setNwRange(90);
+            setNwRange(0);
             calculate();
             initSortable();
             document.getElementById('fx-rate').addEventListener('input', calculate);

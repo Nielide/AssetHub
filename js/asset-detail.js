@@ -1,7 +1,7 @@
 (function() {
     const el=id=>document.getElementById(id), escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    const money=(value,currency,decimals=2)=>isPrivacyMode?'••••':({USD:'$',CNY:'¥',HKD:'HK$'}[currency]||'')+Number(value).toLocaleString('en-US',{minimumFractionDigits:decimals,maximumFractionDigits:decimals});
-    const number=value=>isPrivacyMode?'••••':Number(value).toLocaleString('en-US',{maximumFractionDigits:6});
+    const money=(value,currency,decimals=2)=>isPrivacyMode?'••••':({USD:'$',CNY:'¥',HKD:'HK$'}[currency]||'')+Number(value).toLocaleString('en-US', { useGrouping: false,minimumFractionDigits:decimals,maximumFractionDigits:decimals});
+    const number=value=>isPrivacyMode?'••••':Number(value).toLocaleString('en-US', { useGrouping: false,maximumFractionDigits:6});
     const date=()=>{const now=new Date();return now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');};
     const names={GOOGL:'Alphabet',META:'Meta Platforms',VOO:'先锋标普 500 ETF',QQQM:'纳斯达克 100 ETF',SGOV:'短期美国国债 ETF',IBIT:'iShares 比特币 ETF',NKE:'Nike',UBER:'Uber',NTDOY:'任天堂'};
     let tab='holding',range=90,returnPanel='holdings',priceChart;
