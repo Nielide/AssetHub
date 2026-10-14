@@ -215,10 +215,11 @@ function updateHistory(assets) {
         todayRecord.rate = rate;
         todayRecord.netFlow = netFlow;
         todayRecord.value = grandTotal;
+        todayRecord.fxRate = fx;
     } else {
         state.history.push({
             date: todayStr, total: grandTotal, cost: currentTotalCost,
-            pl: pl, rate: rate, netFlow: netFlow, value: grandTotal
+            pl: pl, rate: rate, netFlow: netFlow, value: grandTotal, fxRate: fx
         });
     }
 

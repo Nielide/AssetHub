@@ -22,7 +22,7 @@
     function saveOrderPreference(mode) {
         localStorage.setItem(orderKey(), JSON.stringify({ mode, keys: state.drawdown.map(row => row.symbol || row.id) }));
     }
-    const priceText = (row, price) => price > 0 ? `${row.currency === 'CNY' ? '¥' : '$'}${Number(price).toFixed(2)}` : '—';
+    const priceText = (row, price) => price > 0 ? `${row.currency === 'CNY' ? '¥' : '$'}${Number(price).toFixed(row.currency === 'CNY' ? 3 : 2)}` : '—';
     let statusTimer;
     const status = message => {
         clearTimeout(statusTimer);
@@ -92,13 +92,12 @@
             return `<article class="dd-row dd-tone-${tone}" data-row-id="${safeId}">
                 <div class="dd-overview">
                     <div class="dd-symbol-block">
-                        <button class="drag-handle" aria-label="拖动 ${safeSymbol || '新标的'} 排序" title="拖动排序">⠿</button>
-                        <div class="dd-symbol-info"><div class="drawdown-symbol-cell"><input class="input-google" data-id="${safeId}" data-field="symbol" value="${safeSymbol}" maxlength="16" ${owned ? 'readonly' : ''} onchange="handleDrawdownInput(this)" aria-label="标的代码" placeholder="代码"></div><span class="source-badge ${owned ? 'holding' : ''}">${owned ? '持仓' : '自选'} · ${escapeHTML(row.currency)}</span></div>
+                        <div class="drawdown-symbol-cell"><input class="input-google" data-id="${safeId}" data-field="symbol" value="${safeSymbol}" maxlength="16" ${owned ? 'readonly' : ''} onchange="handleDrawdownInput(this)" aria-label="标的代码" placeholder="代码"></div><span class="source-badge ${owned ? 'holding' : ''}">${owned ? '持仓' : '自选'} · ${escapeHTML(row.currency)}</span>
                     </div>
                     <label class="dd-value"><span class="mobile-label">参考高点</span><input type="number" class="input-google dd-price-input" data-id="${safeId}" data-field="high" min="0" step="any" value="${row.high || ''}" onchange="handleDrawdownInput(this)" aria-label="${safeSymbol} 参考高点" placeholder="设高点" title="设置参考高点"></label>
-                    <div class="dd-value"><span class="mobile-label">现价</span>${owned ? `<b class="dd-current" title="持仓现价">${priceText(row, row.current)}</b>` : `<input type="number" class="input-google dd-price-input" data-id="${safeId}" data-field="current" min="0" step="any" value="${row.current || ''}" onchange="handleDrawdownInput(this)" aria-label="${safeSymbol} 现价" placeholder="设现价">`}<small>${!owned && row.quoteUpdatedAt ? new Date(row.quoteUpdatedAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) : ''}</small></div>
-                    <div class="dd-value"><span class="mobile-label">回撤</span><strong class="dd-change">${dropText}</strong><small>${dropLabel}</small></div>
-                    <div class="dd-next"><b>${nextText}</b><small>${data.ready && data.next !== null ? `差 ${data.distance.toFixed(2)} 个百分点` : ''}</small><div class="dd-progress" role="progressbar" aria-label="下一档进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(data.progress)}"><span style="width:${data.progress}%"></span></div></div>
+                    <div class="dd-value"><span class="mobile-label">现价</span>${owned ? `<b class="dd-current" title="持仓现价">${priceText(row, row.current)}</b>` : `<input type="number" class="input-google dd-price-input" data-id="${safeId}" data-field="current" min="0" step="any" value="${row.current || ''}" onchange="handleDrawdownInput(this)" aria-label="${safeSymbol} 现价" placeholder="设现价">`}</div>
+                    <div class="dd-value"><span class="mobile-label">回撤</span><strong class="dd-change" title="${dropLabel}">${dropText}</strong></div>
+                    <div class="dd-next" title="${data.ready && data.next !== null ? '距下一档 ' + data.distance.toFixed(2) + ' 个百分点' : dropLabel}"><b>${nextText}</b></div>
                     <div class="dd-row-actions"><button class="dd-move-up" data-id="${safeId}" onclick="moveDrawdownRow(this.dataset.id, -1)" ${index === 0 ? 'disabled' : ''} aria-label="上移 ${safeSymbol}">↑</button><button class="dd-move-down" data-id="${safeId}" onclick="moveDrawdownRow(this.dataset.id, 1)" ${index === shown.length - 1 ? 'disabled' : ''} aria-label="下移 ${safeSymbol}">↓</button>${owned ? '<span class="sync-indicator" title="自动跟随持仓" aria-label="同步持仓">↔</span>' : `<button class="delete-trigger" data-id="${safeId}" onclick="toggleDeletePopover(event, 'drawdown', this.dataset.id)" aria-label="删除 ${safeSymbol}" title="删除自选">×</button>`}</div>
                 </div>
                 <details class="dd-levels" data-id="${safeId}" ontoggle="rememberDrawdownLevels(this)" ${openLevels.has(row.id) ? 'open' : ''}><summary>档位 <span class="muted">5% – 30%</span></summary><div class="dd-level-grid">${levels}</div></details>
@@ -194,7 +193,7 @@
         const element = document.getElementById('drawdown-list');
         if (typeof Sortable === 'undefined') return;
         Sortable.get(element)?.destroy();
-        Sortable.create(element, { handle: '.drag-handle', draggable: '.dd-row', animation: 150, ghostClass: 'sort-ghost', delay: 120, delayOnTouchOnly: true,
+        Sortable.create(element, { handle: '.dd-drag-icon', draggable: '.dd-row', animation: 150, ghostClass: 'sort-ghost', delay: 120, delayOnTouchOnly: true,
             onEnd: () => persistOrder([...element.querySelectorAll('.dd-row')].map(row => row.dataset.rowId)) });
     }
     initSortable = function() {

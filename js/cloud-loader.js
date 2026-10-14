@@ -457,13 +457,19 @@
             cell.classList.add('drawdown-symbol-cell');
             let icon = cell.querySelector('.holding-icon');
             if (!icon) {
-                icon = document.createElement('span');
-                icon.className = 'holding-icon';
-                icon.setAttribute('aria-hidden', 'true');
+                icon = document.createElement('button');
+                icon.type = 'button';
+                icon.className = 'holding-icon dd-drag-icon';
+                icon.setAttribute('aria-label', '拖动 ' + input.value + ' 排序');
+                icon.title = '拖动排序';
+                icon.addEventListener('keydown', event => {
+                    if (event.key === 'ArrowUp' || event.key === 'ArrowDown') { event.preventDefault(); moveDrawdownRow(input.dataset.id, event.key === 'ArrowUp' ? -1 : 1); }
+                });
                 cell.insertBefore(icon, input);
                 input.addEventListener('input', () => updateHoldingIcon(icon, input.value, 'drawdown'));
             }
             updateHoldingIcon(icon, input.value, 'drawdown');
+            icon.querySelectorAll('img').forEach(image => { image.draggable = false; });
         });
     }
 

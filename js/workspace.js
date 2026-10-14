@@ -11,16 +11,26 @@
     };
 
     window.navigateWorkspace = (name, updateHash = true) => {
-        if (!['overview', 'holdings', 'drawdown', 'activity'].includes(name)) name = 'overview';
+        const route = name;
+        if (name.startsWith('asset/')) {
+            try {
+                const asset = decodeURIComponent(name.slice(6)).toUpperCase();
+                if (/^(USD|CNY|HKD):[A-Z0-9][A-Z0-9.\-:]{0,23}$/.test(asset)) { window.assetRoute = asset; name = 'asset'; }
+                else name = 'overview';
+            } catch { name = 'overview'; }
+        }
+        if (!['overview', 'holdings', 'drawdown', 'activity', 'transactions', 'asset'].includes(name)) name = 'overview';
         currentPanel = name;
         document.querySelectorAll('[data-panel]').forEach(panel => { panel.hidden = panel.dataset.panel !== name; });
         document.querySelectorAll('[data-workspace]').forEach(link => {
-            const active = link.dataset.workspace === name;
+            const active = link.dataset.workspace === name || (name === 'asset' && link.dataset.workspace === 'holdings');
             link.classList.toggle('active', active);
             if (active) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current');
         });
-        if (updateHash && location.hash !== '#' + name) history.pushState(null, '', '#' + name);
+        if (updateHash && location.hash !== '#' + route) history.pushState(null, '', '#' + route);
         if (name === 'overview') requestAnimationFrame(() => charts.networth?.resize());
+        if (name === 'asset' && window.renderAssetDetail) renderAssetDetail();
+        if (name === 'transactions' && window.renderTransactions) renderTransactions();
         closePopover(); closeAllCcyMenus();
     };
     window.setHoldingMarket = value => { market = value; applyMarketFilter(); };
@@ -78,25 +88,17 @@
         el('dd-search').dispatchEvent(new Event('input'));
     };
 
-    function portfolioValues() {
-        const fx = Number(el('fx-rate').value) || 7.25;
-        const types = ['usd', 'cn', 'sgov'];
-        const positions = types.flatMap(type => state[type].filter(item => item.shares > 0).map(item => ({ ...item, type, currency: type === 'cn' ? 'CNY' : 'USD', value: item.shares * item.price, converted: item.shares * item.price * (type === 'cn' ? 1 : fx) })));
-        const values = [
-            { type: 'usd', label: '美股', color: 'var(--allocation-us)', value: positions.filter(item => item.type === 'usd').reduce((sum, item) => sum + item.converted, 0) },
-            { type: 'cn', label: 'A 股', color: 'var(--allocation-cn)', value: positions.filter(item => item.type === 'cn').reduce((sum, item) => sum + item.converted, 0) },
-            { type: 'sgov', label: '国债 ETF', color: 'var(--allocation-sgov)', value: positions.filter(item => item.type === 'sgov').reduce((sum, item) => sum + item.converted, 0) },
-            { type: 'cash', label: '现金', color: 'var(--allocation-cash)', value: state.cash.reduce((sum, item) => sum + item.amount * (item.currency === 'USD' ? fx : item.currency === 'HKD' ? state.hkdFx || 0.93 : 1), 0) }
-        ];
-        const total = values.reduce((sum, item) => sum + item.value, 0);
-        return { positions, values, total, fx };
-    }
+    function portfolioValues() { return PortfolioModel.snapshot(state, el('fx-rate').value); }
     updateRowValues = function (type, items, totalValue, symbol) {
+        const snapshot = portfolioValues();
         items.forEach(item => {
             const value = item.shares * item.price, cost = item.shares * (item.cost || 0), profit = value - cost;
             const valueEl = el(`val-${type}-${item.id}`), profitEl = el(`pl-${type}-${item.id}`), weightEl = el(`alloc-${type}-${item.id}`);
             if (valueEl) valueEl.textContent = money(value, type === 'cn' ? 'CNY' : 'USD', 2);
-            if (weightEl) weightEl.textContent = (totalValue ? value / totalValue * 100 : 0).toFixed(1) + '%';
+            if (weightEl) weightEl.textContent = (snapshot.total ? value * (type === 'cn' ? 1 : snapshot.fx) / snapshot.total * 100 : 0).toFixed(1) + '%';
+            document.querySelectorAll(`#${type}-inputs input[data-id="${CSS.escape(String(item.id))}"]`).forEach(input => {
+                if (input !== document.activeElement) input.value = input.dataset.field === 'shares' ? Number(item.shares || 0).toFixed(6).replace(/0+$/, '').replace(/\.$/, '') : item[input.dataset.field] ?? '';
+            });
             if (profitEl) {
                 profitEl.className = 'holding-pl ' + (profit < -.01 ? 'negative' : profit > .01 ? 'positive' : '');
                 profitEl.innerHTML = cost > 0 ? `<strong>${isPrivacyMode ? '••••' : (profit >= 0 ? '+' : '−') + money(Math.abs(profit), type === 'cn' ? 'CNY' : 'USD')}</strong><small>${profit >= 0 ? '+' : '−'}${Math.abs(profit / cost * 100).toFixed(2)}%</small>` : '<span class="muted">—</span>';
@@ -106,7 +108,12 @@
     const originalCashValues = updateCashRowValues;
     updateCashRowValues = function (total, fx, hkdFx) {
         originalCashValues(total, fx, hkdFx);
-        state.cash.forEach(item => { const value = el('val-cash-' + item.id); if (value) value.textContent = money(item.amount, item.currency || 'CNY', 2); });
+        portfolioValues().cash.forEach(item => {
+            const value = el('val-cash-' + item.id), weight = el('alloc-cash-' + item.id);
+            if (value) value.textContent = money(item.amount, item.currency, 2);
+            if (weight) weight.textContent = item.weight.toFixed(1) + '%';
+            document.querySelectorAll(`#cash-inputs input[data-id="${CSS.escape(String(item.id))}"]`).forEach(input => { if (input !== document.activeElement) input.value = item[input.dataset.field] ?? ''; });
+        });
     };
     function renderAllocation() {
         const { positions, values, total, fx } = portfolioValues();
@@ -122,6 +129,11 @@
             return `<button class="allocation-item" data-market="${item.type}"><span class="allocation-group-label"><b>${item.label}</b><small>${count} ${item.type === 'cash' ? '笔' : '只'} · ${currency}</small></span><span class="allocation-group-value"><b>${money(item.value)}</b><small>${pct.toFixed(1)}%</small></span><span class="allocation-chevron" aria-hidden="true">›</span></button>`;
         }).join('');
         el('allocation-breakdown').querySelectorAll('button').forEach(button => button.addEventListener('click', () => { navigateWorkspace('holdings'); el('holdings-search').value = ''; el('holdings-search').dispatchEvent(new Event('input')); setHoldingMarket(button.dataset.market); }));
+        portfolioValues().currencies.forEach(item => {
+            const weight = el('currency-weight-' + item.currency.toLowerCase());
+            weight.textContent = isPrivacyMode ? '••••' : item.weight.toFixed(1) + '%';
+            weight.nextElementSibling.querySelector('em').style.width = item.weight + '%';
+        });
         const stamp = Number(state.lastSavedAt);
         el('snapshot-date').textContent = stamp > 0 ? '更新 ' + new Date(stamp).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }) : '本机数据';
         document.body.classList.toggle('privacy-mode', isPrivacyMode);
@@ -134,14 +146,15 @@
         const top = ranked.slice(0, 5);
         el('positions-title').textContent = positionView === 'return' ? '收益排行' : '持仓';
         document.querySelectorAll('[data-position-view]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.positionView === positionView)));
-        el('vooqqqm-rows').innerHTML = top.map(item => {
+        el('vooqqqm-rows').classList.toggle('is-return-ranking', positionView === 'return');
+        el('vooqqqm-rows').innerHTML = top.map((item, index) => {
             const cost = item.shares * (item.cost || 0), pct = cost > 0 ? (item.value / cost - 1) * 100 : 0;
             const icon = document.querySelector(`#${item.type}-inputs input[data-id="${CSS.escape(String(item.id))}"][data-field="ticker"]`)?.parentElement.querySelector('.holding-icon');
             const weight = total ? item.converted / total * 100 : 0;
-            const quantity = isPrivacyMode ? '••••' : Number(item.shares).toLocaleString('en-US', { maximumFractionDigits: 2 });
-            return `<button class="position-item" data-symbol="${escapeHTML(item.ticker)}"><span class="position-symbol"><span class="position-logo">${icon?.innerHTML || escapeHTML(item.ticker.slice(0, 1))}</span><span><b>${escapeHTML(item.ticker)}</b><small>${quantity} 股 · ${money(item.price, item.currency, item.type === 'cn' ? 3 : 2)}</small></span></span><span class="position-value">${money(item.value, item.currency, 2)}</span><span class="position-return ${cost > 0 ? pct < 0 ? 'negative' : 'positive' : ''}"><b>${cost > 0 ? (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%' : '—'}</b><small>${cost > 0 ? (isPrivacyMode ? '••••' : (pct >= 0 ? '+' : '−') + money(Math.abs(item.value - cost), item.currency)) : '缺少成本'}</small></span><span class="position-weight"><b>${weight.toFixed(1)}%</b><span class="weight-track"><i style="width:${weight}%;"></i></span></span></button>`;
+            const quantity = isPrivacyMode ? '••••' : Number(item.shares).toLocaleString('en-US', { maximumFractionDigits: 6 });
+            return `<button class="position-item" data-symbol="${escapeHTML(item.ticker)}" data-currency="${item.currency}" data-id="${escapeHTML(item.id)}" data-type="${item.type}"><span class="position-symbol">${positionView === 'return' ? '<span class="position-rank">' + (index + 1) + '</span>' : ''}<span class="position-logo">${icon?.innerHTML || escapeHTML(item.ticker.slice(0, 1))}</span><b>${escapeHTML(item.ticker)}</b></span><span class="position-quantity" data-label="股数">${quantity}</span><span class="position-cost" data-label="成本">${money(item.cost, item.currency, item.type === 'cn' ? 3 : 2)}</span><span class="position-price" data-label="现价">${money(item.price, item.currency, item.type === 'cn' ? 3 : 2)}</span><span class="position-value" data-label="市值">${money(item.value, item.currency, 2)}</span><span class="position-return ${cost > 0 ? pct < 0 ? 'negative' : 'positive' : ''}"><b>${cost > 0 ? (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%' : '—'}</b><small>${cost > 0 ? (isPrivacyMode ? '••••' : (pct >= 0 ? '+' : '−') + money(Math.abs(item.value - cost), item.currency)) : '—'}</small></span><span class="position-weight"><b>${weight.toFixed(1)}%</b><span class="weight-track"><i style="width:${weight}%;"></i></span></span></button>`;
         }).join('') || '<div class="empty-state">暂无持仓</div>';
-        el('vooqqqm-rows').querySelectorAll('button').forEach(button => button.addEventListener('click', () => openPortfolioPosition(button.dataset.symbol)));
+        el('vooqqqm-rows').querySelectorAll('button').forEach(button => button.addEventListener('click', () => window.openAssetDetail ? openAssetDetail(button.dataset.symbol, button.dataset.currency) : openPortfolioPosition(button.dataset.symbol)));
         el('vooqqqm-rows').querySelectorAll('img').forEach(img => {
             const fallback = () => { img.closest('.position-logo').textContent = img.closest('[data-symbol]')?.dataset.symbol?.slice(0, 1) || '·'; };
             img.addEventListener('error', fallback, { once: true });
@@ -214,7 +227,16 @@
         document.querySelectorAll('.nw-range-btn').forEach(button => button.setAttribute('aria-pressed', String(Number(button.dataset.range) === days)));
     };
     const originalRenderAll = renderAllRows;
-    renderAllRows = function () { originalRenderAll(); toggleHoldingsEdit(editingHoldings); applyMarketFilter(); };
+    renderAllRows = function () {
+        originalRenderAll();
+        const snapshot = portfolioValues();
+        ['usd', 'cn', 'sgov'].forEach(type => updateRowValues(type, state[type] || [], 0));
+        updateCashRowValues(snapshot.values.find(item => item.type === 'cash').value, snapshot.fx, snapshot.hkdFx);
+        renderVooQqqm(); renderAllocation(); toggleHoldingsEdit(editingHoldings); applyMarketFilter();
+        document.querySelectorAll('#panel-holdings input[data-field="ticker"]').forEach(input => {
+            input.addEventListener('click', () => { if (!editingHoldings && input.dataset.type !== 'cash' && input.value && window.openAssetDetail) openAssetDetail(input.value, input.dataset.type === 'cn' ? 'CNY' : 'USD'); });
+        });
+    };
     const originalDrawdown = renderDrawdown;
     renderDrawdown = function () { originalDrawdown(); toggleReferenceEdit(editingReferences); renderDDAlerts(); };
     const originalCalculate = calculate;
