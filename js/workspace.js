@@ -14,8 +14,8 @@
         if (!['overview', 'holdings', 'drawdown', 'activity'].includes(name)) name = 'overview';
         currentPanel = name;
         document.querySelectorAll('[data-panel]').forEach(panel => { panel.hidden = panel.dataset.panel !== name; });
-        document.querySelectorAll('[data-workspace]').forEach(link => {
-            const active = link.dataset.workspace === name;
+        document.querySelectorAll('[data-workspace], [data-rail-workspace]').forEach(link => {
+            const active = (link.dataset.workspace || link.dataset.railWorkspace) === name;
             link.classList.toggle('active', active);
             if (active) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current');
         });
@@ -118,7 +118,9 @@
         el('allocation-bar').innerHTML = values.map(item => `<span style="width:${total ? item.value / total * 100 : 25}%;background:${item.color}" title="${item.label}"></span>`).join('');
         el('allocation-breakdown').innerHTML = values.map(item => {
             const pct = total > 0 ? item.value / total * 100 : 0;
-            return `<button class="allocation-item" data-market="${item.type}"><span class="allocation-item-label"><i style="background:${item.color}"></i>${item.label}</span><b>${pct.toFixed(1)}%</b><span class="allocation-amount">${money(item.value)}</span><span class="allocation-mini-bar"><i style="width:${pct}%;background:${item.color}"></i></span></button>`;
+            const currency = item.type === 'cn' ? 'CNY' : item.type === 'cash' ? 'Multi-currency' : 'USD';
+            const count = item.type === 'cash' ? state.cash.length : positions.filter(position => position.type === item.type).length;
+            return `<button class="allocation-item" data-market="${item.type}"><span class="allocation-group-label"><b>${item.label}</b><small>${count} ${item.type === 'cash' ? 'balances' : 'positions'} · ${currency}</small></span><span class="allocation-group-value"><b>${money(item.value)}</b><small>${pct.toFixed(1)}% of portfolio</small></span><span class="allocation-chevron" aria-hidden="true">›</span></button>`;
         }).join('');
         el('allocation-breakdown').querySelectorAll('button').forEach(button => button.addEventListener('click', () => { navigateWorkspace('holdings'); el('holdings-search').value = ''; el('holdings-search').dispatchEvent(new Event('input')); setHoldingMarket(button.dataset.market); }));
         el('footer-fx').textContent = 'USD/CNY ' + fx.toFixed(4);
@@ -131,7 +133,7 @@
         const returnRate = item => item.cost > 0 ? item.price / item.cost - 1 : -Infinity;
         const ranked = positionView === 'return' ? positions.filter(item => item.cost > 0).sort((a, b) => returnRate(b) - returnRate(a) || b.converted - a.converted) : positions.sort((a, b) => b.converted - a.converted);
         const top = ranked.slice(0, 5);
-        el('positions-title').textContent = positionView === 'return' ? 'Return leaders' : 'Largest positions';
+        el('positions-title').textContent = positionView === 'return' ? 'Return leaders' : 'Holdings';
         el('positions-subtitle').textContent = positionView === 'return' ? 'Unrealized return · Positions with a cost basis' : `${positions.length} invested positions · Ranked by CNY value`;
         document.querySelectorAll('[data-position-view]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.positionView === positionView)));
         el('vooqqqm-rows').innerHTML = top.map(item => {
@@ -174,30 +176,34 @@
         const chart = charts.networth;
         if (!chart) return;
         const dark = document.documentElement.classList.contains('dark');
-        chart.data.datasets[0].borderColor = dark ? '#7ea6ff' : '#245cf3';
-        chart.data.datasets[0].borderWidth = 2.5;
+        chart.data.datasets[0].borderColor = dark ? '#c4d391' : '#8a9e36';
+        chart.data.datasets[0].borderWidth = 1.8;
         chart.data.datasets[0].fill = true;
         chart.data.datasets[0].backgroundColor = context => {
             const { ctx, chartArea } = context.chart;
             if (!chartArea) return 'transparent';
             const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-            gradient.addColorStop(0, dark ? 'rgba(83,139,255,.3)' : 'rgba(36,92,243,.18)');
-            gradient.addColorStop(1, dark ? 'rgba(83,139,255,.01)' : 'rgba(36,92,243,.01)');
+            gradient.addColorStop(0, dark ? 'rgba(171,193,106,.2)' : 'rgba(147,165,69,.25)');
+            gradient.addColorStop(1, dark ? 'rgba(171,193,106,.03)' : 'rgba(147,165,69,.03)');
             return gradient;
         };
-        chart.data.datasets[0].pointHoverBackgroundColor = dark ? '#7ea6ff' : '#245cf3';
+        chart.data.datasets[0].pointHoverBackgroundColor = dark ? '#c4d391' : '#8a9e36';
         chart.options.animation = { duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 350 };
         chart.options.scales.x.border = { display: false };
         chart.options.scales.x.ticks = { maxTicksLimit: chart.width < 500 ? 4 : 7, maxRotation: 0, color: dark ? '#a9b8d0' : '#52627a', padding: 10, font: { family: 'Inter', size: 12 } };
         chart.options.onResize = (chart, size) => { chart.options.scales.x.ticks.maxTicksLimit = size.width < 500 ? 4 : 7; };
         chart.options.scales.y.position = 'right';
+        chart.options.scales.x.display = false;
+        chart.options.scales.y.display = false;
+        chart.options.layout = { padding: { top: 8, right: 0, bottom: 0, left: 0 } };
+        chart.options.interaction = { mode: 'index', intersect: false };
         chart.options.scales.y.border = { display: false };
         chart.options.scales.y.grid = { color: dark ? '#2b3b56' : '#dce4f0', drawTicks: false };
         chart.options.scales.y.ticks = { maxTicksLimit: 4, color: dark ? '#a9b8d0' : '#52627a', padding: 10, font: { family: 'Inter', size: 12 }, callback: value => isPrivacyMode ? '••••' : '¥' + (value / 1000).toFixed(0) + 'k' };
         chart.options.plugins.tooltip = {
             enabled: !isPrivacyMode, mode: 'index', intersect: false, displayColors: false,
-            backgroundColor: dark ? '#edf3ff' : '#101f38', titleColor: dark ? '#182c4a' : '#b6c9e8', bodyColor: dark ? '#182c4a' : '#ffffff',
-            padding: 14, cornerRadius: 8, bodyFont: { family: 'Inter', size: 16, weight: '600' }, titleFont: { family: 'Inter', size: 12 },
+            backgroundColor: dark ? '#e7ecd5' : '#363d28', titleColor: dark ? '#303429' : '#dbe1c4', bodyColor: dark ? '#303429' : '#ffffff',
+            padding: 14, cornerRadius: 8, bodyFont: { family: 'Geist Mono', size: 16, weight: '600' }, titleFont: { family: 'Geist Mono', size: 12 },
             callbacks: { label: context => money(context.raw, 'CNY', 2) }
         };
         chart.stop();
