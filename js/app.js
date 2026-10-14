@@ -611,7 +611,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
         // 切换净值曲线显示的时间范围。
         function setNwRange(days) {
             nwRangeDays = days;
-            document.querySelectorAll('.nw-range-btn').forEach(b => {
+            document.querySelectorAll('#panel-overview .nw-range-btn').forEach(b => {
                 const isActive = parseInt(b.dataset.range) === days;
                 b.classList.toggle('bg-white', isActive);
                 b.classList.toggle('dark:bg-darkSurface', isActive);
@@ -655,7 +655,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
             }
             emptyHint.innerText = '';
 
-            const labels = records.map(r => r.date.slice(5));
+            const labels = records.map(r => r.date);
             const values = records.map(r => (r.total || r.value || 0));
 
             let cumulative = 1;

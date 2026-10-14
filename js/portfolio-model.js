@@ -33,5 +33,24 @@
     function calendarAmount(record, field, currency, fallbackFx) {
         return number(record?.[field]) / (currency === 'USD' ? rate(record?.fxRate, rate(fallbackFx, 7.25)) : 1);
     }
-    return { snapshot, calendarAmount };
+    const positionKey = item => `${item.type}:${item.id}`;
+    function orderedPositions(positions, keys = []) {
+        const byKey = new Map(positions.map(item => [positionKey(item), item]));
+        const ordered = [];
+        (Array.isArray(keys) ? keys : []).forEach(key => {
+            if (!byKey.has(key)) return;
+            ordered.push(byKey.get(key));
+            byKey.delete(key);
+        });
+        return ordered.concat([...byKey.values()]);
+    }
+    // A filtered drag only changes the slots occupied by those visible holdings.
+    function reorderPositions(positions, visibleKeys) {
+        const byKey = new Map(positions.map(item => [positionKey(item), item]));
+        const visible = new Set(visibleKeys);
+        if (visible.size !== visibleKeys.length || visibleKeys.some(key => !byKey.has(key))) return positions;
+        let index = 0;
+        return positions.map(item => visible.has(positionKey(item)) ? byKey.get(visibleKeys[index++]) : item);
+    }
+    return { snapshot, calendarAmount, positionKey, orderedPositions, reorderPositions };
 });

@@ -23,3 +23,20 @@ test('calendar display uses record exchange rates with a fallback for old rows',
     assert.deepEqual(row,{pl:70,total:700,fxRate:7,rate:1});
     assert.equal(model.calendarAmount({pl:70,fxRate:0},'pl','USD',7),10);
 });
+
+test('overview order survives quotes, drops sold holdings and appends new holdings', () => {
+    const positions = [{type:'usd',id:1,price:101},{type:'cn',id:1,price:8},{type:'sgov',id:2,price:100}];
+    const keys = ['cn:1','missing:9','usd:1','cn:1'];
+    assert.deepEqual(model.orderedPositions(positions,keys).map(model.positionKey),['cn:1','usd:1','sgov:2']);
+    assert.equal(model.orderedPositions(positions,keys)[1].price,101);
+    assert.deepEqual(model.orderedPositions(positions.slice(1),keys).map(model.positionKey),['cn:1','sgov:2']);
+    assert.deepEqual(positions.map(model.positionKey),['usd:1','cn:1','sgov:2']);
+});
+
+test('dragging filtered holdings preserves hidden categories and rejects invalid orders', () => {
+    const positions = [{type:'usd',id:1},{type:'cn',id:1},{type:'usd',id:2},{type:'sgov',id:1}];
+    assert.deepEqual(model.reorderPositions(positions,['usd:2','usd:1']).map(model.positionKey),['usd:2','cn:1','usd:1','sgov:1']);
+    assert.equal(model.reorderPositions(positions,['usd:1','usd:1']),positions);
+    assert.equal(model.reorderPositions(positions,['usd:1','missing:9']),positions);
+    assert.deepEqual(positions.map(model.positionKey),['usd:1','cn:1','usd:2','sgov:1']);
+});

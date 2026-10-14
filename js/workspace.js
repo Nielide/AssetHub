@@ -4,9 +4,27 @@
     const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
     const money = (value, currency = 'CNY', decimals = 0) => isPrivacyMode ? '••••' : ({ CNY: '¥', USD: '$', HKD: 'HK$' }[currency] || currency + ' ') + Number(value).toLocaleString('en-US', { maximumFractionDigits: decimals, minimumFractionDigits: decimals });
     const arrow = '<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>';
-    let currentPanel = 'overview', market = 'all', editingHoldings = false, editingReferences = false, positionView = 'value';
-    window.setPositionView = value => {
-        positionView = value === 'return' ? 'return' : 'value';
+    let currentPanel = 'overview', market = 'all', editingHoldings = false, editingReferences = false, overviewMarket = 'all';
+    const overviewOrderKey = () => `assethub_overview_order:${localStorage.getItem('gh_repo') || 'Nielide/AssetHub'}:${localStorage.getItem('gh_path') || 'data/data.json'}`;
+    function overviewPositions() {
+        let keys = state.overviewOrder;
+        try {
+            const saved = JSON.parse(localStorage.getItem(overviewOrderKey()) || 'null');
+            if (Array.isArray(saved)) keys = saved;
+        } catch { /* Fall back to the order included in the portfolio backup. */ }
+        const positions = PortfolioModel.orderedPositions(portfolioValues().positions, keys);
+        if (Array.isArray(keys)) state.overviewOrder = positions.map(PortfolioModel.positionKey);
+        return positions;
+    }
+    function persistOverviewOrder(keys) {
+        const positions = PortfolioModel.reorderPositions(overviewPositions(), keys);
+        state.overviewOrder = positions.map(PortfolioModel.positionKey);
+        localStorage.setItem(overviewOrderKey(), JSON.stringify(state.overviewOrder));
+        saveData();
+        renderVooQqqm();
+    }
+    window.setOverviewMarket = value => {
+        overviewMarket = ['usd', 'cn', 'sgov'].includes(value) ? value : 'all';
         renderVooQqqm();
     };
 
@@ -19,7 +37,7 @@
                 else name = 'overview';
             } catch { name = 'overview'; }
         }
-        if (!['overview', 'holdings', 'drawdown', 'activity', 'transactions', 'asset'].includes(name)) name = 'overview';
+        if (!['overview', 'allocation', 'holdings', 'drawdown', 'activity', 'transactions', 'asset'].includes(name)) name = 'overview';
         currentPanel = name;
         document.querySelectorAll('[data-panel]').forEach(panel => { panel.hidden = panel.dataset.panel !== name; });
         document.querySelectorAll('[data-workspace]').forEach(link => {
@@ -140,44 +158,61 @@
         document.querySelector('.privacy-button').setAttribute('aria-pressed', String(isPrivacyMode));
     }
     renderVooQqqm = function () {
-        const { positions, total } = portfolioValues();
-        const returnRate = item => item.cost > 0 ? item.price / item.cost - 1 : -Infinity;
-        const ranked = positionView === 'return' ? positions.filter(item => item.cost > 0).sort((a, b) => returnRate(b) - returnRate(a) || b.converted - a.converted) : positions.sort((a, b) => b.converted - a.converted);
-        const top = ranked.slice(0, 5);
-        el('positions-title').textContent = positionView === 'return' ? '收益排行' : '持仓';
-        document.querySelectorAll('[data-position-view]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.positionView === positionView)));
-        el('vooqqqm-rows').classList.toggle('is-return-ranking', positionView === 'return');
-        el('vooqqqm-rows').innerHTML = top.map((item, index) => {
-            const cost = item.shares * (item.cost || 0), pct = cost > 0 ? (item.value / cost - 1) * 100 : 0;
+        const container = el('vooqqqm-rows');
+        const all = overviewPositions();
+        const positions = all.filter(item => overviewMarket === 'all' || item.type === overviewMarket);
+        const labels = {usd:'美股',cn:'A股',sgov:'国债'};
+        el('positions-count').textContent = positions.length + ' 只';
+        document.querySelectorAll('[data-overview-market]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.overviewMarket === overviewMarket)));
+        container.innerHTML = positions.map(item => {
+            const cost = item.costValue, pct = item.returnPct;
             const icon = document.querySelector(`#${item.type}-inputs input[data-id="${CSS.escape(String(item.id))}"][data-field="ticker"]`)?.parentElement.querySelector('.holding-icon');
-            const weight = total ? item.converted / total * 100 : 0;
-            const quantity = isPrivacyMode ? '••••' : Number(item.shares).toLocaleString('en-US', { maximumFractionDigits: 6 });
-            return `<button class="position-item" data-symbol="${escapeHTML(item.ticker)}" data-currency="${item.currency}" data-id="${escapeHTML(item.id)}" data-type="${item.type}"><span class="position-symbol">${positionView === 'return' ? '<span class="position-rank">' + (index + 1) + '</span>' : ''}<span class="position-logo">${icon?.innerHTML || escapeHTML(item.ticker.slice(0, 1))}</span><b>${escapeHTML(item.ticker)}</b></span><span class="position-quantity" data-label="股数">${quantity}</span><span class="position-cost" data-label="成本">${money(item.cost, item.currency, item.type === 'cn' ? 3 : 2)}</span><span class="position-price" data-label="现价">${money(item.price, item.currency, item.type === 'cn' ? 3 : 2)}</span><span class="position-value" data-label="市值">${money(item.value, item.currency, 2)}</span><span class="position-return ${cost > 0 ? pct < 0 ? 'negative' : 'positive' : ''}"><b>${cost > 0 ? (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%' : '—'}</b><small>${cost > 0 ? (isPrivacyMode ? '••••' : (pct >= 0 ? '+' : '−') + money(Math.abs(item.value - cost), item.currency)) : '—'}</small></span><span class="position-weight"><b>${weight.toFixed(1)}%</b><span class="weight-track"><i style="width:${weight}%;"></i></span></span></button>`;
+            const quantity = isPrivacyMode ? '••••' : item.shares.toLocaleString('en-US', {maximumFractionDigits:6});
+            const tone = cost > 0 ? item.profit < 0 ? 'negative' : 'positive' : '';
+            const profit = cost > 0 ? isPrivacyMode ? '••••' : (item.profit >= 0 ? '+' : '−') + money(Math.abs(item.profit), item.currency, 2) : '—';
+            const percent = cost > 0 ? isPrivacyMode ? '••••' : (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%' : '—';
+            const weight = isPrivacyMode ? '••••' : item.weight.toFixed(1) + '%';
+            return `<article class="position-item" data-position-key="${escapeHTML(PortfolioModel.positionKey(item))}" data-symbol="${escapeHTML(item.ticker)}" data-currency="${item.currency}" data-id="${escapeHTML(item.id)}" data-type="${item.type}"><div class="position-symbol"><button class="position-logo position-drag-icon" type="button" aria-label="拖动 ${escapeHTML(item.ticker)} 排序，方向键上下调整" title="拖动排序">${icon?.innerHTML || escapeHTML(item.ticker.slice(0,1))}</button><button class="position-open" type="button" aria-label="查看 ${escapeHTML(item.ticker)}"><b>${escapeHTML(item.ticker)}</b><small>${labels[item.type]} · ${item.currency}</small></button></div><span class="position-quantity" data-label="股数">${quantity}</span><span class="position-cost" data-label="平均成本">${money(item.cost,item.currency,item.type === 'cn' ? 3 : 2)}</span><span class="position-price" data-label="现价">${money(item.price,item.currency,item.type === 'cn' ? 3 : 2)}</span><span class="position-value" data-label="市值">${money(item.value,item.currency,2)}</span><span class="position-profit ${tone}" data-label="浮动盈亏">${profit}</span><span class="position-return ${tone}" data-label="收益率"><b>${percent}</b></span><span class="position-weight" data-label="组合占比"><b>${weight}</b><span class="weight-track" aria-hidden="true"><i style="width:${isPrivacyMode ? 0 : item.weight}%;"></i></span></span></article>`;
         }).join('') || '<div class="empty-state">暂无持仓</div>';
-        el('vooqqqm-rows').querySelectorAll('button').forEach(button => button.addEventListener('click', () => window.openAssetDetail ? openAssetDetail(button.dataset.symbol, button.dataset.currency) : openPortfolioPosition(button.dataset.symbol)));
-        el('vooqqqm-rows').querySelectorAll('img').forEach(img => {
-            const fallback = () => { img.closest('.position-logo').textContent = img.closest('[data-symbol]')?.dataset.symbol?.slice(0, 1) || '·'; };
-            img.addEventListener('error', fallback, { once: true });
+        container.querySelectorAll('.position-open').forEach(button => button.addEventListener('click', () => {
+            const row = button.closest('.position-item');
+            if (window.openAssetDetail) openAssetDetail(row.dataset.symbol,row.dataset.currency);
+            else openPortfolioPosition(row.dataset.symbol);
+        }));
+        container.querySelectorAll('.position-drag-icon').forEach(button => button.addEventListener('keydown', event => {
+            if (!['ArrowUp','ArrowDown'].includes(event.key)) return;
+            event.preventDefault();
+            const key = button.closest('.position-item').dataset.positionKey;
+            const keys = positions.map(PortfolioModel.positionKey), index = keys.indexOf(key);
+            const next = index + (event.key === 'ArrowUp' ? -1 : 1);
+            if (next < 0 || next >= keys.length) return;
+            [keys[index], keys[next]] = [keys[next], keys[index]];
+            persistOverviewOrder(keys);
+            container.querySelector(`[data-position-key="${CSS.escape(key)}"] .position-drag-icon`)?.focus({preventScroll:true});
+        }));
+        container.querySelectorAll('img').forEach(img => {
+            img.draggable = false;
+            const fallback = () => { img.closest('.position-logo').textContent = img.closest('[data-symbol]')?.dataset.symbol?.slice(0,1) || '·'; };
+            img.addEventListener('error',fallback,{once:true});
             if (img.complete && !img.naturalWidth) fallback();
         });
+        if (typeof Sortable !== 'undefined') {
+            Sortable.get(container)?.destroy();
+            Sortable.create(container, {handle:'.position-drag-icon',draggable:'.position-item',animation:160,ghostClass:'overview-sort-ghost',chosenClass:'overview-sort-chosen',delay:120,delayOnTouchOnly:true,
+                onEnd: event => { if (event.oldIndex !== event.newIndex) persistOverviewOrder([...container.querySelectorAll('.position-item')].map(row => row.dataset.positionKey)); }
+            });
+        }
     };
     renderDDAlerts = function () {
         const rows = DrawdownModel.sync(state).map(row => ({ row, data: DrawdownModel.metrics(row) }));
         const ready = rows.filter(item => item.data.ready).sort((a, b) => b.data.drop - a.data.drop);
         const count = ready.filter(item => item.data.drop >= 5).length;
         const pending = rows.filter(item => !item.row.high).length;
-        const coverage = rows.length - pending;
-        el('risk-coverage-label').textContent = `高点 ${coverage}/${rows.length}`;
-        el('risk-coverage-progress').style.width = (rows.length ? coverage / rows.length * 100 : 0) + '%';
-        el('alert-count').textContent = count + ' 项';
         el('nav-risk-count').textContent = count || '';
-        el('risk-reference-hint').textContent = pending ? `${pending} 项待设高点` : '';
         el('risk-held-count').textContent = rows.filter(item => item.row.source === 'holding').length;
         el('risk-watch-count').textContent = rows.filter(item => item.row.source === 'watchlist').length;
         el('risk-alert-count').textContent = count;
         el('risk-pending-count').textContent = pending;
-        el('dd-alert-list').innerHTML = ready.slice(0, 3).map(({ row, data }) => `<button class="risk-position" data-symbol="${escapeHTML(row.symbol)}"><span class="risk-position-top"><span><b>${escapeHTML(row.symbol)}</b><small>${row.source === 'holding' ? '持仓' : '自选'}</small></span><strong>${data.drop > 0 ? '−' : '+'}${Math.abs(data.drop).toFixed(2)}%</strong></span><span class="risk-track"><i style="width:${Math.max(0, Math.min(100, data.drop / 30 * 100))}%"></i></span><span class="risk-level">${data.next === null ? '已达 −30%' : `下一档 −${data.next}%`}<b>${data.next === null ? '—' : money(data.target, row.currency, 2)}</b></span></button>`).join('') || '<div class="risk-empty">暂无回撤数据</div>';
-        el('dd-alert-list').querySelectorAll('button').forEach(button => button.addEventListener('click', () => openRiskPosition(button.dataset.symbol)));
     };
 
     // Keep the existing return / drawdown calculations; restyle the real chart.
@@ -223,8 +258,8 @@
     const originalRange = setNwRange;
     setNwRange = function (days) {
         originalRange(days);
-        el('hero-period-label').textContent = ({ 30: '近 1 月', 90: '近 3 月', 365: '近 1 年', 0: '全部记录' })[days];
-        document.querySelectorAll('.nw-range-btn').forEach(button => button.setAttribute('aria-pressed', String(Number(button.dataset.range) === days)));
+        el('hero-period-label').textContent = ({ 30: '近 1 月', 90: '近 3 月', 180: '近 6 月', 365: '近 1 年', 1095: '近 3 年', 1825: '近 5 年', 3650: '近 10 年', 0: '全部记录' })[days];
+        document.querySelectorAll('#panel-overview .nw-range-btn').forEach(button => button.setAttribute('aria-pressed', String(Number(button.dataset.range) === days)));
     };
     const originalRenderAll = renderAllRows;
     renderAllRows = function () {
