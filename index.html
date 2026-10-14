@@ -13,14 +13,14 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-  <script src="js/tailwind.config.js?v=20261014-16"></script>
-  <link rel="stylesheet" href="css/app.css?v=20261014-16">
-  <link rel="stylesheet" href="css/folio.css?v=20261014-16">
-  <link rel="stylesheet" href="css/detail.css?v=20261014-16">
-  <link rel="stylesheet" href="css/overview.css?v=20261014-16">
-  <link rel="stylesheet" href="css/overview-upgrade.css?v=20261014-16">
-  <link rel="stylesheet" href="css/asset-overview.css?v=20261014-16">
-  <link rel="stylesheet" href="css/desktop-refinement.css?v=20261014-16">
+  <script src="js/tailwind.config.js?v=20261014-17"></script>
+  <link rel="stylesheet" href="css/app.css?v=20261014-17">
+  <link rel="stylesheet" href="css/folio.css?v=20261014-17">
+  <link rel="stylesheet" href="css/detail.css?v=20261014-17">
+  <link rel="stylesheet" href="css/overview.css?v=20261014-17">
+  <link rel="stylesheet" href="css/overview-upgrade.css?v=20261014-17">
+  <link rel="stylesheet" href="css/asset-overview.css?v=20261014-17">
+  <link rel="stylesheet" href="css/desktop-refinement.css?v=20261014-17">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="AssetHub">
 </head>
@@ -59,62 +59,36 @@
     </section>
     <section id="portfolio-hero" class="shared-portfolio-hero" aria-label="资产与投资走势">
       <div class="folio-head"><div><div class="networth-label"><span>投资市值</span><span class="currency-label">CNY</span></div><h1 class="wealth-value" id="total-nw-cny">¥0</h1></div><div class="overview-summary"><div class="wealth-metrics"><div><span>今日盈亏</span><div><strong id="today-pl-val">—</strong><small id="today-pl-pct">—</small></div></div><div><span>美股盈亏</span><div><strong id="us-pl-value">—</strong><small id="us-pl-pct">—</small></div></div><div><span>A股盈亏</span><div><strong id="cn-pl-value">—</strong><small id="cn-pl-pct">—</small></div></div><div title="所选区间的每日盈亏汇总"><span>总盈亏</span><div><strong id="total-unrealized-pl-val">—</strong><small id="total-unrealized-pl-pct">—</small></div></div><div class="drawdown-metric" title="所选区间的资产高点到低点回落，包含资金进出的影响"><span>最大回撤</span><div><strong id="nw-max-drawdown">—</strong><small id="nw-drawdown-amount">—</small></div></div></div></div></div>
-      <div class="wealth-hero"><section class="wealth-main" aria-label="资产走势"><div class="networth-chart"><canvas id="chart-networth" aria-label="资产历史走势" role="img"></canvas><div id="chart-hover" class="chart-hover" aria-live="off" hidden></div></div><p id="nw-empty-hint" class="muted"></p><div class="performance-heading"><span class="chart-label"><i></i>资产历史 · 含现金</span><div class="range-control" role="group" aria-label="时间范围"><button class="nw-range-btn" data-range="30" onclick="setNwRange(30)">1月</button><button class="nw-range-btn" data-range="90" onclick="setNwRange(90)">3月</button><button class="nw-range-btn" data-range="180" onclick="setNwRange(180)">6月</button><button class="nw-range-btn" data-range="365" onclick="setNwRange(365)">1年</button><button class="nw-range-btn" data-range="1095" onclick="setNwRange(1095)">3年</button><button class="nw-range-btn" data-range="1825" onclick="setNwRange(1825)">5年</button><button class="nw-range-btn" data-range="3650" onclick="setNwRange(3650)">10年</button><button class="nw-range-btn" data-range="0" onclick="setNwRange(0)">全部</button></div><div class="chart-analysis" title="每日收益率标准差 × √252，用于衡量波动幅度，不代表收益高低"><span>年化波动</span><strong id="nw-volatility">—</strong></div></div><span id="nw-period-return" hidden></span></section></div>
+      <div class="wealth-hero"><section class="wealth-main" aria-label="资产走势"><div class="networth-chart"><canvas id="chart-networth" aria-label="资产历史走势" role="img"></canvas><div id="chart-hover" class="chart-hover" aria-live="off" hidden></div></div><p id="nw-empty-hint" class="muted"></p><div class="performance-heading"><div class="range-control" role="group" aria-label="时间范围"><button class="nw-range-btn" data-range="30" onclick="setNwRange(30)">1月</button><button class="nw-range-btn" data-range="90" onclick="setNwRange(90)">3月</button><button class="nw-range-btn" data-range="180" onclick="setNwRange(180)">6月</button><button class="nw-range-btn" data-range="365" onclick="setNwRange(365)">1年</button><button class="nw-range-btn" data-range="1095" onclick="setNwRange(1095)">3年</button><button class="nw-range-btn" data-range="1825" onclick="setNwRange(1825)">5年</button><button class="nw-range-btn" data-range="3650" onclick="setNwRange(3650)">10年</button><button class="nw-range-btn" data-range="0" onclick="setNwRange(0)">全部</button></div></div></section></div>
     </section>
     <section id="panel-overview" class="workspace-panel" data-panel="overview">
       <section class="positions-surface overview-positions" aria-label="持仓与回撤"><div class="overview-paired-columns"><section class="overview-holdings-panel" aria-label="持仓"><div class="paired-panel-heading position-heading-main"><h2 id="positions-title">持仓</h2><div class="segmented-control position-markets" role="group" aria-label="持仓分类"><button data-overview-market="usd" onclick="setOverviewMarket('usd')" aria-pressed="true">美股</button><button data-overview-market="cn" onclick="setOverviewMarket('cn')" aria-pressed="false">A股</button><button data-overview-market="all" onclick="setOverviewMarket('all')" aria-pressed="false">全部</button></div></div><div class="overview-position-table"><div class="positions-list-heading" aria-hidden="true"><span>资产</span><span>股数</span><span>平均成本</span><span>现价</span><span>市值</span><span>浮动盈亏</span><span>收益率</span><span>持仓占比</span></div><div id="vooqqqm-rows" aria-label="持仓明细"></div></div></section><section class="overview-risk-panel" aria-label="回撤"><div class="paired-panel-heading"><h2 class="overview-risk-title">回撤</h2></div><div class="overview-risk-table"><div class="position-risk-heading" aria-hidden="true"><span>参考高点</span><span>回撤</span><span>下一档价格</span><span>档位</span></div><div id="overview-risk-rows" aria-label="对应持仓回撤"></div></div></section></div></section>
     <section id="panel-activity" class="overview-calendar"><div class="page-heading"><div><h2>收益日历</h2></div></div>        <!-- 盈亏日历：可以在每日视图和年度视图之间切换。 -->
-        <div class="calendar-surface"><div id="calendar-basis-legend" class="calendar-basis-legend" title="标记的旧记录包含现金与汇率贡献">· 旧口径</div>
-            <div class="calendar-toolbar flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-3">
-
-                <div class="calendar-tabs flex gap-1.5 bg-gray-100 dark:bg-darkBg p-1 rounded-lg w-full md:w-auto">
-                    <button id="tab-daily" aria-pressed="true" onclick="switchView('daily')" class="flex-1 md:flex-none px-4 md:px-6 py-1.5 md:py-2 text-xs md:text-sm font-bold rounded-md bg-white dark:bg-darkSurface shadow-sm text-textPrimary dark:text-darkText transition-all">日度</button>
-                    <button id="tab-monthly" aria-pressed="false" onclick="switchView('monthly')" class="flex-1 md:flex-none px-4 md:px-6 py-1.5 md:py-2 text-xs md:text-sm font-bold rounded-md text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText transition-all">月度</button>
-                    <button id="tab-yearly" aria-pressed="false" onclick="switchView('yearly')" class="flex-1 md:flex-none px-4 py-2 text-sm rounded-md">年度</button>
-                </div>
-
-                <div id="controls-daily" class="calendar-modes flex gap-1 bg-gray-100 dark:bg-darkBg p-1 rounded-lg w-full md:w-auto">
-                    <button id="view-mode-0" aria-pressed="true" onclick="setCalendarView(0)" class="flex-1 md:flex-none px-4 py-1 md:py-1.5 text-xs font-bold rounded-md bg-white dark:bg-darkSurface shadow-sm text-blue-600 dark:text-blue-400 transition-all">盈亏</button>
-                    <button id="view-mode-1" aria-pressed="false" onclick="setCalendarView(1)" class="flex-1 md:flex-none px-4 py-1 md:py-1.5 text-xs font-bold rounded-md text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText transition-all">收益率</button>
-                    <button id="view-mode-2" aria-pressed="false" onclick="setCalendarView(2)" class="flex-1 md:flex-none px-4 py-1 md:py-1.5 text-xs font-bold rounded-md text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText transition-all">总资产</button>
-                </div>
-
+        <div class="calendar-surface">
+          <div class="calendar-toolbar">
+            <div class="calendar-tabs" role="group" aria-label="日历周期">
+              <button id="tab-daily" aria-pressed="true" onclick="switchView('daily')">日</button>
+              <button id="tab-monthly" aria-pressed="false" onclick="switchView('monthly')">月</button>
+              <button id="tab-yearly" aria-pressed="false" onclick="switchView('yearly')">年</button>
             </div>
-
-            <!-- 每日视图：按日期显示每日盈亏、收益率或总资产。 -->
-            <div id="view-daily" class="w-full">
-                <div class="flex justify-center items-center gap-4 mb-2">
-                    <button onclick="changeMonth(-1)" aria-label="上个月" class="calendar-arrow p-1 text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText bg-gray-50 dark:bg-darkBg rounded-full transition-all focus:outline-none">
-                        <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
-                    </button>
-                    <div id="cal-month-display" class="text-sm md:text-base font-bold text-textPrimary dark:text-darkText w-24 md:w-32 text-center tracking-wide">...</div>
-                    <button onclick="changeMonth(1)" aria-label="下个月" class="calendar-arrow p-1 text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText bg-gray-50 dark:bg-darkBg rounded-full transition-all focus:outline-none">
-                        <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-                    </button>
-                </div>
-
-                <div id="calendar-grid" class="grid grid-cols-7 gap-1 md:gap-2.5 mt-4"></div>
+            <div id="controls-daily" class="calendar-modes" role="group" aria-label="日历数据">
+              <button id="view-mode-0" aria-pressed="true" onclick="setCalendarView(0)">盈亏</button>
+              <button id="view-mode-1" aria-pressed="false" onclick="setCalendarView(1)">收益率</button>
+              <button id="view-mode-2" aria-pressed="false" onclick="setCalendarView(2)">总资产</button>
             </div>
-
-            <!-- 年度视图：按月份汇总当年盈亏。 -->
-            <div id="view-monthly" class="hidden w-full">
-                <div class="flex justify-center items-center gap-4 mb-4">
-                    <button onclick="changeYear(-1)" aria-label="上一年" class="calendar-arrow p-1 text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText bg-gray-50 dark:bg-darkBg rounded-full transition-all focus:outline-none">
-                        <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
-                    </button>
-                    <div id="cal-year-display" class="text-sm md:text-base font-bold text-textPrimary dark:text-darkText w-24 md:w-32 text-center tracking-wide">...</div>
-                    <button onclick="changeYear(1)" aria-label="下一年" class="calendar-arrow p-1 text-textSecondary dark:text-darkTextSec hover:text-textPrimary dark:hover:text-darkText bg-gray-50 dark:bg-darkBg rounded-full transition-all focus:outline-none">
-                        <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-                    </button>
-                </div>
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2 md:gap-3 mb-6" id="monthly-grid"></div>
-
-                <div class="yearly-summary-footer flex justify-center items-baseline gap-3 pt-2">
-                    <span id="monthly-summary-label" class="text-sm text-textSecondary">全年盈亏</span>
-                    <span id="yearly-total" class="text-2xl font-bold font-mono">--</span>
-                </div>
-            </div>
-            <div id="view-yearly" class="hidden w-full"><div class="flex justify-center items-center gap-4 mb-4"><button onclick="changeDecade(-1)" aria-label="前十年" class="calendar-arrow"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></button><div id="cal-decade-display" class="text-center"></div><button onclick="changeDecade(1)" aria-label="后十年" class="calendar-arrow"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></button></div><div id="annual-grid"></div><div class="yearly-summary-footer flex justify-center items-baseline gap-3 pt-2"><span id="annual-summary-label" class="muted">区间盈亏</span><span id="annual-total"></span></div></div>
+          </div>
+          <div id="view-daily" class="w-full">
+            <div class="calendar-period-title" id="cal-month-display" aria-live="polite"></div>
+            <div id="calendar-grid" class="calendar-swipe-grid grid grid-cols-7 gap-1 md:gap-2.5" tabindex="0" aria-label="每日记录，可左右拖动或使用方向键切换月份" aria-keyshortcuts="ArrowLeft ArrowRight"></div>
+          </div>
+          <div id="view-monthly" class="hidden w-full">
+            <div class="calendar-period-title" id="cal-year-display" aria-live="polite"></div>
+            <div id="monthly-grid" class="calendar-swipe-grid calendar-period-grid" tabindex="0" aria-label="每月记录，可左右拖动或使用方向键切换年份" aria-keyshortcuts="ArrowLeft ArrowRight"></div>
+          </div>
+          <div id="view-yearly" class="hidden w-full">
+            <div class="calendar-period-title" id="cal-annual-display" aria-live="polite"></div>
+            <div id="annual-grid" class="calendar-swipe-grid calendar-period-grid" tabindex="0" aria-label="最近十二年记录，可左右拖动或使用方向键切换十二年" aria-keyshortcuts="ArrowLeft ArrowRight"></div>
+          </div>
         </div>
 
 </section>
@@ -122,7 +96,7 @@
 
     </section>
     <section id="panel-allocation" class="workspace-panel asset-overview-page" data-panel="allocation" aria-label="资产总览" hidden>
-<section class="asset-distribution-cards"><div class="asset-card-heading"><h2>资产分布</h2><div class="asset-ratio-summary"><span>投资 <b id="asset-investment-weight">—</b></span><span>现金 <b id="asset-cash-weight">—</b></span></div></div><div id="allocation-breakdown" class="asset-group-list"></div></section>
+<section class="asset-distribution-cards"><div class="asset-card-heading"><h2>资产分布</h2></div><div id="allocation-breakdown" class="asset-group-list"></div></section>
     </section>
     <section id="panel-holdings" class="workspace-panel" data-panel="holdings" hidden>
       <div class="page-heading"><div><h1>持仓 <span id="holdings-count" class="count-badge"></span></h1></div><button id="edit-holdings" class="btn-action" onclick="toggleHoldingsEdit()" aria-pressed="false"><svg  class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 4 5 5M4 20l5-1L21 7l-4-4L5 15l-1 5Z"/></svg><span>编辑持仓</span></button></div>
@@ -204,20 +178,20 @@
     <div class="trade-editor-actions"><button id="fund-delete" class="text-link negative" type="button" onclick="deleteCurrentFund()">删除</button><button type="button" class="btn-action" onclick="closeFundsEditor()">取消</button><button type="submit" class="btn-action primary-action">保存</button></div></form>
   </dialog>
   <div id="tv-ticker-container" class="ticker-position" hidden></div>
-  <script src="js/drawdown-model.js?v=20261014-16"></script>
-  <script src="js/portfolio-model.js?v=20261014-16"></script>
-  <script src="js/performance-model.js?v=20261014-16"></script>
-  <script src="js/app.js?v=20261014-16"></script>
-  <script src="js/calendar.js?v=20261014-16"></script>
-  <script src="js/cloud-loader.js?v=20261014-16"></script>
-  <script src="js/dashboard.js?v=20261014-16"></script>
-  <script src="js/transactions-model.js?v=20261014-16"></script>
-  <script src="js/funds-model.js?v=20261014-16"></script>
-  <script src="js/workspace.js?v=20261014-16"></script>
-  <script src="js/navigation-dock.js?v=20261014-16"></script>
-  <script src="js/overview-performance.js?v=20261014-16"></script>
-  <script src="js/transactions.js?v=20261014-16"></script>
-  <script src="js/funds.js?v=20261014-16"></script>
-  <script src="js/asset-detail.js?v=20261014-16"></script>
+  <script src="js/drawdown-model.js?v=20261014-17"></script>
+  <script src="js/portfolio-model.js?v=20261014-17"></script>
+  <script src="js/performance-model.js?v=20261014-17"></script>
+  <script src="js/app.js?v=20261014-17"></script>
+  <script src="js/calendar.js?v=20261014-17"></script>
+  <script src="js/cloud-loader.js?v=20261014-17"></script>
+  <script src="js/dashboard.js?v=20261014-17"></script>
+  <script src="js/transactions-model.js?v=20261014-17"></script>
+  <script src="js/funds-model.js?v=20261014-17"></script>
+  <script src="js/workspace.js?v=20261014-17"></script>
+  <script src="js/navigation-dock.js?v=20261014-17"></script>
+  <script src="js/overview-performance.js?v=20261014-17"></script>
+  <script src="js/transactions.js?v=20261014-17"></script>
+  <script src="js/funds.js?v=20261014-17"></script>
+  <script src="js/asset-detail.js?v=20261014-17"></script>
 </body>
 </html>

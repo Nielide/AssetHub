@@ -55,7 +55,7 @@
         if (updateHash && location.hash !== '#' + route) history.pushState(null, '', '#' + route);
 
         el('portfolio-hero').hidden = !['overview','allocation'].includes(name);
-        if (name === 'overview' || name === 'allocation') requestAnimationFrame(() => { charts.networth?.resize(); window.renderOverviewPerformance?.(); });
+        if (name === 'overview' || name === 'allocation') requestAnimationFrame(() => { charts.networth?.resize(); renderNetWorthChart(true); });
         if (name === 'asset' && window.renderAssetDetail) renderAssetDetail();
         if (name === 'transactions' && window.renderTransactions) renderTransactions();
         if (name === 'funds' && window.renderFunds) renderFunds();
@@ -167,10 +167,7 @@
     function renderAllocation() {
         const data = PortfolioModel.assetOverview(portfolioValues());
         const percent = value => isPrivacyMode ? '••••' : value.toFixed(1) + '%';
-
-        el('asset-investment-weight').textContent = percent(data.investmentWeight);
-        el('asset-cash-weight').textContent = percent(data.cashWeight);
-        el('allocation-breakdown').innerHTML = data.groups.map(group => `<button class="asset-category-row" data-asset-group="${group.key}" data-market="${group.market}" type="button" aria-label="查看${group.label}明细" style="--group-color:${group.color}"><span class="asset-category-name"><i class="asset-category-icon" aria-hidden="true">${group.currency === 'USD' ? '$' : group.currency === 'HKD' ? 'HK' : '¥'}</i><b>${group.label}</b></span><strong class="asset-category-share">${percent(group.weight)}</strong><span class="asset-category-converted" data-label="人民币折算">${money(group.converted, 'CNY', 2)}</span></button>`).join('');
+        el('allocation-breakdown').innerHTML = data.groups.map(group => `<button class="asset-category-row" data-asset-group="${group.key}" data-market="${group.market}" type="button" aria-label="查看${group.label}明细" style="--group-color:${group.color}"><span class="asset-category-name"><i class="asset-category-icon" aria-hidden="true">${group.currency === 'USD' ? '$' : group.currency === 'HKD' ? 'HK' : '¥'}</i><b>${group.label}</b></span><span class="asset-category-values"><strong class="asset-category-share">${percent(group.weight)}</strong><span class="asset-category-converted" data-label="人民币折算">${money(group.converted, 'CNY', 2)}</span></span></button>`).join('');
         el('allocation-breakdown').querySelectorAll('button').forEach(button => button.addEventListener('click', () => {
             if (button.dataset.market !== 'cash') {
                 navigateWorkspace('overview'); setOverviewMarket(button.dataset.market);
@@ -190,13 +187,12 @@
         document.querySelectorAll('[data-overview-market]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.overviewMarket === overviewMarket)));
         container.innerHTML = positions.map(item => {
             const cost = item.costValue, pct = item.returnPct;
-            const icon = document.querySelector(`#${item.type}-inputs input[data-id="${CSS.escape(String(item.id))}"][data-field="ticker"]`)?.parentElement.querySelector('.holding-icon');
             const quantity = isPrivacyMode ? '••••' : item.shares.toLocaleString('en-US', { useGrouping: false,maximumFractionDigits:6});
             const tone = cost > 0 ? item.profit < 0 ? 'negative' : 'positive' : '';
             const profit = cost > 0 ? isPrivacyMode ? '••••' : (item.profit >= 0 ? '+' : '−') + money(Math.abs(item.profit), item.currency, 2) : '—';
             const percent = cost > 0 ? isPrivacyMode ? '••••' : (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%' : '—';
             const weight = isPrivacyMode ? '••••' : (weights.get(PortfolioModel.positionKey(item)) || 0).toFixed(1) + '%';
-            return `<article class="position-item" data-position-key="${escapeHTML(PortfolioModel.positionKey(item))}" data-symbol="${escapeHTML(item.ticker)}" data-currency="${item.currency}" data-id="${escapeHTML(item.id)}" data-type="${item.type}"><div class="position-holding-data"><div class="position-symbol"><button class="position-logo position-drag-icon" type="button" aria-label="拖动 ${escapeHTML(item.ticker)} 排序，方向键上下调整" title="拖动排序">${icon?.innerHTML || escapeHTML(item.ticker.slice(0,1))}</button><button class="position-open" type="button" aria-label="查看 ${escapeHTML(item.ticker)}"><b>${escapeHTML(item.ticker)}</b></button></div><span class="position-quantity" data-label="股数">${quantity}</span><span class="position-cost" data-label="平均成本">${money(item.cost,item.currency,item.type === 'cn' ? 3 : 2)}</span><span class="position-price" data-label="现价">${money(item.price,item.currency,item.type === 'cn' ? 3 : 2)}</span><span class="position-value" data-label="市值">${money(item.value,item.currency,2)}</span><span class="position-profit ${tone}" data-label="浮动盈亏">${profit}</span><span class="position-return ${tone}" data-label="收益率"><b>${percent}</b></span><span class="position-weight" data-label="持仓占比"><b>${weight}</b></span></div></article>`;
+            return `<article class="position-item" data-position-key="${escapeHTML(PortfolioModel.positionKey(item))}" data-symbol="${escapeHTML(item.ticker)}" data-currency="${item.currency}" data-id="${escapeHTML(item.id)}" data-type="${item.type}"><div class="position-holding-data"><div class="position-symbol"><button class="position-logo position-drag-icon" type="button" aria-label="拖动 ${escapeHTML(item.ticker)} 排序，方向键上下调整" title="拖动排序">${item.type === 'cn' ? 'A' : escapeHTML(item.ticker.slice(0,1).toUpperCase())}</button><button class="position-open" type="button" aria-label="查看 ${escapeHTML(item.ticker)}"><b>${escapeHTML(item.ticker)}</b></button></div><span class="position-quantity" data-label="股数">${quantity}</span><span class="position-cost" data-label="平均成本">${money(item.cost,item.currency,item.type === 'cn' ? 3 : 2)}</span><span class="position-price" data-label="现价">${money(item.price,item.currency,item.type === 'cn' ? 3 : 2)}</span><span class="position-value" data-label="市值">${money(item.value,item.currency,2)}</span><span class="position-profit ${tone}" data-label="浮动盈亏">${profit}</span><span class="position-return ${tone}" data-label="收益率"><b>${percent}</b></span><span class="position-weight" data-label="持仓占比"><b>${weight}</b></span></div></article>`;
         }).join('') || '<div class="empty-state">暂无持仓</div>';
         container.querySelectorAll('.position-open').forEach(button => button.addEventListener('click', () => {
             const row = button.closest('.position-item');
@@ -214,12 +210,6 @@
             persistOverviewOrder(keys);
             container.querySelector(`[data-position-key="${CSS.escape(key)}"] .position-drag-icon`)?.focus({preventScroll:true});
         }));
-        container.querySelectorAll('img').forEach(img => {
-            img.draggable = false;
-            const fallback = () => { img.closest('.position-logo').textContent = img.closest('[data-symbol]')?.dataset.symbol?.slice(0,1) || '·'; };
-            img.addEventListener('error',fallback,{once:true});
-            if (img.complete && !img.naturalWidth) fallback();
-        });
         if (typeof Sortable !== 'undefined') {
             Sortable.get(container)?.destroy();
             Sortable.create(container, {handle:'.position-drag-icon',draggable:'.position-item',animation:160,ghostClass:'overview-sort-ghost',chosenClass:'overview-sort-chosen',delay:120,delayOnTouchOnly:true,
@@ -250,7 +240,10 @@
         const dark = document.documentElement.classList.contains('dark');
         chart.data.datasets[0].borderColor = dark ? '#c4d391' : '#8a9e36';
         chart.data.datasets[0].borderWidth = 1.8;
-        chart.data.datasets[0].fill = true;
+        chart.data.datasets[0].fill = chart.data.datasets[0].data.length > 1;
+        chart.data.datasets[0].pointBackgroundColor = dark ? '#c4d391' : '#8a9e36';
+        chart.data.datasets[0].pointBorderColor = chart.data.datasets[0].pointBackgroundColor;
+        chart.options.scales.x.offset = chart.data.datasets[0].data.length === 1;
         chart.data.datasets[0].backgroundColor = context => {
             const { ctx, chartArea } = context.chart;
             if (!chartArea) return 'transparent';

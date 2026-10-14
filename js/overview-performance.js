@@ -16,7 +16,7 @@
         node.style.color = !valid ? 'var(--text-secondary)' : neutral ? 'var(--text-primary)' : value < 0 ? 'var(--negative)' : 'var(--positive)';
         node.style.backgroundColor = 'transparent';
         node.dataset.value = valid ? value : '';
-        if (!valid || isPrivacyMode) { node.textContent = !valid && unit === '%' && id.endsWith('-pct') ? '' : text(value, unit, decimals, signed); node.animationId = null; return; }
+        if (!valid || isPrivacyMode) { node.textContent = !valid && (unit === '%' && id.endsWith('-pct') || id === 'nw-drawdown-amount') ? '' : text(value, unit, decimals, signed); node.animationId = null; return; }
         const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
         if (refresh && !reduced) node.refreshAnimation = node.animate([{opacity:.6},{opacity:1}], {duration:350,easing:'ease-out'});
         if (reduced || previous === value) {
@@ -33,14 +33,13 @@
         node.animationId = requestAnimationFrame(tick);
     }
     window.renderOverviewPerformance = function(refresh = false) {
-        const snapshot = PortfolioModel.snapshot(state, el('fx-rate').value), summary = PerformanceModel.summary(state, nwRangeDays).total, risk = PerformanceModel.riskSummary(state, nwRangeDays);
+        const snapshot = PortfolioModel.snapshot(state, el('fx-rate').value), summary = PerformanceModel.summary(state, nwRangeDays).total, risk = PerformanceModel.riskSummary(state, nwRangeDays, 'investment');
 
         const assetScope = !el('panel-allocation').hidden;
         const hero = el('portfolio-hero'), scope = assetScope ? 'allocation' : 'overview';
         if (hero.dataset.scope !== scope) hero.querySelectorAll('[data-display-value]').forEach(node => delete node.dataset.displayValue);
         hero.dataset.scope = scope;
         document.querySelector('.networth-label>span').textContent = assetScope ? '总资产' : '投资市值';
-        document.querySelector('.chart-label').innerHTML = '<i></i>' + (assetScope ? '资产走势' : '资产历史 · 含现金');
         metric('total-nw-cny', assetScope ? snapshot.total : snapshot.positions.reduce((sum,item) => sum + item.converted,0), 'CNY', 0, {signed:false,neutral:true,refresh});
 
         const fields = [...document.querySelectorAll('.wealth-metrics>div')];
@@ -50,12 +49,11 @@
         const labels = assetScope ? ['美股持仓','美元现金','A股持仓','人民币现金','港币现金'] : ['今日盈亏','美股盈亏','A股盈亏','总盈亏','最大回撤'];
         fields.forEach((field,i) => {
             field.querySelector(':scope>span').textContent = labels[i];
-            field.title = assetScope ? '' : i === 3 ? '所选区间的每日盈亏汇总' : i === 4 ? '所选区间的资产高点到低点回落，包含资金进出的影响' : '';
+            field.title = assetScope ? '' : i === 3 ? '所选区间的每日盈亏汇总' : i === 4 ? '所选区间的持仓市值高点到低点回落，包含资金进出的影响' : '';
         });
         if (assetScope) {
             const groups = PortfolioModel.assetOverview(snapshot).groups;
             groups.forEach((group,i) => metric(valueIds[i],group.value,group.currency,2,{signed:false,neutral:true,refresh}));
-            metric('nw-volatility',risk.volatility,'%',2,{signed:false,neutral:true,refresh});
             return;
         }
         const now = new Date(), date = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0'), today = state.history.find(row => row.date === date);
@@ -71,8 +69,7 @@
         metric('total-unrealized-pl-pct', summary.rate, '%', 2, {refresh});
         metric('nw-max-drawdown', risk.drawdown, '%', 2, {signed:false,neutral:true,refresh});
         metric('nw-drawdown-amount', risk.amount, 'CNY', 0, {signed:false,neutral:true,refresh});
-        metric('nw-volatility', risk.volatility, '%', 2, {signed:false,neutral:true,refresh});
-        el('nw-drawdown-amount').title = risk.amount === null ? '区间记录不足' : risk.from ? risk.from+' → '+risk.to+'，与回撤百分比对应的资产减少额，包含资金进出的影响' : '所选区间未出现资产回落';
+        el('nw-drawdown-amount').title = risk.amount === null ? '区间记录不足' : risk.from ? risk.from+' → '+risk.to+'，与回撤百分比对应的持仓市值减少额，包含资金进出的影响' : '所选区间未出现持仓市值回落';
     };
     const originalChart = renderNetWorthChart;
     renderNetWorthChart = function(force) { originalChart(force); renderOverviewPerformance(!!force); };

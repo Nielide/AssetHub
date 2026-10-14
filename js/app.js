@@ -608,31 +608,22 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
             const emptyHint = document.getElementById('nw-empty-hint');
             if (!canvas) return;
 
-            const records = PerformanceModel.selected(state, nwRangeDays);
+            const scope = document.getElementById('panel-allocation').hidden ? 'investment' : 'asset';
+            const records = PerformanceModel.valueSeries(state, nwRangeDays, scope);
+            canvas.setAttribute('aria-label', scope === 'investment' ? '投资持仓市值走势' : '总资产历史走势');
 
-            if (records.length < 2) {
+            if (!records.length) {
                 if (charts.networth) { charts.networth.destroy(); charts.networth = null; }
-                emptyHint.innerText = '暂无历史数据';
-                document.getElementById('nw-period-return').innerText = '--';
+                emptyHint.innerText = scope === 'investment' ? '暂无投资市值记录' : '暂无资产记录';
                 return;
             }
             emptyHint.innerText = '';
 
             const labels = records.map(r => r.date);
-            const values = records.map(r => (r.total ?? r.value ?? 0));
-
-            let cumulative = 1;
-            for (let i = 1; i < records.length; i++) {
-                cumulative *= (1 + (records[i].rate || 0) / 100);
-            }
-            const periodReturn = (cumulative - 1) * 100;
-            const prEl = document.getElementById('nw-period-return');
-            
-            prEl.innerText = (periodReturn >= 0 ? '+' : '') + periodReturn.toFixed(2) + '%';
-            prEl.className = `text-base md:text-xl font-bold font-mono ${periodReturn >= 0 ? 'text-googleGreen' : 'text-googleRed'}`;
+            const values = records.map(r => r.value);
 
             const isDark = document.documentElement.classList.contains('dark');
-            const lineColor = '#1a73e8';
+            const lineColor = isDark ? '#c4d391' : '#8a9e36';
 
             if (forceRecreate && charts.networth) {
                 charts.networth.destroy();
@@ -642,6 +633,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
             if (charts.networth) {
                 charts.networth.data.labels = labels;
                 charts.networth.data.datasets[0].data = values;
+                charts.networth.data.datasets[0].pointRadius = values.length === 1 ? 4 : 0;
                 if (charts.networth.options.plugins && charts.networth.options.plugins.tooltip) {
                     charts.networth.options.plugins.tooltip.enabled = !isPrivacyMode;
                 }
@@ -661,7 +653,9 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                             borderColor: lineColor, 
                             fill: false, // 【修改点】彻底关闭下方颜色填充
                             tension: 0.3, 
-                            pointRadius: 0, 
+                            pointBackgroundColor: lineColor,
+                            pointBorderColor: lineColor,
+                            pointRadius: values.length === 1 ? 4 : 0,
                             pointHoverRadius: 4, 
                             borderWidth: 2
                         }] 

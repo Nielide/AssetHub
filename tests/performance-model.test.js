@@ -97,3 +97,38 @@ test('scheduled updater records both markets and retains long histories without 
     assert.equal(state.history.length,801);assert.equal(current.fxRate,7);
     assert.equal(current.markets.usd.value,100);assert.equal(current.markets.cn.value,80);
 });
+
+test('asset and investment curves use separate real balances and preserve empty history',()=>{
+    const state={cash:[{currency:'CNY',amount:99999}],history:[
+        {date:'2026-01-01',total:12000},
+        {date:'2026-01-02',total:15000,investmentTotal:8000},
+        {date:'2026-01-03',total:16000,investmentTotal:0},
+        {date:'2026-01-04',total:18000,investmentTotal:9000}
+    ]};
+    assert.deepEqual(model.valueSeries(state,0).map(p=>p.value),[12000,15000,16000,18000]);
+    assert.deepEqual(model.valueSeries(state,0,'investment').map(p=>p.value),[8000,0,9000]);
+    assert.equal(model.riskSummary(state,0,'investment').drawdown,-100);
+    assert.equal(model.riskSummary(state,0,'investment').amount,-8000);
+    assert.equal(model.riskSummary(state,0).drawdown,0);
+    assert.deepEqual(model.valueSeries({history:[{date:'2026-01-01',total:12000}]},0,'investment'),[]);
+    assert.equal(model.riskSummary({history:[{date:'2026-01-01',investmentTotal:10}]},0,'investment').amount,null);
+});
+test('reconstructed investment balances require both native markets and recorded historical FX',()=>{
+    const state={fxRate:99,history:[
+        {date:'2026-01-01',markets:{usd:{value:100},cn:{value:50}},fxRate:7},
+        {date:'2026-01-02',markets:{usd:{value:100},cn:{value:50}}},
+        {date:'2026-01-03',markets:{usd:{value:100}},fxRate:7},
+        {date:'2026-01-04',markets:{usd:{value:0},cn:{value:80}}},
+        {date:'2026-01-05',markets:{usd:{value:100},cn:{value:50}},investmentPerformance:{fxRate:8}},
+        {date:'2026-01-06',investmentTotal:-1},
+        {date:'2026-01-07',investmentTotal:0}
+    ]};
+    assert.deepEqual(model.valueSeries(state,0,'investment'),[
+        {date:'2026-01-01',value:750},{date:'2026-01-04',value:80},{date:'2026-01-05',value:850},{date:'2026-01-07',value:0}
+    ]);
+});
+test('investment windows do not extend to an older snapshot when recent records are missing',()=>{
+    const state={history:[{date:'2026-01-01',investmentTotal:100,total:150},{date:'2026-04-01',total:250}]};
+    assert.deepEqual(model.valueSeries(state,30,'investment'),[]);
+    assert.equal(model.valueSeries(state,0,'investment').length,1);
+});

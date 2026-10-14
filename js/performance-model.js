@@ -102,19 +102,34 @@
             total:{profit:rows.some(row=>finite(row.pl)) ? rows.reduce((sum,row)=>sum+(finite(row.pl)?Number(row.pl):0),0) : null,rate:rows.some(row=>finite(row.rate)) ? compound(rows,row=>row.rate) : null}
         };
     }
-    // This drawdown measures the displayed asset balance, including cash flows.
+    // Use recorded balances only. Today's cash cannot reconstruct old holdings.
+    function valueSeries(state, days, scope = 'asset') {
+        return selected(state, days).flatMap(row => {
+            let value = scope === 'asset' ? row.total ?? row.value : row.investmentTotal;
+            if (scope === 'investment' && !finite(value)) {
+                const usd = row.markets?.usd?.value, cn = row.markets?.cn?.value;
+                const fx = row.fxRate ?? row.investmentPerformance?.fxRate;
+                if (finite(usd) && Number(usd) >= 0 && finite(cn) && Number(cn) >= 0 &&
+                    (Number(usd) === 0 || finite(fx) && Number(fx) > 0)) {
+                    value = Number(usd) * (Number(usd) === 0 ? 0 : Number(fx)) + Number(cn);
+                }
+            }
+            return finite(value) && Number(value) >= 0 ? [{date:row.date,value:Number(value)}] : [];
+        });
+    }
+    // This drawdown measures the displayed balance, including cash flows.
     // Retain the amount from the same peak/trough pair as the largest percentage.
-    function riskSummary(state, days) {
+    function riskSummary(state, days, scope = 'asset') {
         const rows = selected(state, days);
-        const values = rows.filter(row => finite(row.total ?? row.value) && Number(row.total ?? row.value) >= 0);
+        const values = valueSeries(state, days, scope);
         let peak = null, peakDate = null, drawdown = 0, amount = 0, from = null, to = null;
         values.forEach(row => {
-            const value = Number(row.total ?? row.value);
+            const value = row.value;
             if (peak === null || value > peak) { peak = value; peakDate = row.date; }
             const decline = peak > 0 ? (peak - value) / peak * 100 : 0;
             if (decline > drawdown) { drawdown = decline; amount = peak - value; from = peakDate; to = row.date; }
         });
-        const rates = rows.filter(row => finite(row.rate)).map(row => Number(row.rate));
+        const rates = rows.map(row => scope === 'investment' ? row.investmentPerformance?.rate : row.rate).filter(finite).map(Number);
         const mean = rates.length ? rates.reduce((sum, value) => sum + value, 0) / rates.length : 0;
         const variance = rates.length > 1 ? rates.reduce((sum, value) => sum + (value - mean) ** 2, 0) / (rates.length - 1) : null;
         return { drawdown: values.length > 1 ? -drawdown || 0 : null, amount: values.length > 1 ? -amount || 0 : null, from, to, volatility: variance === null ? null : Math.sqrt(variance * 252) };
@@ -129,5 +144,5 @@
         });
         return [...byDate.values()].sort((a,b)=>a.date.localeCompare(b.date));
     }
-    return {category,selected,weights,record,marketSeries,summary,riskSummary,mergeRecords,investmentPoint,calendarMonth,calendarPeriod};
+    return {category,selected,weights,record,marketSeries,summary,riskSummary,valueSeries,mergeRecords,investmentPoint,calendarMonth,calendarPeriod};
 });

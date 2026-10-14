@@ -365,6 +365,12 @@
         icon.innerHTML = '';
         icon.classList.remove('logo-dev-icon');
 
+        if (['usd', 'cn', 'sgov'].includes(type)) {
+            icon.classList.add('holding-monogram');
+            icon.dataset.market = type === 'cn' ? 'cn' : 'usd';
+            icon.textContent = type === 'cn' ? 'A' : clean.slice(0, 1) || '·';
+            return;
+        }
         const preferredUrl = preferredHoldingIconUrl(clean, type);
         if (preferredUrl) {
             updateHoldingIconFromImage(icon, preferredUrl, clean);
