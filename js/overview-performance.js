@@ -34,7 +34,7 @@
     }
     window.renderOverviewPerformance = function(refresh = false) {
         const snapshot = PortfolioModel.snapshot(state, el('fx-rate').value), summary = PerformanceModel.summary(state, nwRangeDays).total, risk = PerformanceModel.riskSummary(state, nwRangeDays);
-        metric('total-nw-cny', snapshot.total, 'CNY', 0, {signed:false,neutral:true,refresh});
+        metric('total-nw-cny', snapshot.positions.reduce((sum,item) => sum + item.converted,0), 'CNY', 0, {signed:false,neutral:true,refresh});
         const now = new Date(), date = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0'), today = state.history.find(row => row.date === date);
         metric('today-pl-val', Number.isFinite(today?.pl) ? today.pl : null, 'CNY', 0, {refresh});
         metric('today-pl-pct', Number.isFinite(today?.rate) ? today.rate : null, '%', 2, {refresh});

@@ -11,6 +11,7 @@ test('overview weights use market holdings and exclude cash; all converts curren
 test('records native market changes without overwriting legacy total P/L',()=>{
     const state={usd:[{id:1,shares:2,cost:100,price:100}],sgov:[],cn:[{id:2,shares:10,cost:5,price:5}],history:[{date:'2026-01-01',pl:9,rate:1}]};
     model.record(state,'2026-01-01',7);assert.equal(state.history[0].markets.usd.pl,null);assert.equal(state.history[0].pl,9);
+    assert.equal(state.history[0].investmentTotal,1450);assert.equal(state.history[0].cashTotal,0);
     state.usd[0].price=110;state.cn[0].price=4;state.history.push({date:'2026-01-02',pl:130,rate:2});
     model.record(state,'2026-01-02',7);assert.equal(state.history[1].markets.usd.pl,20);assert.equal(state.history[1].markets.cn.pl,-10);
     assert.equal(state.history[1].markets.usd.rate,10);assert.equal(state.history[1].pl,130);

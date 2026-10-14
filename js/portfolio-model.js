@@ -33,6 +33,22 @@
     function calendarAmount(record, field, currency, fallbackFx) {
         return number(record?.[field]) / (currency === 'USD' ? rate(record?.fxRate, rate(fallbackFx, 7.25)) : 1);
     }
+    function assetOverview(snapshot) {
+        const definitions = [
+            { key:'us-investment', label:'美股持仓', currency:'USD', kind:'investment', market:'usd', color:'var(--asset-us)' },
+            { key:'usd-cash', label:'美元现金', currency:'USD', kind:'cash', market:'cash', color:'var(--asset-usd-cash)' },
+            { key:'cn-investment', label:'A股持仓', currency:'CNY', kind:'investment', market:'cn', color:'var(--asset-cn)' },
+            { key:'cny-cash', label:'人民币现金', currency:'CNY', kind:'cash', market:'cash', color:'var(--asset-cny-cash)' },
+            { key:'hkd-cash', label:'港币现金', currency:'HKD', kind:'cash', market:'cash', color:'var(--asset-hkd-cash)' }
+        ];
+        const groups = definitions.map(group => {
+            const items = (group.kind === 'cash' ? snapshot.cash : snapshot.positions).filter(item => item.currency === group.currency);
+            const value = items.reduce((sum,item) => sum + item.value,0), converted = items.reduce((sum,item) => sum + item.converted,0);
+            return { ...group, value, converted, count:items.length, weight:snapshot.total ? converted / snapshot.total * 100 : 0 };
+        });
+        const investment = snapshot.positions.reduce((sum,item) => sum + item.converted,0), cash = snapshot.cash.reduce((sum,item) => sum + item.converted,0);
+        return { total:snapshot.total, investment, cash, groups, currencies:snapshot.currencies, investmentWeight:snapshot.total ? investment / snapshot.total * 100 : 0, cashWeight:snapshot.total ? cash / snapshot.total * 100 : 0 };
+    }
     const positionKey = item => `${item.type}:${item.id}`;
     function orderedPositions(positions, keys = []) {
         const byKey = new Map(positions.map(item => [positionKey(item), item]));
@@ -52,5 +68,5 @@
         let index = 0;
         return positions.map(item => visible.has(positionKey(item)) ? byKey.get(visibleKeys[index++]) : item);
     }
-    return { snapshot, calendarAmount, positionKey, orderedPositions, reorderPositions };
+    return { snapshot, assetOverview, calendarAmount, positionKey, orderedPositions, reorderPositions };
 });

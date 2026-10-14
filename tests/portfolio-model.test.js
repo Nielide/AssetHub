@@ -23,6 +23,24 @@ test('calendar display uses record exchange rates with a fallback for old rows',
     assert.deepEqual(row,{pl:70,total:700,fxRate:7,rate:1});
     assert.equal(model.calendarAmount({pl:70,fxRate:0},'pl','USD',7),10);
 });
+test('asset overview separates five native categories and reconciles investment, cash and currency totals', () => {
+    const state={usd:[{shares:2,price:100,cost:80}],sgov:[{shares:3,price:50,cost:50}],cn:[{shares:10,price:8,cost:7}],cash:[{amount:100,currency:'USD'},{amount:30,currency:'USD'},{amount:500,currency:'CNY'},{amount:100,currency:'HKD'}],fxRate:7,hkdFx:.9};
+    const before=JSON.stringify(state),data=model.assetOverview(model.snapshot(state));
+    assert.deepEqual(data.groups.map(group=>group.value),[350,130,80,500,100]);
+    assert.deepEqual(data.groups.map(group=>group.converted),[2450,910,80,500,90]);
+    assert.equal(data.investment,2530);assert.equal(data.cash,1500);assert.equal(data.total,4030);
+    assert.equal(data.groups[0].count,2);assert.equal(data.groups[1].count,2);
+    assert.ok(Math.abs(data.groups.reduce((sum,group)=>sum+group.weight,0)-100)<1e-10);
+    assert.ok(Math.abs(data.investmentWeight+data.cashWeight-100)<1e-10);
+    assert.equal(JSON.stringify(state),before);
+    const revised=model.assetOverview(model.snapshot(state,8));
+    assert.equal(revised.investment,2880);assert.equal(revised.cash,1630);assert.equal(revised.total,4510);
+});
+test('empty asset overview keeps the five requested categories without invalid ratios', () => {
+    const data=model.assetOverview(model.snapshot({}));
+    assert.equal(data.groups.length,5);assert.equal(data.total,0);assert.equal(data.investmentWeight,0);assert.equal(data.cashWeight,0);
+    assert.ok(data.groups.every(group=>group.weight===0&&group.value===0&&group.converted===0));
+});
 
 test('overview order survives quotes, drops sold holdings and appends new holdings', () => {
     const positions = [{type:'usd',id:1,price:101},{type:'cn',id:1,price:8},{type:'sgov',id:2,price:100}];

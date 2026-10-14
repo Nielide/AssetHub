@@ -162,18 +162,33 @@
         });
     };
     function renderAllocation() {
-        const { positions, values, total, fx } = portfolioValues();
-        el('allocation-bar').innerHTML = values.map(item => `<span style="width:${total ? item.value / total * 100 : 25}%;background:${item.color}" title="${item.label}"></span>`).join('');
-        el('allocation-breakdown').innerHTML = values.map(item => {
-            const pct = total > 0 ? item.value / total * 100 : 0;
-            const currency = item.type === 'cn' ? 'CNY' : item.type === 'cash' ? '多币种' : 'USD';
-            const count = item.type === 'cash' ? state.cash.length : positions.filter(position => position.type === item.type).length;
-            return `<button class="allocation-item" data-market="${item.type}"><span class="allocation-group-label"><b>${item.label}</b><small>${count} ${item.type === 'cash' ? '笔' : '只'} · ${currency}</small></span><span class="allocation-group-value"><b>${money(item.value)}</b><small>${pct.toFixed(1)}%</small></span><span class="allocation-chevron" aria-hidden="true">›</span></button>`;
-        }).join('');
-        el('allocation-breakdown').querySelectorAll('button').forEach(button => button.addEventListener('click', () => { navigateWorkspace('holdings'); el('holdings-search').value = ''; el('holdings-search').dispatchEvent(new Event('input')); setHoldingMarket(button.dataset.market); }));
-        portfolioValues().currencies.forEach(item => {
+        const data = PortfolioModel.assetOverview(portfolioValues());
+        const percent = value => isPrivacyMode ? '••••' : value.toFixed(1) + '%';
+        el('asset-grand-total').textContent = money(data.total, 'CNY', 2);
+        el('asset-investment-total').textContent = money(data.investment, 'CNY', 2);
+        el('asset-cash-total').textContent = money(data.cash, 'CNY', 2);
+        el('asset-investment-weight').textContent = percent(data.investmentWeight);
+        el('asset-investment-legend').textContent = percent(data.investmentWeight);
+        el('asset-cash-weight').textContent = percent(data.cashWeight);
+        const circumference = 2 * Math.PI * 96, investmentLength = circumference * data.investmentWeight / 100, cashLength = circumference * data.cashWeight / 100;
+        el('asset-ring-investment').setAttribute('stroke-dasharray', investmentLength + ' ' + (circumference - investmentLength));
+        el('asset-ring-cash').setAttribute('stroke-dasharray', cashLength + ' ' + (circumference - cashLength));
+        el('asset-ring-cash').setAttribute('stroke-dashoffset', -investmentLength);
+        document.querySelector('.asset-ring').setAttribute('aria-label', isPrivacyMode ? '资产配置已隐藏' : '投资 ' + percent(data.investmentWeight) + '，现金 ' + percent(data.cashWeight));
+        el('asset-investment-track').style.width = data.investmentWeight + '%';
+        el('asset-cash-track').style.width = data.cashWeight + '%';
+        el('allocation-breakdown').innerHTML = data.groups.map(group => `<button class="asset-category-row" data-asset-group="${group.key}" data-market="${group.market}" type="button" aria-label="查看${group.label}明细" style="--group-color:${group.color}"><span class="asset-category-name"><i class="asset-category-icon" aria-hidden="true">${group.currency === 'USD' ? '$' : group.currency === 'HKD' ? 'HK' : '¥'}</i><span><b>${group.label}</b><small>${group.key === 'us-investment' ? 'USD · 含 SGOV' : group.currency}</small></span></span><strong class="asset-category-native" data-label="原币金额">${money(group.value, group.currency, 2)}</strong><span class="asset-category-converted" data-label="人民币折算">${money(group.converted, 'CNY', 2)}</span><span class="asset-category-weight" data-label="资产占比"><b>${percent(group.weight)}</b><i><em style="width:${group.weight}%"></em></i></span></button>`).join('');
+        el('allocation-breakdown').querySelectorAll('button').forEach(button => button.addEventListener('click', () => {
+            if (button.dataset.market !== 'cash') {
+                navigateWorkspace('overview'); setOverviewMarket(button.dataset.market);
+                requestAnimationFrame(() => document.querySelector('.overview-positions').scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth'}));
+            } else {
+                navigateWorkspace('holdings'); el('holdings-search').value = ''; el('holdings-search').dispatchEvent(new Event('input')); setHoldingMarket('cash');
+            }
+        }));
+        data.currencies.forEach(item => {
             const weight = el('currency-weight-' + item.currency.toLowerCase());
-            weight.textContent = isPrivacyMode ? '••••' : item.weight.toFixed(1) + '%';
+            weight.textContent = percent(item.weight);
             weight.nextElementSibling.querySelector('em').style.width = item.weight + '%';
         });
         document.body.classList.toggle('privacy-mode', isPrivacyMode);

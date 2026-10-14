@@ -22,7 +22,9 @@
     function record(state, date, fx) {
         const row = (state.history || []).find(row => row.date === date);
         if (!row) return;
-        const positions = Portfolio.snapshot(state,fx).positions;
+        const snapshot = Portfolio.snapshot(state,fx), positions = snapshot.positions;
+        row.investmentTotal = positions.reduce((sum,item) => sum + item.converted,0);
+        row.cashTotal = snapshot.cash.reduce((sum,item) => sum + item.converted,0);
         row.markets ||= {};
         ['usd','cn'].forEach(type => {
             const owned = positions.filter(item => category(item.type) === type);
