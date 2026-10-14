@@ -132,3 +132,21 @@ test('investment windows do not extend to an older snapshot when recent records 
     assert.deepEqual(model.valueSeries(state,30,'investment'),[]);
     assert.equal(model.valueSeries(state,0,'investment').length,1);
 });
+
+test('a lone investment point keeps labelled historical reference available without splicing series',()=>{
+    const state={history:[{date:'2026-01-01',total:2000},{date:'2026-01-02',total:2100,investmentTotal:1800}]};
+    const before=JSON.stringify(state);
+    assert.deepEqual(model.trendSeries(state,0,'investment'),{points:[{date:'2026-01-01',value:2000},{date:'2026-01-02',value:2100}],basis:'asset-reference'});
+    assert.deepEqual(model.trendSeries(state,0,'investment','investment'),{points:[{date:'2026-01-02',value:1800}],basis:'investment'});
+    assert.equal(JSON.stringify(state),before);
+    state.history.push({date:'2026-01-03',total:2200,investmentTotal:1900});
+    assert.equal(model.trendSeries(state,0,'investment').basis,'investment');
+    assert.deepEqual(model.trendSeries(state,0,'investment').points.map(p=>p.value),[1800,1900]);
+    assert.equal(model.trendSeries(state,0,'investment','asset-reference').basis,'asset-reference');
+    assert.equal(model.trendSeries(state,0,'asset','investment').basis,'asset');
+});
+test('an empty investment interval stays unknown when no real reference curve exists',()=>{
+    assert.deepEqual(model.trendSeries({history:[]},30,'investment'),{points:[],basis:'investment'});
+    const state={history:[{date:'2026-01-01',total:0,investmentTotal:0}]};
+    assert.deepEqual(model.trendSeries(state,0,'investment'),{points:[{date:'2026-01-01',value:0}],basis:'investment'});
+});

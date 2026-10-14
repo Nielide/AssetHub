@@ -71,6 +71,11 @@
         metric('nw-drawdown-amount', risk.amount, 'CNY', 0, {signed:false,neutral:true,refresh});
         el('nw-drawdown-amount').title = risk.amount === null ? '区间记录不足' : risk.from ? risk.from+' → '+risk.to+'，与回撤百分比对应的持仓市值减少额，包含资金进出的影响' : '所选区间未出现持仓市值回落';
     };
+    window.setInvestmentTrendBasis = basis => {
+        nwInvestmentBasis = ['asset-reference','investment'].includes(basis) ? basis : 'auto';
+        localStorage.setItem(investmentBasisKey(), nwInvestmentBasis);
+        renderNetWorthChart(true);
+    };
     const originalChart = renderNetWorthChart;
     renderNetWorthChart = function(force) { originalChart(force); renderOverviewPerformance(!!force); };
     const originalApply = applyRemoteState;

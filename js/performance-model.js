@@ -117,6 +117,16 @@
             return finite(value) && Number(value) >= 0 ? [{date:row.date,value:Number(value)}] : [];
         });
     }
+    // A single investment snapshot cannot form a curve. The old account curve
+    // remains available as an explicitly labelled reference, never mixed in.
+    function trendSeries(state, days, scope = 'asset', preference = 'auto') {
+        const assets = valueSeries(state, days, 'asset');
+        if (scope === 'asset') return {points:assets,basis:'asset'};
+        const investments = valueSeries(state, days, 'investment');
+        const reference = preference === 'asset-reference' ||
+            preference !== 'investment' && investments.length < 2 && assets.length > 1;
+        return reference ? {points:assets,basis:'asset-reference'} : {points:investments,basis:'investment'};
+    }
     // This drawdown measures the displayed balance, including cash flows.
     // Retain the amount from the same peak/trough pair as the largest percentage.
     function riskSummary(state, days, scope = 'asset') {
@@ -144,5 +154,5 @@
         });
         return [...byDate.values()].sort((a,b)=>a.date.localeCompare(b.date));
     }
-    return {category,selected,weights,record,marketSeries,summary,riskSummary,valueSeries,mergeRecords,investmentPoint,calendarMonth,calendarPeriod};
+    return {category,selected,weights,record,marketSeries,summary,riskSummary,valueSeries,trendSeries,mergeRecords,investmentPoint,calendarMonth,calendarPeriod};
 });

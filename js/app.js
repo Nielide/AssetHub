@@ -281,6 +281,8 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
         let charts = {};
         let itemToDelete = null;
         let nwRangeDays = 0;
+        const investmentBasisKey = () => 'assethub_investment_trend_basis:' + (localStorage.getItem('gh_repo') || 'Nielide/AssetHub') + ':' + (localStorage.getItem('gh_path') || 'data/data.json');
+        let nwInvestmentBasis = ['asset-reference','investment'].includes(localStorage.getItem(investmentBasisKey())) ? localStorage.getItem(investmentBasisKey()) : 'auto';
 
         let displayDate = new Date();
         let calViewMode = 0;
@@ -609,15 +611,22 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
             if (!canvas) return;
 
             const scope = document.getElementById('panel-allocation').hidden ? 'investment' : 'asset';
-            const records = PerformanceModel.valueSeries(state, nwRangeDays, scope);
-            canvas.setAttribute('aria-label', scope === 'investment' ? '投资持仓市值走势' : '总资产历史走势');
+            const trend = PerformanceModel.trendSeries(state, nwRangeDays, scope, nwInvestmentBasis);
+            const records = trend.points;
+            canvas.dataset.basis = trend.basis;
+            canvas.setAttribute('aria-label', trend.basis === 'investment' ? '投资持仓市值走势' : '总资产历史走势（含现金）');
+            const basisControl = document.getElementById('nw-trend-basis');
+            basisControl.style.visibility = scope === 'asset' ? 'hidden' : 'visible';
+            basisControl.inert = scope === 'asset';
+            basisControl.setAttribute('aria-hidden', String(scope === 'asset'));
+            basisControl.querySelectorAll('button').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.investmentBasis === trend.basis)));
 
             if (!records.length) {
                 if (charts.networth) { charts.networth.destroy(); charts.networth = null; }
-                emptyHint.innerText = scope === 'investment' ? '暂无投资市值记录' : '暂无资产记录';
+                emptyHint.innerText = trend.basis === 'investment' ? '暂无投资市值记录' : '暂无资产记录';
                 return;
             }
-            emptyHint.innerText = '';
+            emptyHint.innerText = trend.basis === 'investment' && records.length === 1 ? '仅有 1 条投资快照，暂未形成曲线' : '';
 
             const labels = records.map(r => r.date);
             const values = records.map(r => r.value);
