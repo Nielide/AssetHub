@@ -9,11 +9,11 @@ tailwind.config = {
                         mono: ['Inter', 'sans-serif'],
                     },
                     colors: {
-                        googleBlue: '#345d49', googleRed: '#b85e53', googleYellow: '#b69c69', googleGreen: '#41785b',
+                        googleBlue: '#245cf3', googleRed: '#c43c49', googleYellow: '#d18a18', googleGreen: '#008366',
                         googlePurple: '#9334e6',
-                        darkSurface: '#202920', darkBg: '#151c17', darkBorder: '#354037', darkText: '#e3e9df', darkTextSec: '#98a697',
-                        textPrimary: '#252e25', textSecondary: '#7c857b',
-                        stockRed: '#b85e53', stockRedBg: '#f8eeeb', stockGreen: '#41785b', stockGreenBg: '#edf3ec',
+                        darkSurface: '#111e31', darkBg: '#0a1220', darkBorder: '#314460', darkText: '#edf3ff', darkTextSec: '#a9b8d0',
+                        textPrimary: '#101f38', textSecondary: '#52627a',
+                        stockRed: '#c43c49', stockRedBg: '#fff0f2', stockGreen: '#008366', stockGreenBg: '#e6f7f1',
                     }
                 }
             }

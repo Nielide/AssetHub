@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#f7f8f5">
+  <meta name="theme-color" content="#eef2f8">
   <title>AssetHub — Wealth workspace</title>
   <link rel="icon" href="assets/images/logo.png" type="image/png">
   <link rel="apple-touch-icon" href="assets/images/apple-touch-icon3.png">
@@ -13,8 +13,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-  <script src="js/tailwind.config.js?v=20261013-2"></script>
-  <link rel="stylesheet" href="css/app.css?v=20261013-2">
+  <script src="js/tailwind.config.js?v=20261014-3"></script>
+  <link rel="stylesheet" href="css/app.css?v=20261014-3">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="AssetHub">
 </head>
@@ -55,7 +55,7 @@
         <section class="wealth-main" aria-label="Net worth and performance">
           <div class="networth-label"><span>Total net worth</span><span class="currency-label">CNY</span><button class="icon-button privacy-button" onclick="togglePrivacy()" aria-label="Toggle balance privacy"><svg id="eye-open" class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/></svg><svg id="eye-closed" class="ui-icon hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 3 18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.5 5.3A12 12 0 0 1 12 5c6.5 0 10 7 10 7a16 16 0 0 1-3.1 3.8M6.1 6.1A17 17 0 0 0 2 12s3.5 7 10 7a12 12 0 0 0 5.7-1.5"/></svg></button></div>
           <div class="wealth-value" id="total-nw-cny">¥0</div>
-          <div class="wealth-metrics"><div><span>Today’s P/L</span><div><strong id="today-pl-val">—</strong><small id="today-pl-pct">—</small></div></div><div><span>Unrealized P/L</span><div><strong id="total-unrealized-pl-val">—</strong><small id="total-unrealized-pl-pct">—</small></div></div><div><span>Period return</span><div><strong id="nw-period-return">—</strong><small id="hero-period-label">3 months</small></div></div></div>
+          <div class="wealth-metrics"><div><span>Today’s P/L</span><div><strong id="today-pl-val">—</strong><small id="today-pl-pct">—</small></div></div><div><span>Unrealized P/L</span><div><strong id="total-unrealized-pl-val">—</strong><small id="total-unrealized-pl-pct">—</small></div></div><div><span>Period return</span><div><strong id="nw-period-return">—</strong><small id="hero-period-label">3 months</small></div></div><div class="mix-metric"><span>Core ETFs</span><div><strong id="core-weight">—</strong><small>VOO + QQQM</small></div></div><div class="mix-metric"><span>Cash + Treasury</span><div><strong id="liquid-weight">—</strong><small>of net worth</small></div></div></div>
           <div class="performance-heading"><span class="chart-label"><i></i>Net worth</span><div class="range-control" role="group" aria-label="Net worth period"><button class="nw-range-btn" data-range="30" onclick="setNwRange(30)">1M</button><button class="nw-range-btn" data-range="90" onclick="setNwRange(90)">3M</button><button class="nw-range-btn" data-range="365" onclick="setNwRange(365)">1Y</button><button class="nw-range-btn" data-range="0" onclick="setNwRange(0)">All</button></div></div>
           <div class="networth-chart"><canvas id="chart-networth" aria-label="Net worth history" role="img"></canvas><div id="chart-hover" class="chart-hover" aria-live="off" hidden></div></div><p id="nw-empty-hint" class="muted"></p>
           <div class="chart-caption"><span id="history-caption">Based on your recorded portfolio values</span><span>Max drawdown <b id="nw-max-drawdown">—</b><span class="caption-divider">/</span>Annualized vol. <b id="nw-volatility">—</b></span></div>
@@ -63,8 +63,8 @@
         <aside class="allocation-panel" aria-label="Asset allocation"><div class="section-title"><h2>Asset allocation</h2><span class="currency-label">CNY BASIS</span></div><div class="allocation-bar" id="allocation-bar" aria-label="Portfolio allocation"></div><div id="allocation-breakdown"></div><div class="currency-summary"><span class="eyebrow">BALANCES BY CURRENCY</span><div><span>USD</span><b id="total-usd-assets">$0</b></div><div><span>CNY</span><b id="total-cny-assets">¥0</b></div><div><span>HKD</span><b id="total-hkd-assets">HK$0</b></div></div><button class="text-link allocation-link" onclick="navigateWorkspace('holdings')">Explore your holdings <svg  class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button></aside>
       </div>
       <div class="overview-detail-grid">
-        <section class="positions-surface"><div class="surface-heading"><div><h2>Largest positions</h2><p class="muted">Across your invested portfolio</p></div><button class="text-link" onclick="navigateWorkspace('holdings')">View all <svg  class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button></div><div class="positions-list-heading"><span>Asset</span><span>Market value</span><span>Return</span><span>Weight</span></div><div id="vooqqqm-rows"></div></section>
-        <section id="alert-card" class="risk-surface"><div class="surface-heading"><div><span class="eyebrow">RISK MONITOR</span><h2>Drawdown watch</h2></div><span id="alert-count" class="risk-count"></span></div><div id="dd-alert-list"></div><div class="risk-footer"><span id="risk-reference-hint"></span><button class="text-link" onclick="navigateWorkspace('drawdown')">Open tracker <svg  class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button></div></section>
+        <section class="positions-surface"><div class="surface-heading"><div><h2 id="positions-title">Largest positions</h2><p class="muted" id="positions-subtitle">Across your invested portfolio</p></div><div class="position-heading-actions"><div class="position-view-control" role="group" aria-label="Rank positions"><button data-position-view="value" onclick="setPositionView('value')" aria-pressed="true">By value</button><button data-position-view="return" onclick="setPositionView('return')" aria-pressed="false">By return</button></div><button class="text-link" onclick="navigateWorkspace('holdings')">View all <svg  class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button></div></div><div class="positions-list-heading"><span>Asset / Quantity / Price</span><span>Market value</span><span>Return / P/L</span><span>Weight</span></div><div id="vooqqqm-rows"></div></section>
+        <section id="alert-card" class="risk-surface"><div class="surface-heading"><div><h2>Drawdown watch</h2></div><span id="alert-count" class="risk-count"></span></div><div class="risk-coverage"><span id="risk-coverage-label">Reference coverage</span><span class="risk-coverage-bar"><i id="risk-coverage-progress"></i></span></div><div id="dd-alert-list"></div><div class="risk-footer"><span id="risk-reference-hint"></span><button class="text-link" onclick="navigateWorkspace('drawdown')">Open tracker <svg  class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button></div></section>
       </div>
     </section>
     <section id="panel-holdings" class="workspace-panel" data-panel="holdings" hidden>
@@ -159,10 +159,10 @@
     </div>
 
   <div id="tv-ticker-container" class="ticker-position" hidden></div>
-  <script src="js/drawdown-model.js?v=20261013-2"></script>
-  <script src="js/app.js?v=20261013-2"></script>
-  <script src="js/cloud-loader.js?v=20261013-2"></script>
-  <script src="js/dashboard.js?v=20261013-2"></script>
-  <script src="js/workspace.js?v=20261013-2"></script>
+  <script src="js/drawdown-model.js?v=20261014-3"></script>
+  <script src="js/app.js?v=20261014-3"></script>
+  <script src="js/cloud-loader.js?v=20261014-3"></script>
+  <script src="js/dashboard.js?v=20261014-3"></script>
+  <script src="js/workspace.js?v=20261014-3"></script>
 </body>
 </html>

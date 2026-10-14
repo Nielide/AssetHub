@@ -4,7 +4,11 @@
     const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
     const money = (value, currency = 'CNY', decimals = 0) => isPrivacyMode ? '••••' : ({ CNY: '¥', USD: '$', HKD: 'HK$' }[currency] || currency + ' ') + Number(value).toLocaleString('en-US', { maximumFractionDigits: decimals, minimumFractionDigits: decimals });
     const arrow = '<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>';
-    let currentPanel = 'overview', market = 'all', editingHoldings = false, editingReferences = false;
+    let currentPanel = 'overview', market = 'all', editingHoldings = false, editingReferences = false, positionView = 'value';
+    window.setPositionView = value => {
+        positionView = value === 'return' ? 'return' : 'value';
+        renderVooQqqm();
+    };
 
     window.navigateWorkspace = (name, updateHash = true) => {
         if (!['overview', 'holdings', 'drawdown', 'activity'].includes(name)) name = 'overview';
@@ -80,10 +84,10 @@
         const types = ['usd', 'cn', 'sgov'];
         const positions = types.flatMap(type => state[type].filter(item => item.shares > 0).map(item => ({ ...item, type, currency: type === 'cn' ? 'CNY' : 'USD', value: item.shares * item.price, converted: item.shares * item.price * (type === 'cn' ? 1 : fx) })));
         const values = [
-            { type: 'usd', label: 'US equities', color: '#284e42', value: positions.filter(item => item.type === 'usd').reduce((sum, item) => sum + item.converted, 0) },
-            { type: 'cn', label: 'China equities', color: '#b69c69', value: positions.filter(item => item.type === 'cn').reduce((sum, item) => sum + item.converted, 0) },
-            { type: 'sgov', label: 'Treasury ETF', color: '#8fa994', value: positions.filter(item => item.type === 'sgov').reduce((sum, item) => sum + item.converted, 0) },
-            { type: 'cash', label: 'Cash', color: '#d3d9ce', value: state.cash.reduce((sum, item) => sum + item.amount * (item.currency === 'USD' ? fx : item.currency === 'HKD' ? state.hkdFx || 0.93 : 1), 0) }
+            { type: 'usd', label: 'US equities', color: 'var(--allocation-us)', value: positions.filter(item => item.type === 'usd').reduce((sum, item) => sum + item.converted, 0) },
+            { type: 'cn', label: 'China equities', color: 'var(--allocation-cn)', value: positions.filter(item => item.type === 'cn').reduce((sum, item) => sum + item.converted, 0) },
+            { type: 'sgov', label: 'Treasury ETF', color: 'var(--allocation-sgov)', value: positions.filter(item => item.type === 'sgov').reduce((sum, item) => sum + item.converted, 0) },
+            { type: 'cash', label: 'Cash', color: 'var(--allocation-cash)', value: state.cash.reduce((sum, item) => sum + item.amount * (item.currency === 'USD' ? fx : item.currency === 'HKD' ? state.hkdFx || 0.93 : 1), 0) }
         ];
         const total = values.reduce((sum, item) => sum + item.value, 0);
         return { positions, values, total, fx };
@@ -106,7 +110,11 @@
         state.cash.forEach(item => { const value = el('val-cash-' + item.id); if (value) value.textContent = money(item.amount, item.currency || 'CNY', 2); });
     };
     function renderAllocation() {
-        const { values, total, fx } = portfolioValues();
+        const { positions, values, total, fx } = portfolioValues();
+        const core = positions.filter(item => ['VOO', 'QQQM'].includes(String(item.ticker).trim().toUpperCase())).reduce((sum, item) => sum + item.converted, 0);
+        const liquid = values.filter(item => ['sgov', 'cash'].includes(item.type)).reduce((sum, item) => sum + item.value, 0);
+        el('core-weight').textContent = isPrivacyMode ? '••••' : (total ? core / total * 100 : 0).toFixed(1) + '%';
+        el('liquid-weight').textContent = isPrivacyMode ? '••••' : (total ? liquid / total * 100 : 0).toFixed(1) + '%';
         el('allocation-bar').innerHTML = values.map(item => `<span style="width:${total ? item.value / total * 100 : 25}%;background:${item.color}" title="${item.label}"></span>`).join('');
         el('allocation-breakdown').innerHTML = values.map(item => {
             const pct = total > 0 ? item.value / total * 100 : 0;
@@ -120,11 +128,18 @@
     }
     renderVooQqqm = function () {
         const { positions, total } = portfolioValues();
-        const top = positions.sort((a, b) => b.converted - a.converted).slice(0, 5);
+        const returnRate = item => item.cost > 0 ? item.price / item.cost - 1 : -Infinity;
+        const ranked = positionView === 'return' ? positions.filter(item => item.cost > 0).sort((a, b) => returnRate(b) - returnRate(a) || b.converted - a.converted) : positions.sort((a, b) => b.converted - a.converted);
+        const top = ranked.slice(0, 5);
+        el('positions-title').textContent = positionView === 'return' ? 'Return leaders' : 'Largest positions';
+        el('positions-subtitle').textContent = positionView === 'return' ? 'Unrealized return · Positions with a cost basis' : `${positions.length} invested positions · Ranked by CNY value`;
+        document.querySelectorAll('[data-position-view]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.positionView === positionView)));
         el('vooqqqm-rows').innerHTML = top.map(item => {
             const cost = item.shares * (item.cost || 0), pct = cost > 0 ? (item.value / cost - 1) * 100 : 0;
             const icon = document.querySelector(`#${item.type}-inputs input[data-id="${CSS.escape(String(item.id))}"][data-field="ticker"]`)?.parentElement.querySelector('.holding-icon');
-            return `<button class="position-item" data-symbol="${escapeHTML(item.ticker)}"><span class="position-symbol"><span class="position-logo">${icon?.innerHTML || escapeHTML(item.ticker.slice(0, 1))}</span><span><b>${escapeHTML(item.ticker)}</b><small>${({ usd: 'US equity · USD', cn: 'China equity · CNY', sgov: 'Treasury ETF · USD' })[item.type]}</small></span></span><span class="position-value">${money(item.value, item.currency, 2)}</span><span class="position-return ${cost > 0 ? pct < 0 ? 'negative' : 'positive' : ''}">${cost > 0 ? (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%' : '—'}</span><span class="position-weight">${total ? (item.converted / total * 100).toFixed(1) : '0.0'}%</span></button>`;
+            const weight = total ? item.converted / total * 100 : 0;
+            const quantity = isPrivacyMode ? '••••' : Number(item.shares).toLocaleString('en-US', { maximumFractionDigits: 2 });
+            return `<button class="position-item" data-symbol="${escapeHTML(item.ticker)}"><span class="position-symbol"><span class="position-logo">${icon?.innerHTML || escapeHTML(item.ticker.slice(0, 1))}</span><span><b>${escapeHTML(item.ticker)}</b><small>${quantity} shares · ${money(item.price, item.currency, item.type === 'cn' ? 3 : 2)}</small></span></span><span class="position-value">${money(item.value, item.currency, 2)}</span><span class="position-return ${cost > 0 ? pct < 0 ? 'negative' : 'positive' : ''}"><b>${cost > 0 ? (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%' : '—'}</b><small>${cost > 0 ? (isPrivacyMode ? '••••' : (pct >= 0 ? '+' : '−') + money(Math.abs(item.value - cost), item.currency)) : 'Cost basis needed'}</small></span><span class="position-weight"><b>${weight.toFixed(1)}%</b><span class="weight-track"><i style="width:${weight}%;"></i></span></span></button>`;
         }).join('') || '<div class="empty-state">Add your first holding to see your portfolio here.</div>';
         el('vooqqqm-rows').querySelectorAll('button').forEach(button => button.addEventListener('click', () => openPortfolioPosition(button.dataset.symbol)));
         el('vooqqqm-rows').querySelectorAll('img').forEach(img => {
@@ -138,6 +153,9 @@
         const ready = rows.filter(item => item.data.ready).sort((a, b) => b.data.drop - a.data.drop);
         const count = ready.filter(item => item.data.drop >= 5).length;
         const pending = rows.filter(item => !item.row.high).length;
+        const coverage = rows.length - pending;
+        el('risk-coverage-label').textContent = `${coverage}/${rows.length} reference highs set`;
+        el('risk-coverage-progress').style.width = (rows.length ? coverage / rows.length * 100 : 0) + '%';
         el('alert-count').textContent = count + ' to watch';
         el('nav-risk-count').textContent = count || '';
         el('risk-reference-hint').textContent = pending ? `${pending} reference highs to set` : 'All reference highs set';
@@ -156,32 +174,33 @@
         const chart = charts.networth;
         if (!chart) return;
         const dark = document.documentElement.classList.contains('dark');
-        chart.data.datasets[0].borderColor = dark ? '#a7c2a2' : '#476c51';
-        chart.data.datasets[0].borderWidth = 2;
+        chart.data.datasets[0].borderColor = dark ? '#7ea6ff' : '#245cf3';
+        chart.data.datasets[0].borderWidth = 2.5;
         chart.data.datasets[0].fill = true;
         chart.data.datasets[0].backgroundColor = context => {
             const { ctx, chartArea } = context.chart;
             if (!chartArea) return 'transparent';
             const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-            gradient.addColorStop(0, dark ? 'rgba(143,174,141,.18)' : 'rgba(126,153,106,.18)');
-            gradient.addColorStop(1, dark ? 'rgba(143,174,141,0)' : 'rgba(126,153,106,.01)');
+            gradient.addColorStop(0, dark ? 'rgba(83,139,255,.3)' : 'rgba(36,92,243,.18)');
+            gradient.addColorStop(1, dark ? 'rgba(83,139,255,.01)' : 'rgba(36,92,243,.01)');
             return gradient;
         };
-        chart.data.datasets[0].pointHoverBackgroundColor = dark ? '#a7c2a2' : '#476c51';
+        chart.data.datasets[0].pointHoverBackgroundColor = dark ? '#7ea6ff' : '#245cf3';
         chart.options.animation = { duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 350 };
         chart.options.scales.x.border = { display: false };
-        chart.options.scales.x.ticks = { maxTicksLimit: chart.width < 500 ? 4 : 7, maxRotation: 0, color: dark ? '#95a196' : '#8a928a', padding: 12, font: { family: 'Inter', size: 11 } };
+        chart.options.scales.x.ticks = { maxTicksLimit: chart.width < 500 ? 4 : 7, maxRotation: 0, color: dark ? '#a9b8d0' : '#52627a', padding: 10, font: { family: 'Inter', size: 12 } };
         chart.options.onResize = (chart, size) => { chart.options.scales.x.ticks.maxTicksLimit = size.width < 500 ? 4 : 7; };
         chart.options.scales.y.position = 'right';
         chart.options.scales.y.border = { display: false };
-        chart.options.scales.y.grid = { color: dark ? '#2d372e' : '#e9ece5', drawTicks: false };
-        chart.options.scales.y.ticks = { maxTicksLimit: 5, color: dark ? '#95a196' : '#8a928a', padding: 12, font: { family: 'Inter', size: 11 }, callback: value => isPrivacyMode ? '••••' : '¥' + (value / 1000).toFixed(0) + 'k' };
+        chart.options.scales.y.grid = { color: dark ? '#2b3b56' : '#dce4f0', drawTicks: false };
+        chart.options.scales.y.ticks = { maxTicksLimit: 4, color: dark ? '#a9b8d0' : '#52627a', padding: 10, font: { family: 'Inter', size: 12 }, callback: value => isPrivacyMode ? '••••' : '¥' + (value / 1000).toFixed(0) + 'k' };
         chart.options.plugins.tooltip = {
             enabled: !isPrivacyMode, mode: 'index', intersect: false, displayColors: false,
-            backgroundColor: dark ? '#e5ece2' : '#263d31', titleColor: dark ? '#1d2c21' : '#c9d6c7', bodyColor: dark ? '#1d2c21' : '#ffffff',
-            padding: 12, cornerRadius: 8, bodyFont: { family: 'Inter', size: 14, weight: '600' }, titleFont: { family: 'Inter', size: 11 },
+            backgroundColor: dark ? '#edf3ff' : '#101f38', titleColor: dark ? '#182c4a' : '#b6c9e8', bodyColor: dark ? '#182c4a' : '#ffffff',
+            padding: 14, cornerRadius: 8, bodyFont: { family: 'Inter', size: 16, weight: '600' }, titleFont: { family: 'Inter', size: 12 },
             callbacks: { label: context => money(context.raw, 'CNY', 2) }
         };
+        chart.stop();
         chart.update('none');
         const historyRecords = state.history.slice().sort((a, b) => a.date.localeCompare(b.date));
         el('history-caption').textContent = chart.data.labels.length + ' recorded days · ' + historyRecords[historyRecords.length - 1]?.date;
