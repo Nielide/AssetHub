@@ -455,8 +455,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                     todayPlEl.className = `text-2xl md:text-3xl font-bold font-mono ${colorClass}`;
                 } else {
                     const startVal = parseFloat(todayPlEl.innerText.replace(/[^\d.]/g, '')) || 0;
-                    const signPrefix = pl >= 0 ? '+' : '-';
-					animateNumber(todayPlEl, startVal, Math.abs(pl), 500, signPrefix, 0);
+                    animateNumber(todayPlEl, startVal, Math.abs(pl), 500, prefixPl, 0);
                     todayPlEl.className = `text-2xl md:text-3xl font-bold font-mono ${colorClass}`;
                 }
             }
@@ -485,8 +484,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                     unPlEl.className = `text-2xl md:text-3xl font-bold font-mono ${colorClassUn}`;
                 } else {
                     const startValUn = parseFloat(unPlEl.innerText.replace(/[^\d.]/g, '')) || 0;
-                    const signUnPrefix = totalUnPl >= 0 ? '+' : '-';
-					animateNumber(unPlEl, startValUn, Math.abs(totalUnPl), 500, signUnPrefix, 0);
+                    animateNumber(unPlEl, startValUn, Math.abs(totalUnPl), 500, prefixUnPl, 0);
                     if (totalCostEl) totalCostEl.innerText = `¥${Math.round(currentTotalCost)}`;
                     if (totalValueEl) totalValueEl.innerText = `¥${Math.round(currentTotal)}`;
                     unPlEl.className = `text-2xl md:text-3xl font-bold font-mono ${colorClassUn}`;
