@@ -1,5 +1,12 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const model=require('../js/performance-model'),portfolio=require('../js/portfolio-model');
+test('monthly and annual asset balances use the final actual snapshot, including zero cash closure',()=>{
+    const rows=[{date:'2026-02-01',total:2000,pl:100,rate:10},{date:'2026-02-02',total:1500,investmentPerformance:{pl:-50,rate:-10,total:1000}}];
+    const summary=model.calendarPeriod(rows.reverse());
+    assert.equal(summary.profit,50);assert.ok(Math.abs(summary.rate+1)<1e-10);assert.equal(summary.total,1500);
+    assert.equal(model.calendarPeriod([...rows,{date:'2026-12-31',total:0,pl:0,rate:0}]).total,0);
+    assert.equal(model.calendarPeriod([]).total,null);
+});
 test('investment calendar excludes deposits, cash FX and holding FX movements',()=>{
     const state={usd:[{id:1,shares:2,cost:100,price:100}],cn:[{id:2,shares:10,cost:5,price:5}],cash:[{id:3,currency:'USD',amount:1000}],history:[{date:'2026-01-01',total:10000,pl:8,rate:1}]};
     model.record(state,'2026-01-01',7);

@@ -48,12 +48,14 @@
         currentPanel = name;
         document.querySelectorAll('[data-panel]').forEach(panel => { panel.hidden = panel.dataset.panel !== name; });
         document.querySelectorAll('[data-workspace]').forEach(link => {
-            const active = link.dataset.workspace === (calendarRoute ? 'activity' : name) || (name === 'asset' && link.dataset.workspace === 'holdings');
+            const active = link.dataset.workspace === name || (name === 'asset' && link.dataset.workspace === 'holdings');
             link.classList.toggle('active', active);
             if (active) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current');
         });
         if (updateHash && location.hash !== '#' + route) history.pushState(null, '', '#' + route);
-        if (name === 'overview') requestAnimationFrame(() => charts.networth?.resize());
+
+        el('portfolio-hero').hidden = !['overview','allocation'].includes(name);
+        if (name === 'overview' || name === 'allocation') requestAnimationFrame(() => { charts.networth?.resize(); window.renderOverviewPerformance?.(); });
         if (name === 'asset' && window.renderAssetDetail) renderAssetDetail();
         if (name === 'transactions' && window.renderTransactions) renderTransactions();
         if (name === 'funds' && window.renderFunds) renderFunds();
@@ -165,23 +167,10 @@
     function renderAllocation() {
         const data = PortfolioModel.assetOverview(portfolioValues());
         const percent = value => isPrivacyMode ? '••••' : value.toFixed(1) + '%';
-        el('asset-grand-total').textContent = money(data.total, 'CNY', 2);
-        el('asset-investment-weight').textContent = percent(data.investmentWeight);
-        el('asset-investment-legend').textContent = percent(data.investmentWeight);
-        el('asset-cash-weight').textContent = percent(data.cashWeight);
 
-        const circumference = 2 * Math.PI * 96; let offset = 0;
-        data.groups.forEach(group => {
-            el('asset-top-' + group.key).textContent = money(group.value, group.currency, 2);
-            const ring = el('asset-ring-' + group.key), length = circumference * group.weight / 100;
-            ring.setAttribute('stroke-dasharray', length + ' ' + (circumference - length));
-            ring.setAttribute('stroke-dashoffset', -offset); offset += length;
-        });
-        el('asset-chart-legend').innerHTML = data.groups.map(group => '<span style="--group-color:'+group.color+'"><i></i>'+group.label+'</span>').join('');
-        document.querySelector('.asset-ring').setAttribute('aria-label', isPrivacyMode ? '资产配置已隐藏' : data.groups.map(group=>group.label+' '+percent(group.weight)).join('，'));
-        el('asset-investment-track').style.width = data.investmentWeight + '%';
-        el('asset-cash-track').style.width = data.cashWeight + '%';
-        el('allocation-breakdown').innerHTML = data.groups.map(group => `<button class="asset-category-row" data-asset-group="${group.key}" data-market="${group.market}" type="button" aria-label="查看${group.label}明细" style="--group-color:${group.color}"><span class="asset-category-name"><i class="asset-category-icon" aria-hidden="true">${group.currency === 'USD' ? '$' : group.currency === 'HKD' ? 'HK' : '¥'}</i><span><b>${group.label}</b></span></span><strong class="asset-category-native" data-label="原币金额">${money(group.value, group.currency, 2)}</strong><span class="asset-category-converted" data-label="人民币折算">${money(group.converted, 'CNY', 2)}</span><span class="asset-category-weight" data-label="资产占比"><b>${percent(group.weight)}</b><i><em style="width:${group.weight}%"></em></i></span></button>`).join('');
+        el('asset-investment-weight').textContent = percent(data.investmentWeight);
+        el('asset-cash-weight').textContent = percent(data.cashWeight);
+        el('allocation-breakdown').innerHTML = data.groups.map(group => `<button class="asset-category-row" data-asset-group="${group.key}" data-market="${group.market}" type="button" aria-label="查看${group.label}明细" style="--group-color:${group.color}"><span class="asset-category-name"><i class="asset-category-icon" aria-hidden="true">${group.currency === 'USD' ? '$' : group.currency === 'HKD' ? 'HK' : '¥'}</i><b>${group.label}</b></span><strong class="asset-category-share">${percent(group.weight)}</strong><span class="asset-category-converted" data-label="人民币折算">${money(group.converted, 'CNY', 2)}</span></button>`).join('');
         el('allocation-breakdown').querySelectorAll('button').forEach(button => button.addEventListener('click', () => {
             if (button.dataset.market !== 'cash') {
                 navigateWorkspace('overview'); setOverviewMarket(button.dataset.market);
@@ -295,7 +284,7 @@
     const originalRange = setNwRange;
     setNwRange = function (days) {
         originalRange(days);
-        document.querySelectorAll('#panel-overview .nw-range-btn').forEach(button => button.setAttribute('aria-pressed', String(Number(button.dataset.range) === days)));
+        document.querySelectorAll('#portfolio-hero .nw-range-btn').forEach(button => button.setAttribute('aria-pressed', String(Number(button.dataset.range) === days)));
     };
     const originalRenderAll = renderAllRows;
     renderAllRows = function () {

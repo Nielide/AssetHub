@@ -588,7 +588,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
         // 切换净值曲线显示的时间范围。
         function setNwRange(days) {
             nwRangeDays = days;
-            document.querySelectorAll('#panel-overview .nw-range-btn').forEach(b => {
+            document.querySelectorAll('#portfolio-hero .nw-range-btn').forEach(b => {
                 const isActive = parseInt(b.dataset.range) === days;
                 b.classList.toggle('bg-white', isActive);
                 b.classList.toggle('dark:bg-darkSurface', isActive);
@@ -619,7 +619,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
             emptyHint.innerText = '';
 
             const labels = records.map(r => r.date);
-            const values = records.map(r => (r.total || r.value || 0));
+            const values = records.map(r => (r.total ?? r.value ?? 0));
 
             let cumulative = 1;
             for (let i = 1; i < records.length; i++) {
@@ -998,131 +998,6 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                 `;
                 container.appendChild(row);
             });
-        }
-
-        // 在日历的每日视图和年度视图之间切换。
-        function switchView(view) {
-            const tabDaily = document.getElementById('tab-daily');
-            const tabYearly = document.getElementById('tab-yearly');
-            const viewDaily = document.getElementById('view-daily');
-            const viewYearly = document.getElementById('view-yearly');
-            const controlsDaily = document.getElementById('controls-daily');
-            const controlsYearly = document.getElementById('controls-yearly');
-
-            const activeClasses = ['bg-white', 'dark:bg-darkSurface', 'shadow-sm', 'text-textPrimary', 'dark:text-darkText'];
-            const inactiveClasses = ['text-textSecondary', 'dark:text-darkTextSec', 'hover:text-textPrimary', 'dark:hover:text-darkText'];
-
-            tabDaily.setAttribute('aria-pressed', String(view === 'daily'));
-            tabYearly.setAttribute('aria-pressed', String(view === 'yearly'));
-            if (view === 'daily') {
-                tabDaily.classList.add(...activeClasses);
-                tabDaily.classList.remove(...inactiveClasses);
-                tabYearly.classList.add(...inactiveClasses);
-                tabYearly.classList.remove(...activeClasses);
-
-                viewDaily.classList.remove('hidden');
-                controlsDaily.classList.remove('hidden');
-                viewYearly.classList.add('hidden');
-                controlsYearly.classList.add('hidden');
-            } else {
-                tabYearly.classList.add(...activeClasses);
-                tabYearly.classList.remove(...inactiveClasses);
-                tabDaily.classList.add(...inactiveClasses);
-                tabDaily.classList.remove(...activeClasses);
-
-                viewYearly.classList.remove('hidden');
-                controlsYearly.classList.remove('hidden');
-                viewDaily.classList.add('hidden');
-                controlsDaily.classList.add('hidden');
-            }
-            if (view === 'daily') renderCalendar(); else renderYearlySummary();
-        }
-
-        // 日历显示模式：每日盈亏、每日百分比、总资产。
-        function setCalendarView(mode) {
-            calViewMode = mode;
-            const activeClasses = ['bg-white', 'dark:bg-darkSurface', 'shadow-sm', 'text-blue-600', 'dark:text-blue-400'];
-            const inactiveClasses = ['text-textSecondary', 'dark:text-darkTextSec', 'hover:text-textPrimary', 'dark:hover:text-darkText'];
-
-            for (let i = 0; i <= 2; i++) {
-                const btn = document.getElementById(`view-mode-${i}`);
-                btn.setAttribute('aria-pressed', String(i === mode));
-                if (i === mode) {
-                    btn.classList.add(...activeClasses);
-                    btn.classList.remove(...inactiveClasses);
-                } else {
-                    btn.classList.add(...inactiveClasses);
-                    btn.classList.remove(...activeClasses);
-                }
-            }
-            renderCalendar();
-        }
-
-        // 从年度汇总跳转到指定月份。
-        function jumpToMonth(monthIndex) {
-            displayDate.setDate(1);
-            displayDate.setMonth(monthIndex);
-            renderCalendar();
-            renderYearlySummary();
-            switchView('daily');
-        }
-
-        // 每日历按月份前后切换。
-        function changeMonth(offset) {
-            displayDate.setDate(1);
-            displayDate.setMonth(displayDate.getMonth() + offset);
-            renderCalendar();
-        }
-
-        // 年度汇总按年份前后切换。
-        function changeYear(offset) {
-            displayDate.setDate(1);
-            displayDate.setFullYear(displayDate.getFullYear() + offset);
-            renderYearlySummary();
-            renderCalendar();
-        }
-
-
-        // Legacy mixed-asset records stay intact and are explicitly marked.
-        function renderYearlySummary() {
-            const year=displayDate.getFullYear();
-            const badge=document.getElementById('current-year-badge');if(badge)badge.textContent=year;
-            document.getElementById('cal-year-display').textContent=year+'年';
-            const rows=state.history.filter(row=>row.date?.startsWith(year+'-'));
-            const months=Array.from({length:12},(_,index)=>PerformanceModel.calendarMonth(rows.filter(row=>Number(row.date.slice(5,7))===index+1)));
-            const max=Math.max(1,...months.map(m=>Math.abs(m.profit||0)));
-            document.getElementById('monthly-grid').innerHTML=months.map((m,index)=>{
-                const tone=m.profit>0?'gain':m.profit<0?'loss':'flat';
-                const profit=m.profit===null?'—':isPrivacyMode?'••••':calendarMoney(m.profit,true,2);
-                const rate=m.rate===null?'—':isPrivacyMode?'••••':(m.rate>=0?'+':'−')+Math.abs(m.rate).toFixed(2)+'%';
-                const total=m.total===null?'—':isPrivacyMode?'••••':calendarMoney(m.total,false,0);
-                return '<button type="button" data-month="'+index+'" data-has-record="'+(m.profit!==null)+'" data-level="'+Math.max(1,Math.ceil(Math.abs(m.profit||0)/max*4))+'" data-tone="'+tone+'" onclick="jumpToMonth('+index+')" class="flex flex-col items-center justify-center" aria-label="'+(index+1)+'月收益，查看月历"><span>'+(index+1)+'月</span><span data-monthly-value="'+(m.profit??'')+'">'+profit+'</span><span data-monthly-rate>'+rate+'</span><span class="monthly-balance"><span>'+(m.totalLegacy?'总资产':'投资市值')+'</span><span data-monthly-total>'+total+'</span></span>'+(m.legacy?'<span class="monthly-legacy-label" title="包含旧口径记录">旧口径</span>':'')+'</button>';
-            }).join('');
-            const summary=PerformanceModel.calendarMonth(rows), total=document.getElementById('yearly-total');
-            total.dataset.tone=summary.profit>0?'gain':summary.profit<0?'loss':'flat';
-            total.textContent=summary.profit===null?'—':isPrivacyMode?'••••':calendarMoney(summary.profit,true,2);
-            if (!document.getElementById('view-yearly').classList.contains('hidden')) document.getElementById('calendar-basis-legend').hidden=!summary.legacy;
-        }
-        function renderCalendar() {
-            const year=displayDate.getFullYear(),month=displayDate.getMonth();
-            document.getElementById('cal-month-display').textContent=year+'年'+(month+1)+'月';
-            const grid=document.getElementById('calendar-grid'),byDate=new Map(state.history.map(row=>[row.date,PerformanceModel.investmentPoint(row)]));
-            const firstDay=new Date(year,month,1).getDay(),days=new Date(year,month+1,0).getDate();
-            const d=new Date(),today=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-            let markup=['日','一','二','三','四','五','六'].map(day=>'<div class="calendar-weekday">'+day+'</div>').join('');
-            for(let slot=0;slot<42;slot++){
-                const day=slot-firstDay+1;
-                if(day<1||day>days){markup+='<div aria-hidden="true"></div>';continue;}
-                const date=year+'-'+String(month+1).padStart(2,'0')+'-'+String(day).padStart(2,'0'),point=byDate.get(date);
-                const value=point?(calViewMode===0?point.pl:calViewMode===1?point.rate:point.total):null;
-                const known=value!==null&&value!==undefined;
-                const text=!point?'':!known?'—':isPrivacyMode?'••••':calViewMode===1?(value>=0?'+':'−')+Math.abs(value).toFixed(1)+'%':calendarMoney(value,calViewMode===0,0);
-                const tone=point?.pl>0?'gain':point?.pl<0?'loss':'flat';
-                const title=!point?'':point.legacy?'旧口径：包含现金和汇率贡献':point.pl===null?'投资口径：缺少前一天的持仓记录':'投资口径：不含现金及汇率变动';
-                markup+='<div data-date="'+date+'" data-has-record="'+known+'" data-today="'+(date===today)+'" data-level="'+(Math.abs(point?.rate||0)<.25?1:Math.abs(point?.rate||0)<.75?2:Math.abs(point?.rate||0)<1.5?3:4)+'" data-tone="'+tone+'" class="relative flex flex-col items-center justify-center" title="'+title+'"><span class="calendar-day-number">'+day+'</span>'+(point?.legacy?'<i class="calendar-legacy-mark" aria-label="旧口径"></i>':'')+'<span data-calendar-value data-amount="'+(value??'')+'">'+text+'</span></div>';
-            }
-            grid.innerHTML=markup;
-            if (!document.getElementById('view-daily').classList.contains('hidden')) document.getElementById('calendar-basis-legend').hidden=!state.history.some(row=>row.date?.startsWith(year+'-'+String(month+1).padStart(2,'0'))&&PerformanceModel.investmentPoint(row).legacy);
         }
 
         // 通过腾讯行情接口更新 A 股价格。

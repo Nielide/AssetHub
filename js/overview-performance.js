@@ -3,7 +3,7 @@
     function text(value, unit, decimals, signed) {
         if (!Number.isFinite(value)) return '—';
         if (isPrivacyMode) return '••••';
-        return (value < 0 ? '−' : signed ? '+' : '') + ({ USD: '$', CNY: '¥' }[unit] || '') + Math.abs(value).toFixed(decimals) + (unit === '%' ? '%' : '');
+        return (value < 0 ? '−' : signed ? '+' : '') + ({ USD: '$', CNY: '¥', HKD: 'HK$' }[unit] || '') + Math.abs(value).toFixed(decimals) + (unit === '%' ? '%' : '');
     }
     function metric(id, value, unit, decimals = 0, {signed = true, neutral = false, refresh = false} = {}) {
         const node = el(id);
@@ -34,7 +34,30 @@
     }
     window.renderOverviewPerformance = function(refresh = false) {
         const snapshot = PortfolioModel.snapshot(state, el('fx-rate').value), summary = PerformanceModel.summary(state, nwRangeDays).total, risk = PerformanceModel.riskSummary(state, nwRangeDays);
-        metric('total-nw-cny', snapshot.positions.reduce((sum,item) => sum + item.converted,0), 'CNY', 0, {signed:false,neutral:true,refresh});
+
+        const assetScope = !el('panel-allocation').hidden;
+        const hero = el('portfolio-hero'), scope = assetScope ? 'allocation' : 'overview';
+        if (hero.dataset.scope !== scope) hero.querySelectorAll('[data-display-value]').forEach(node => delete node.dataset.displayValue);
+        hero.dataset.scope = scope;
+        document.querySelector('.networth-label>span').textContent = assetScope ? '总资产' : '投资市值';
+        document.querySelector('.chart-label').innerHTML = '<i></i>' + (assetScope ? '资产走势' : '资产历史 · 含现金');
+        metric('total-nw-cny', assetScope ? snapshot.total : snapshot.positions.reduce((sum,item) => sum + item.converted,0), 'CNY', 0, {signed:false,neutral:true,refresh});
+
+        const fields = [...document.querySelectorAll('.wealth-metrics>div')];
+        const valueIds = ['today-pl-val','us-pl-value','cn-pl-value','total-unrealized-pl-val','nw-max-drawdown'];
+        const secondaryIds = ['today-pl-pct','us-pl-pct','cn-pl-pct','total-unrealized-pl-pct','nw-drawdown-amount'];
+        secondaryIds.forEach(id => { el(id).hidden = assetScope; el(id).classList.toggle('hidden',assetScope); });
+        const labels = assetScope ? ['美股持仓','美元现金','A股持仓','人民币现金','港币现金'] : ['今日盈亏','美股盈亏','A股盈亏','总盈亏','最大回撤'];
+        fields.forEach((field,i) => {
+            field.querySelector(':scope>span').textContent = labels[i];
+            field.title = assetScope ? '' : i === 3 ? '所选区间的每日盈亏汇总' : i === 4 ? '所选区间的资产高点到低点回落，包含资金进出的影响' : '';
+        });
+        if (assetScope) {
+            const groups = PortfolioModel.assetOverview(snapshot).groups;
+            groups.forEach((group,i) => metric(valueIds[i],group.value,group.currency,2,{signed:false,neutral:true,refresh}));
+            metric('nw-volatility',risk.volatility,'%',2,{signed:false,neutral:true,refresh});
+            return;
+        }
         const now = new Date(), date = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0'), today = state.history.find(row => row.date === date);
         metric('today-pl-val', Number.isFinite(today?.pl) ? today.pl : null, 'CNY', 0, {refresh});
         metric('today-pl-pct', Number.isFinite(today?.rate) ? today.rate : null, '%', 2, {refresh});

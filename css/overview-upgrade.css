@@ -1,16 +1,16 @@
 /* Overview alignment, a stable floating dock and a restrained return calendar. */
 .app-shell { padding-bottom: 120px; }
-#panel-overview .folio-head { display: grid; grid-template-columns: 240px minmax(0,1fr); align-items: start; gap: 48px; }
-#panel-overview .folio-head > div:first-child { min-width: 0; }
-#panel-overview .networth-label, #panel-overview .wealth-metrics > div > span { display: block; font-size: 14px; line-height: 20px; font-weight: 500; }
-#panel-overview .wealth-value { font-size: 52px; letter-spacing: -2px; line-height: 60px; margin-top: 8px; }
-#panel-overview .folio-head .wealth-metrics { grid-template-columns: repeat(5,minmax(0,1fr)); padding: 0; margin: 0; }
-#panel-overview .folio-head .wealth-metrics > div { padding: 0 14px; min-width: 0; }
-#panel-overview .folio-head .wealth-metrics > div:first-child { padding-left: 0; }
-#panel-overview .folio-head .wealth-metrics > div:last-child { padding-right: 0; }
-#panel-overview .folio-head .wealth-metrics > div > div { display: flex; flex-direction: row; flex-wrap: nowrap; gap: 6px; align-items: center; height: 60px; margin-top: 8px; }
-#panel-overview .folio-head .wealth-metrics strong { font-size: 32px !important; line-height: 1.2; letter-spacing: -.8px; font-variant-numeric: tabular-nums; white-space: nowrap; }
-#panel-overview .folio-head .wealth-metrics small { font-size: 11px !important; white-space: nowrap; }
+#portfolio-hero .folio-head { display: grid; grid-template-columns: 240px minmax(0,1fr); align-items: start; gap: 48px; }
+#portfolio-hero .folio-head > div:first-child { min-width: 0; }
+#portfolio-hero .networth-label, #portfolio-hero .wealth-metrics > div > span { display: block; font-size: 14px; line-height: 20px; font-weight: 500; }
+#portfolio-hero .wealth-value { font-size: 52px; letter-spacing: -2px; line-height: 60px; margin-top: 8px; }
+#portfolio-hero .folio-head .wealth-metrics { grid-template-columns: repeat(5,minmax(0,1fr)); padding: 0; margin: 0; }
+#portfolio-hero .folio-head .wealth-metrics > div { padding: 0 14px; min-width: 0; }
+#portfolio-hero .folio-head .wealth-metrics > div:first-child { padding-left: 0; }
+#portfolio-hero .folio-head .wealth-metrics > div:last-child { padding-right: 0; }
+#portfolio-hero .folio-head .wealth-metrics > div > div { display: flex; flex-direction: row; flex-wrap: nowrap; gap: 6px; align-items: center; height: 60px; margin-top: 8px; }
+#portfolio-hero .folio-head .wealth-metrics strong { font-size: 32px !important; line-height: 1.2; letter-spacing: -.8px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+#portfolio-hero .folio-head .wealth-metrics small { font-size: 11px !important; white-space: nowrap; }
 .overview-paired-columns { gap: 18.67px; }
 .overview-positions { --holding-columns: 150px 80px minmax(100px,1fr) minmax(100px,1fr) minmax(130px,1.25fr) minmax(135px,1.3fr) minmax(100px,.95fr) minmax(75px,.75fr); }
 .position-risk-next small { padding: 5px 8px; border-radius: 7px; font-size: 15px; background: var(--soft); }
@@ -63,31 +63,31 @@ html.dark .overview-calendar .calendar-flow { color: #d7c69e; background: rgba(1
 .overview-calendar [data-month]:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(35,42,23,.05); transform: none; }
 
 @media(max-width:1750px) {
-    #panel-overview .folio-head { grid-template-columns: 230px minmax(0,1fr); gap: 40px; }
-    #panel-overview .wealth-value { font-size: 48px; }
-    #panel-overview .folio-head .wealth-metrics > div { padding: 0 10px; }
-    #panel-overview .folio-head .wealth-metrics strong { font-size: 27px !important; }
-    #panel-overview .folio-head .wealth-metrics > div > div { flex-direction: column; justify-content: center; align-items: start; gap: 0; }
+    #portfolio-hero .folio-head { grid-template-columns: 230px minmax(0,1fr); gap: 40px; }
+    #portfolio-hero .wealth-value { font-size: 48px; }
+    #portfolio-hero .folio-head .wealth-metrics > div { padding: 0 10px; }
+    #portfolio-hero .folio-head .wealth-metrics strong { font-size: 27px !important; }
+    #portfolio-hero .folio-head .wealth-metrics > div > div { flex-direction: column; justify-content: center; align-items: start; gap: 0; }
     .overview-positions { --holding-columns: 145px 60px minmax(78px,.85fr) minmax(78px,.85fr) minmax(112px,1.15fr) minmax(115px,1.25fr) minmax(86px,.85fr) minmax(60px,.65fr); }
     .position-risk-next small { font-size: 13px; padding: 5px 6px; }
 }
 @media(max-width:1399px) {
-    #panel-overview .folio-head { grid-template-columns: 1fr; gap: 24px; }
-    #panel-overview .folio-head .wealth-metrics > div > div { flex-direction: row; justify-content: start; align-items: center; gap: 6px; }
-    #panel-overview .folio-head .wealth-metrics strong { font-size: 25px !important; }
+    #portfolio-hero .folio-head { grid-template-columns: 1fr; gap: 24px; }
+    #portfolio-hero .folio-head .wealth-metrics > div > div { flex-direction: row; justify-content: start; align-items: center; gap: 6px; }
+    #portfolio-hero .folio-head .wealth-metrics strong { font-size: 25px !important; }
 }
 @media(max-width:1199px) {
-    #panel-overview .folio-head .wealth-metrics { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 20px; }
-    #panel-overview .folio-head .wealth-metrics > div { border: 0; padding-left: 0; }
+    #portfolio-hero .folio-head .wealth-metrics { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 20px; }
+    #portfolio-hero .folio-head .wealth-metrics > div { border: 0; padding-left: 0; }
 }
 @media(max-width:980px) { .position-risk-next small { font-size: 15px; } }
 @media(max-width:767px) {
-    #panel-overview .wealth-value { font-size: clamp(32px,10vw,48px); line-height: 52px; }
-    #panel-overview .folio-head .wealth-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
-    #panel-overview .folio-head .wealth-metrics > div { border: 0; padding: 0; }
-    #panel-overview .folio-head .wealth-metrics > div > div { height: 44px; margin-top: 4px; gap: 6px; }
-    #panel-overview .folio-head .wealth-metrics strong { font-size: 24px !important; }
-    #panel-overview .folio-head .wealth-metrics small { font-size: 10px !important; }
+    #portfolio-hero .wealth-value { font-size: clamp(32px,10vw,48px); line-height: 52px; }
+    #portfolio-hero .folio-head .wealth-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
+    #portfolio-hero .folio-head .wealth-metrics > div { border: 0; padding: 0; }
+    #portfolio-hero .folio-head .wealth-metrics > div > div { height: 44px; margin-top: 4px; gap: 6px; }
+    #portfolio-hero .folio-head .wealth-metrics strong { font-size: 24px !important; }
+    #portfolio-hero .folio-head .wealth-metrics small { font-size: 10px !important; }
     .workspace-nav { bottom: max(12px,env(safe-area-inset-bottom)); height: 60px; padding: 6px; gap: 0; border-radius: 999px; }
     .workspace-nav::before { top: 6px; height: 46px; border-radius: 999px; }
     .workspace-nav a, .workspace-nav a.active { flex-basis: 52px; width: 52px; height: 46px; font-size: 11px; line-height: 15px; gap: 3px; border-radius: 999px; }
@@ -107,8 +107,8 @@ html.dark .overview-calendar .calendar-flow { color: #d7c69e; background: rgba(1
 
 .workspace-nav:not([data-ready])::before { transition: none; }
 
-#panel-overview .folio-head .wealth-metrics .drawdown-metric small { font-size: 14px !important; }
-#panel-overview .performance-heading { position: relative; min-height: 44px; }
+#portfolio-hero .folio-head .wealth-metrics .drawdown-metric small { font-size: 14px !important; }
+#portfolio-hero .performance-heading { position: relative; min-height: 44px; }
 .chart-analysis { position: absolute; right: 0; top: 50%; transform: translateY(-50%); display: flex; align-items: baseline; gap: 9px; color: var(--text-secondary); font-size: 13px; }
 .chart-analysis strong { font-family: 'Geist Mono',monospace; font-size: 14px; font-weight: 500; color: var(--text-primary); min-width: 6ch; text-align: right; }
 .position-risk-heading, .position-risk { grid-template-columns: minmax(0,1fr) minmax(0,1fr) minmax(0,1.3fr) minmax(0,.7fr); }
@@ -139,13 +139,13 @@ html.dark .overview-calendar .calendar-arrow { background: var(--soft); color: v
     .position-risk-next { display: block; }
 }
 @media(max-width:980px) {
-    #panel-overview .performance-heading { flex-direction: column; gap: 12px; }
+    #portfolio-hero .performance-heading { flex-direction: column; gap: 12px; }
     .chart-analysis { position: static; transform: none; align-self: flex-end; }
     .position-risk { min-height: 170px; }
 }
 @media(max-width:767px) {
-    #panel-overview .folio-head .wealth-metrics .drawdown-metric small { font-size: 13px !important; }
-    #panel-overview .folio-head .wealth-metrics .drawdown-metric > div { flex-direction: column; align-items: flex-start; justify-content: center; gap: 0; height: 52px; }
+    #portfolio-hero .folio-head .wealth-metrics .drawdown-metric small { font-size: 13px !important; }
+    #portfolio-hero .folio-head .wealth-metrics .drawdown-metric > div { flex-direction: column; align-items: flex-start; justify-content: center; gap: 0; height: 52px; }
     .overview-calendar .calendar-tabs button { min-width: 0; flex: 1; }
     .overview-calendar .calendar-arrow { width: 30px; height: 30px; }
 }

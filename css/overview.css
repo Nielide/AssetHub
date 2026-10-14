@@ -1,8 +1,8 @@
 /* Overview: separate holdings and drawdown panels share order and row height. */
-#panel-overview .networth-chart { height: 215px; }
-#panel-overview .range-control { gap: 7px; flex-wrap: wrap; }
-#panel-overview .nw-range-btn { font-size: 14px; padding: 7px 13px; }
-#panel-overview .chart-caption { font-size: 13px; }
+#portfolio-hero .networth-chart { height: 215px; }
+#portfolio-hero .range-control { gap: 7px; flex-wrap: wrap; }
+#portfolio-hero .nw-range-btn { font-size: 14px; padding: 7px 13px; }
+#portfolio-hero .chart-caption { font-size: 13px; }
 .overview-positions { width: 100%; margin-top: 25px; --overview-columns: minmax(0,3.05fr) minmax(330px,1fr); --holding-columns: minmax(150px,1.3fr) minmax(70px,.65fr) minmax(85px,.85fr) minmax(85px,.85fr) minmax(120px,1.15fr) minmax(130px,1.25fr) minmax(100px,.85fr) minmax(70px,.65fr); }
 .overview-paired-columns { display: grid; grid-template-columns: var(--overview-columns); gap: 28px; align-items: start; }
 .overview-holdings-panel, .overview-risk-panel { min-width: 0; }
@@ -83,7 +83,7 @@
     #panel-overview .position-holding-data > .position-weight:before { margin: 0; }
     .position-risk-next { display: block; }
     .position-risk-next small { margin-right: 8px; }
-    #panel-overview .networth-chart { height: 215px; }
+    #portfolio-hero .networth-chart { height: 215px; }
 }
 @media (max-width:980px) {
     .overview-paired-columns { grid-template-columns: 1fr; }
@@ -96,11 +96,11 @@
 @media (max-width:767px) {
     .workspace-nav a { padding: 8px 6px; gap: 3px; font-size: 13px; }
     .workspace-nav a .ui-icon { display: none; }
-    #panel-overview .folio-head { gap: 18px; }
-    #panel-overview .networth-chart { height: 185px; margin-top: 18px; }
-    #panel-overview .range-control { gap: 1px; }
-    #panel-overview .nw-range-btn { font-size: 13px; padding: 7px 9px; }
-    #panel-overview .chart-caption { font-size: 11px; }
+    #portfolio-hero .folio-head { gap: 18px; }
+    #portfolio-hero .networth-chart { height: 185px; margin-top: 18px; }
+    #portfolio-hero .range-control { gap: 1px; }
+    #portfolio-hero .nw-range-btn { font-size: 13px; padding: 7px 9px; }
+    #portfolio-hero .chart-caption { font-size: 11px; }
     .overview-positions { margin-top: 28px; }
     .position-heading-main { flex-wrap: wrap; gap: 16px; }
     .paired-panel-heading h2 { font-size: 22px; }

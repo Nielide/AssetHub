@@ -61,6 +61,12 @@
             rate:rates.length?compound(rates,p=>p.rate):null, total:points.at(-1)?.total??null,
             legacy:points.some(p=>p.legacy), totalLegacy:points.at(-1)?.legacy??false, count:points.length};
     }
+    // Calendar "total assets" always uses the real account balance, including cash.
+    // Income keeps its investment/legacy basis; never add balances across dates.
+    function calendarPeriod(rows) {
+        const last=rows.slice().sort((a,b)=>a.date.localeCompare(b.date)).at(-1);
+        return {...calendarMonth(rows),total:finite(last?.total??last?.value)?Number(last.total??last.value):null};
+    }
     function compound(rows, getRate) {
         return (rows.reduce((growth,row) => growth * (1 + (finite(getRate(row)) ? Number(getRate(row)) : 0) / 100),1)-1)*100;
     }
@@ -123,5 +129,5 @@
         });
         return [...byDate.values()].sort((a,b)=>a.date.localeCompare(b.date));
     }
-    return {category,selected,weights,record,marketSeries,summary,riskSummary,mergeRecords,investmentPoint,calendarMonth};
+    return {category,selected,weights,record,marketSeries,summary,riskSummary,mergeRecords,investmentPoint,calendarMonth,calendarPeriod};
 });
