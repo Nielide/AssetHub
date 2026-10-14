@@ -35,8 +35,14 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                 document.getElementById('finnhub-token').value = localStorage.getItem('finnhub_key') || '';
                 document.getElementById('hkd-rate').value = state.hkdFx || 0.93;
                 panel.classList.remove('hidden-panel');
+                panel.inert = false; panel.setAttribute('aria-hidden', 'false');
+                document.querySelector('[aria-controls="sync-panel"]').setAttribute('aria-expanded', 'true');
+                panel.querySelector('button').focus();
             } else {
                 panel.classList.add('hidden-panel');
+                panel.inert = true; panel.setAttribute('aria-hidden', 'true');
+                const settingsButton = document.querySelector('[aria-controls="sync-panel"]');
+                settingsButton.setAttribute('aria-expanded', 'false'); settingsButton.focus();
             }
         }
 
@@ -58,7 +64,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
 
             const saveBtn = document.querySelector('button[onclick="saveSyncSettings()"]');
             const originalText = saveBtn.innerText;
-            saveBtn.innerText = 'Saved';
+            saveBtn.innerText = '已保存';
 
             setTimeout(() => { saveBtn.innerText = originalText; }, 2000);
         }
@@ -71,11 +77,11 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
             const token = localStorage.getItem('gh_token');
             const repo = localStorage.getItem('gh_repo');
             const path = localStorage.getItem('gh_path');
-            if (!token || !repo) return alert('Please configure GitHub parameters in System Settings first');
+            if (!token || !repo) return alert('请先填写 GitHub 设置');
 
             const btn = document.getElementById('btn-pull');
             const spanText = btn.querySelector('span') ? btn.querySelector('span').innerText : btn.innerText;
-            if(btn.querySelector('span')) btn.querySelector('span').innerText = 'Syncing...'; else btn.innerText = 'Syncing...';
+            if(btn.querySelector('span')) btn.querySelector('span').innerText = '载入中…'; else btn.innerText = '载入中…';
 
             const url = `https://api.github.com/repos/${repo}/contents/${path}`;
             try {
@@ -96,12 +102,12 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
 
                     applyRemoteState(remote);
 
-                    if(btn.querySelector('span')) btn.querySelector('span').innerText = 'Success'; else btn.innerText = 'Success';
+                    if(btn.querySelector('span')) btn.querySelector('span').innerText = '已完成'; else btn.innerText = '已完成';
                 } else {
-                    if(btn.querySelector('span')) btn.querySelector('span').innerText = 'Failed'; else btn.innerText = 'Failed';
+                    if(btn.querySelector('span')) btn.querySelector('span').innerText = '失败'; else btn.innerText = '失败';
                 }
             } catch (e) {
-                if(btn.querySelector('span')) btn.querySelector('span').innerText = 'Error'; else btn.innerText = 'Error';
+                if(btn.querySelector('span')) btn.querySelector('span').innerText = '失败'; else btn.innerText = '失败';
             } finally {
                 setTimeout(() => {
                     if(btn.querySelector('span')) btn.querySelector('span').innerText = spanText; else btn.innerText = spanText;
@@ -134,7 +140,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
             const path = localStorage.getItem('gh_path');
 
             if (!token || !repo) {
-                if (!silent) alert('Please configure GitHub parameters in System Settings first');
+                if (!silent) alert('请先填写 GitHub 设置');
                 return;
             }
 
@@ -182,7 +188,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
             if (!silent) {
                 btn = document.getElementById('btn-push');
                 spanText = btn.querySelector('span') ? btn.querySelector('span').innerText : btn.innerText;
-                if(btn.querySelector('span')) btn.querySelector('span').innerText = 'Pushing...'; else btn.innerText = 'Pushing...';
+                if(btn.querySelector('span')) btn.querySelector('span').innerText = '备份中…'; else btn.innerText = '备份中…';
             }
 
             const url = `https://api.github.com/repos/${repo}/contents/${path}`;
@@ -216,18 +222,18 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
 
                 if (!silent) {
                     if (putRes.ok) {
-                        if(btn.querySelector('span')) btn.querySelector('span').innerText = 'Success'; else btn.innerText = 'Success';
+                        if(btn.querySelector('span')) btn.querySelector('span').innerText = '已完成'; else btn.innerText = '已完成';
                         btn.classList.add('bg-googleGreen');
                         btn.classList.remove('bg-googleBlue');
                     } else {
-                        if(btn.querySelector('span')) btn.querySelector('span').innerText = 'Failed'; else btn.innerText = 'Failed';
+                        if(btn.querySelector('span')) btn.querySelector('span').innerText = '失败'; else btn.innerText = '失败';
                         btn.classList.add('bg-googleRed');
                         btn.classList.remove('bg-googleBlue');
                     }
                 }
             } catch (e) {
                 if (!silent) {
-                    if(btn.querySelector('span')) btn.querySelector('span').innerText = 'Error'; else btn.innerText = 'Error';
+                    if(btn.querySelector('span')) btn.querySelector('span').innerText = '失败'; else btn.innerText = '失败';
                 }
             } finally {
                 if (!silent) {
@@ -624,7 +630,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
 
             if (records.length < 2) {
                 if (charts.networth) { charts.networth.destroy(); charts.networth = null; }
-                emptyHint.innerText = 'Keep using AssetHub for a few days to see your net worth curve here.';
+                emptyHint.innerText = '暂无历史数据';
                 document.getElementById('nw-period-return').innerText = '--';
                 document.getElementById('nw-max-drawdown').innerText = '--';
                 document.getElementById('nw-volatility').innerText = '--';
@@ -1005,7 +1011,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
 
                 row.innerHTML = `
                     <div class="drawdown-symbol-cell flex items-center gap-2 w-[150px] flex-shrink-0">
-                        <div class="drag-handle cursor-grab text-gray-300 dark:text-gray-600 hover:text-googleBlue px-1" title="Drag to reorder">
+                        <div class="drag-handle cursor-grab text-gray-300 dark:text-gray-600 hover:text-googleBlue px-1" title="拖动排序">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" /></svg>
                         </div>
                         <input type="text" maxlength="5" class="input-google w-[7ch] font-bold text-base uppercase tracking-normal" value="${stock.symbol}" data-id="${stock.id}" data-field="symbol" onchange="handleDrawdownInput(this)" placeholder="GOOGL">
@@ -1118,7 +1124,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
             if (yearBadge) yearBadge.innerText = currentYear;
 
             const yearDisplay = document.getElementById('cal-year-display');
-            if (yearDisplay) yearDisplay.innerText = currentYear;
+            if (yearDisplay) yearDisplay.innerText = currentYear + '年';
 
             const monthlyData = new Array(12).fill(0);
             let ytdTotal = 0;
@@ -1136,7 +1142,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                 }
             });
 
-            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const monthNames = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
             const grid = document.getElementById('monthly-grid');
 
             if (grid) {
@@ -1190,12 +1196,12 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
         function renderCalendar() {
             const year = displayDate.getFullYear();
             const month = displayDate.getMonth();
-            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const monthNames = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
 
-            document.getElementById('cal-month-display').innerText = `${monthNames[month]} ${year}`;
+            document.getElementById('cal-month-display').innerText = `${year}年${monthNames[month]}`;
             const grid = document.getElementById('calendar-grid');
             if(!grid) return;
-            grid.innerHTML = '';
+            grid.innerHTML = ['日', '一', '二', '三', '四', '五', '六'].map(day => `<div class="calendar-weekday">${day}</div>`).join('');
 
             const firstDay = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -1255,7 +1261,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                             let sign = fv > 0 ? '+' : '-';
                             let fText = `${sign}${Math.abs(fv)}`;
                             const fColor = 'text-yellow-400 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-300 dark:border-yellow-800/50';
-                            flowHtml = `<div class="absolute top-1.5 right-1 md:top-1.5 md:right-1.5 text-[0.5rem] md:text-[0.55rem] font-bold ${fColor} px-1 rounded shadow-sm tracking-tighter leading-none h-[14px] md:h-[16px] flex items-center justify-center" title="Cash Flow">${fText}</div>`;
+                            flowHtml = `<div class="absolute top-1.5 right-1 md:top-1.5 md:right-1.5 text-[0.5rem] md:text-[0.55rem] font-bold ${fColor} px-1 rounded shadow-sm tracking-tighter leading-none h-[14px] md:h-[16px] flex items-center justify-center" title="资金流入或流出">${fText}</div>`;
                         }
                     }
 
@@ -1313,7 +1319,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
         // 通过 Finnhub 更新美股价格。
         async function updateUsStockPrices() {
             const apiKey = localStorage.getItem('finnhub_key');
-            if (!apiKey) return alert('Please configure Finnhub API Key in System Settings first');
+            if (!apiKey) return alert('请先设置 Finnhub 密钥');
 
             const icon = document.getElementById('refresh-icon');
             if(icon) icon.classList.add('animate-spin');
@@ -1335,7 +1341,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
         // 单独更新 SGOV 价格，方便作为类现金资产显示。
         async function updateSgovPrices() {
             const apiKey = localStorage.getItem('finnhub_key');
-            if (!apiKey) return alert('Please configure Finnhub API Key in System Settings first');
+            if (!apiKey) return alert('请先设置 Finnhub 密钥');
 
             const icon = document.getElementById('refresh-icon-sgov');
             if(icon) icon.classList.add('animate-spin');
@@ -1604,8 +1610,8 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
             script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js';
             script.async = true;
             script.innerHTML = JSON.stringify({
-                "symbols": [ { "proName": "FOREXCOM:SPXUSD", "title": "S&P 500" }, { "proName": "FOREXCOM:NSXUSD", "title": "US 100" }, { "proName": "FX_IDC:USDCNY", "title": "USD/CNY" }, { "proName": "BITSTAMP:BTCUSD", "title": "Bitcoin" }, { "description": "Gold", "proName": "TVC:GOLD" } ],
-                "showSymbolLogo": true, "colorTheme": isDark ? "dark" : "light", "isTransparent": false, "displayMode": "adaptive", "locale": "en"
+                "symbols": [ { "proName": "FOREXCOM:SPXUSD", "title": "标普 500" }, { "proName": "FOREXCOM:NSXUSD", "title": "纳斯达克 100" }, { "proName": "FX_IDC:USDCNY", "title": "美元/人民币" }, { "proName": "BITSTAMP:BTCUSD", "title": "比特币" }, { "description": "黄金", "proName": "TVC:GOLD" } ],
+                "showSymbolLogo": true, "colorTheme": isDark ? "dark" : "light", "isTransparent": false, "displayMode": "adaptive", "locale": "zh_CN"
             });
             container.appendChild(script);
         }
@@ -1760,7 +1766,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                 const displayDist = stock.distance.toFixed(1);
 
 html += `
-                <div class="flex flex-col gap-3 cursor-pointer ${rowClass}" title="Open ${stock.symbol} on TradingView" onclick="openTradingViewSymbol('${stock.symbol}')" style="padding: 16px 18px 22px; min-height: 74px;">
+                <div class="flex flex-col gap-3 cursor-pointer ${rowClass}" title="查看 ${stock.symbol} 行情" onclick="openTradingViewSymbol('${stock.symbol}')" style="padding: 16px 18px 22px; min-height: 74px;">
                     <div class="flex justify-between items-center text-xs text-textPrimary dark:text-darkText">
                         <div class="flex items-baseline gap-2">
                     <span class="font-bold font-mono text-xs ${stock.symbol === 'QQQM' ? 'text-gray-900 dark:text-gray-100' : ''}">

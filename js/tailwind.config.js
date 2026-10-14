@@ -5,8 +5,8 @@ tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Geist', 'sans-serif'],
-                        mono: ['"Geist Mono"', 'monospace'],
+                        sans: ['Geist', 'Microsoft YaHei', 'PingFang SC', 'sans-serif'],
+                        mono: ['"Geist Mono"', 'Microsoft YaHei', 'PingFang SC', 'monospace'],
                     },
                     colors: {
                         googleBlue: '#748b27', googleRed: '#ba543c', googleYellow: '#aa8a38', googleGreen: '#688519',

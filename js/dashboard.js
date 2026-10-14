@@ -23,7 +23,12 @@
         localStorage.setItem(orderKey(), JSON.stringify({ mode, keys: state.drawdown.map(row => row.symbol || row.id) }));
     }
     const priceText = (row, price) => price > 0 ? `${row.currency === 'CNY' ? '¥' : '$'}${Number(price).toFixed(2)}` : '—';
-    const status = message => { document.getElementById('dd-status').textContent = message; };
+    let statusTimer;
+    const status = message => {
+        clearTimeout(statusTimer);
+        document.getElementById('dd-status').textContent = message;
+        if (message) statusTimer = setTimeout(() => { document.getElementById('dd-status').textContent = ''; }, 5000);
+    };
 
     window.setDrawdownFilter = value => {
         filter = value;
@@ -35,7 +40,7 @@
         model.sync(state);
         saveData();
         renderDrawdown();
-        status(state.drawdownSort === 'custom' ? 'Custom order saved. New holdings are appended.' : 'Holdings first restored. Watchlist symbols follow your holdings.');
+        status('');
     };
 
     function persistOrder(ids) {
@@ -44,7 +49,7 @@
         saveOrderPreference('custom');
         saveData();
         renderDrawdown();
-        status('Custom order saved.');
+        status('');
     }
     window.moveDrawdownRow = (id, direction) => {
         const ids = visibleIds.slice();
@@ -68,7 +73,7 @@
             return (!search || row.symbol.includes(search)) && (filter === 'all' || row.source === filter || (filter === 'attention' && data.ready && data.drop >= 5));
         });
         visibleIds = shown.map(row => row.id);
-        document.getElementById('dd-count').textContent = `${rows.filter(row => row.source === 'holding').length} holdings · ${rows.filter(row => row.source === 'watchlist').length} watchlist`;
+        document.getElementById('dd-count').textContent = `${rows.filter(row => row.source === 'holding').length} 只持仓 · ${rows.filter(row => row.source === 'watchlist').length} 只自选`;
         document.getElementById('dd-sort').value = state.drawdownSort || 'holdings';
         document.querySelectorAll('[data-dd-filter]').forEach(button => {
             const active = button.dataset.ddFilter === filter;
@@ -81,24 +86,24 @@
             const safeId = escapeHTML(row.id), safeSymbol = escapeHTML(row.symbol);
             const tone = !data.ready ? 'pending' : data.drop >= 10 ? 'danger' : data.drop >= 5 ? 'watch' : 'safe';
             const dropText = !data.ready ? '—' : data.drop < 0 ? `+${Math.abs(data.drop).toFixed(2)}%` : `−${data.drop.toFixed(2)}%`;
-            const dropLabel = !data.ready ? (!row.high ? 'Set reference high' : 'Awaiting quote') : data.drop < 0 ? 'Above reference' : tone === 'danger' ? 'Alert' : tone === 'watch' ? 'Watch' : 'Within 5%';
-            const nextText = !data.ready ? (row.high > 0 ? 'Awaiting quote' : 'Reference needed') : data.next === null ? '30% level reached' : `−${data.next}% · ${priceText(row, data.target)}`;
+            const dropLabel = !data.ready ? (!row.high ? '' : '缺少报价') : data.drop < 0 ? '高于参考' : '';
+            const nextText = !data.ready ? '—' : data.next === null ? '已达 −30%' : `−${data.next}% · ${priceText(row, data.target)}`;
             const levels = model.levels.map(level => `<div class="level-price ${data.ready && data.drop >= level ? 'reached' : data.next === level ? 'upcoming' : ''}"><span>−${level}%</span><b>${row.high > 0 ? priceText(row, row.high * (1 - level / 100)) : '—'}</b></div>`).join('');
             return `<article class="dd-row dd-tone-${tone}" data-row-id="${safeId}">
                 <div class="dd-overview">
                     <div class="dd-symbol-block">
-                        <button class="drag-handle" aria-label="Drag ${safeSymbol || 'new symbol'} to reorder" title="Drag to save a custom order">⠿</button>
-                        <div class="dd-symbol-info"><div class="drawdown-symbol-cell"><input class="input-google" data-id="${safeId}" data-field="symbol" value="${safeSymbol}" maxlength="16" ${owned ? 'readonly' : ''} onchange="handleDrawdownInput(this)" aria-label="Tracked symbol" placeholder="Symbol"></div><span class="source-badge ${owned ? 'holding' : ''}">${owned ? 'Holding' : 'Watchlist'} · ${escapeHTML(row.currency)}</span></div>
+                        <button class="drag-handle" aria-label="拖动 ${safeSymbol || '新标的'} 排序" title="拖动排序">⠿</button>
+                        <div class="dd-symbol-info"><div class="drawdown-symbol-cell"><input class="input-google" data-id="${safeId}" data-field="symbol" value="${safeSymbol}" maxlength="16" ${owned ? 'readonly' : ''} onchange="handleDrawdownInput(this)" aria-label="标的代码" placeholder="代码"></div><span class="source-badge ${owned ? 'holding' : ''}">${owned ? '持仓' : '自选'} · ${escapeHTML(row.currency)}</span></div>
                     </div>
-                    <label class="dd-value"><span class="mobile-label">Reference high</span><input type="number" class="input-google dd-price-input" data-id="${safeId}" data-field="high" min="0" step="any" value="${row.high || ''}" onchange="handleDrawdownInput(this)" aria-label="Reference high for ${safeSymbol}" placeholder="Set high" title="Editable reference high. A current quote is not a historical high."></label>
-                    <div class="dd-value"><span class="mobile-label">Current price</span>${owned ? `<b class="dd-current" title="Synced from portfolio">${priceText(row, row.current)}</b>` : `<input type="number" class="input-google dd-price-input" data-id="${safeId}" data-field="current" min="0" step="any" value="${row.current || ''}" onchange="handleDrawdownInput(this)" aria-label="Current price for ${safeSymbol}" placeholder="Set price">`}<small>${owned ? 'From portfolio' : row.quoteUpdatedAt ? 'Quote updated ' + new Date(row.quoteUpdatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Manual / quote'}</small></div>
-                    <div class="dd-value"><span class="mobile-label">Drawdown</span><strong class="dd-change">${dropText}</strong><small>${dropLabel}</small></div>
-                    <div class="dd-next"><b>${nextText}</b><small>${data.ready && data.next !== null ? `${data.distance.toFixed(2)} percentage points away` : 'Based on your reference high'}</small><div class="dd-progress" role="progressbar" aria-label="Progress toward next drawdown level" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(data.progress)}"><span style="width:${data.progress}%"></span></div></div>
-                    <div class="dd-row-actions"><button class="dd-move-up" data-id="${safeId}" onclick="moveDrawdownRow(this.dataset.id, -1)" ${index === 0 ? 'disabled' : ''} aria-label="Move ${safeSymbol} up">↑</button><button class="dd-move-down" data-id="${safeId}" onclick="moveDrawdownRow(this.dataset.id, 1)" ${index === shown.length - 1 ? 'disabled' : ''} aria-label="Move ${safeSymbol} down">↓</button>${owned ? '<span class="sync-indicator" title="Automatically tracked while held" aria-label="Synced holding">↔</span>' : `<button class="delete-trigger" data-id="${safeId}" onclick="toggleDeletePopover(event, 'drawdown', this.dataset.id)" aria-label="Remove ${safeSymbol} from watchlist" title="Remove from watchlist">×</button>`}</div>
+                    <label class="dd-value"><span class="mobile-label">参考高点</span><input type="number" class="input-google dd-price-input" data-id="${safeId}" data-field="high" min="0" step="any" value="${row.high || ''}" onchange="handleDrawdownInput(this)" aria-label="${safeSymbol} 参考高点" placeholder="设高点" title="设置参考高点"></label>
+                    <div class="dd-value"><span class="mobile-label">现价</span>${owned ? `<b class="dd-current" title="持仓现价">${priceText(row, row.current)}</b>` : `<input type="number" class="input-google dd-price-input" data-id="${safeId}" data-field="current" min="0" step="any" value="${row.current || ''}" onchange="handleDrawdownInput(this)" aria-label="${safeSymbol} 现价" placeholder="设现价">`}<small>${!owned && row.quoteUpdatedAt ? new Date(row.quoteUpdatedAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) : ''}</small></div>
+                    <div class="dd-value"><span class="mobile-label">回撤</span><strong class="dd-change">${dropText}</strong><small>${dropLabel}</small></div>
+                    <div class="dd-next"><b>${nextText}</b><small>${data.ready && data.next !== null ? `差 ${data.distance.toFixed(2)} 个百分点` : ''}</small><div class="dd-progress" role="progressbar" aria-label="下一档进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(data.progress)}"><span style="width:${data.progress}%"></span></div></div>
+                    <div class="dd-row-actions"><button class="dd-move-up" data-id="${safeId}" onclick="moveDrawdownRow(this.dataset.id, -1)" ${index === 0 ? 'disabled' : ''} aria-label="上移 ${safeSymbol}">↑</button><button class="dd-move-down" data-id="${safeId}" onclick="moveDrawdownRow(this.dataset.id, 1)" ${index === shown.length - 1 ? 'disabled' : ''} aria-label="下移 ${safeSymbol}">↓</button>${owned ? '<span class="sync-indicator" title="自动跟随持仓" aria-label="同步持仓">↔</span>' : `<button class="delete-trigger" data-id="${safeId}" onclick="toggleDeletePopover(event, 'drawdown', this.dataset.id)" aria-label="删除 ${safeSymbol}" title="删除自选">×</button>`}</div>
                 </div>
-                <details class="dd-levels" data-id="${safeId}" ontoggle="rememberDrawdownLevels(this)" ${openLevels.has(row.id) ? 'open' : ''}><summary>Levels <span class="muted">5% – 30%</span></summary><div class="dd-level-grid">${levels}</div></details>
+                <details class="dd-levels" data-id="${safeId}" ontoggle="rememberDrawdownLevels(this)" ${openLevels.has(row.id) ? 'open' : ''}><summary>档位 <span class="muted">5% – 30%</span></summary><div class="dd-level-grid">${levels}</div></details>
             </article>`;
-        }).join('') || `<div class="empty-state">${rows.length ? 'No symbols match this filter.' : 'Your invested holdings will appear here automatically. Add a symbol to start a watchlist.'}</div>`;
+        }).join('') || `<div class="empty-state">${rows.length ? '无匹配标的' : '暂无标的'}</div>`;
         if (window.decorateDrawdownIcons) window.decorateDrawdownIcons();
         setupDrawdownSortable();
     };
@@ -119,10 +124,10 @@
         if (field === 'symbol') {
             const value = model.symbol(input.value);
             if (value && !/^[A-Z0-9][A-Z0-9.\-:]{0,15}$/.test(value)) {
-                status('Use a ticker such as BRK.B or SH518880.'); input.value = row.symbol; return;
+                status('代码格式无效'); input.value = row.symbol; return;
             }
             if (value && state.drawdown.some(item => item.id !== row.id && model.symbol(item.symbol) === value)) {
-                status(`${value} is already tracked.`); input.value = row.symbol; return;
+                status(`${value} 已存在`); input.value = row.symbol; return;
             }
             row.symbol = value;
             row.high = 0; row.current = 0; delete row.quoteUpdatedAt;
@@ -142,7 +147,7 @@
         const key = localStorage.getItem('finnhub_key');
         if (!key) {
             renderDrawdown(); renderDDAlerts(); saveData();
-            status('Holding prices synced. Configure Finnhub in Settings to refresh watchlist quotes, or edit prices directly.');
+            status('持仓报价已同步');
             return;
         }
         fetching = true;
@@ -168,7 +173,7 @@
                 finally { clearTimeout(timeout); }
             }
             syncTracker(); saveData(); renderAllRows(); calculate();
-            status(`${updated}/${requests.length} USD quotes refreshed. CNY prices follow the portfolio's CNY refresh. Reference highs are unchanged.`);
+            status(`${updated}/${requests.length} 个美元报价已更新`);
         } finally {
             fetching = false; button.disabled = false;
             document.getElementById('refresh-icon-dd').classList.remove('animate-spin');
@@ -178,11 +183,11 @@
     renderDDAlerts = function() {
         const rows = syncTracker().map(row => ({ row, data: model.metrics(row) })).filter(item => item.data.ready).sort((a, b) => b.data.drop - a.data.drop);
         const count = rows.filter(item => item.data.drop >= 5).length;
-        document.getElementById('alert-count').textContent = `${count} to watch`;
+        document.getElementById('alert-count').textContent = `${count} 项`;
         document.getElementById('dd-alert-list').innerHTML = rows.slice(0, 4).map(({ row, data }) => {
             const tone = data.drop >= 10 ? 'danger' : data.drop >= 5 ? 'watch' : 'safe';
-            return `<button class="radar-item radar-${tone}" onclick="document.getElementById('drawdown-tracker').scrollIntoView({behavior:'smooth',block:'start'})"><span><b>${escapeHTML(row.symbol)}</b><small>${data.next ? data.distance.toFixed(1) + ' pp to −' + data.next + '%' : '30% level reached'}</small></span><strong>${data.drop > 0 ? '−' : '+'}${Math.abs(data.drop).toFixed(1)}%</strong></button>`;
-        }).join('') || '<p class="muted empty-state">Set a reference high to see drawdown alerts.</p>';
+            return `<button class="radar-item radar-${tone}" onclick="document.getElementById('drawdown-tracker').scrollIntoView({behavior:'smooth',block:'start'})"><span><b>${escapeHTML(row.symbol)}</b><small>${data.next ? data.distance.toFixed(1) + '% 距 −' + data.next + '%' : '已达 −30%'}</small></span><strong>${data.drop > 0 ? '−' : '+'}${Math.abs(data.drop).toFixed(1)}%</strong></button>`;
+        }).join('') || '<p class="muted empty-state">暂无回撤数据</p>';
     };
 
     function setupDrawdownSortable() {
@@ -218,13 +223,13 @@
             const scroll = card.querySelector('.holding-table-scroll');
             scroll.setAttribute('data-lenis-prevent', '');
             scroll.setAttribute('tabindex', '0');
-            scroll.setAttribute('aria-label', `Scroll ${type.toUpperCase()} holdings table`);
+            scroll.setAttribute('aria-label', `${({usd:'美股',cn:'A 股',sgov:'国债 ETF',cash:'现金'})[type]}持仓表格`);
             const heading = card.querySelector('h2');
-            heading.innerHTML = `${({ usd: 'US Stocks', cn: 'CN Stocks', sgov: 'SGOV', cash: 'Cash' })[type]} <span class="count-badge">${state[type].length}</span>`;
+            heading.innerHTML = `${({ usd: '美股', cn: 'A 股', sgov: '国债 ETF', cash: '现金' })[type]} <span class="count-badge">${state[type].length}</span>`;
             if (!card.querySelector('.collapse-group')) {
                 const button = document.createElement('button');
                 button.className = 'collapse-group'; button.type = 'button';
-                button.title = 'Collapse / expand'; button.setAttribute('aria-label', `Collapse ${type} holdings`);
+                button.title = '收起或展开'; button.setAttribute('aria-label', `收起或展开持仓分组`);
                 button.setAttribute('aria-controls', `${type}-inputs`);
                 button.textContent = '⌃';
                 card.firstElementChild.insertBefore(button, card.firstElementChild.firstElementChild);
@@ -238,7 +243,7 @@
             card.querySelector('.collapse-group').setAttribute('aria-expanded', String(!card.classList.contains('collapsed')));
             card.querySelectorAll('.btn-add').forEach(control => {
                 control.setAttribute('role', 'button'); control.tabIndex = 0;
-                control.setAttribute('aria-label', control.getAttribute('onclick')?.startsWith('addItem') ? `Add ${type} holding` : `Refresh ${type} prices`);
+                control.setAttribute('aria-label', control.getAttribute('onclick')?.startsWith('addItem') ? `添加持仓` : `刷新报价`);
                 if (!control.dataset.keyboardReady) {
                     control.dataset.keyboardReady = 'true';
                     control.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); control.click(); } });
@@ -254,11 +259,11 @@
             card.classList.toggle('search-expanded', !!query);
             let empty = card.querySelector('.holding-empty');
             if (!empty) { empty = document.createElement('p'); empty.className = 'holding-empty muted'; scroll.appendChild(empty); }
-            empty.textContent = state[type].length ? 'No holdings match this search.' : 'No holdings yet. Use + to add one.';
+            empty.textContent = state[type].length ? '无匹配持仓' : '暂无持仓';
             empty.hidden = matched > 0;
             if (typeof Sortable !== 'undefined') Sortable.get(list)?.option('disabled', !!query);
         });
-        document.getElementById('holdings-count').textContent = `${total} positions`;
+        document.getElementById('holdings-count').textContent = `${total} 项`;
     }
     const originalRenderAll = renderAllRows;
     renderAllRows = function() { originalRenderAll(); decorateHoldings(); };

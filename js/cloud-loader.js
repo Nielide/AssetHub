@@ -541,8 +541,8 @@
         const path = getSyncPath();
         const btn = document.getElementById('btn-pull');
         const spanText = btn.querySelector('span') ? btn.querySelector('span').innerText : btn.innerText;
-        if (btn.querySelector('span')) btn.querySelector('span').innerText = 'Syncing...';
-        else btn.innerText = 'Syncing...';
+        if (btn.querySelector('span')) btn.querySelector('span').innerText = '载入中…';
+        else btn.innerText = '载入中…';
 
         try {
             let remote = null;
@@ -552,10 +552,10 @@
                 remote = await fetchJsonWithTimeout(DEFAULT_CLOUD_DATA_URL);
             }
             remote = normalizePortfolioState(remote);
-            if (!remote) throw new Error('Invalid cloud data');
+            if (!remote) throw new Error('云端数据无效');
             applyRemoteState(remote);
-            if (btn.querySelector('span')) btn.querySelector('span').innerText = 'Success';
-            else btn.innerText = 'Success';
+            if (btn.querySelector('span')) btn.querySelector('span').innerText = '已载入';
+            else btn.innerText = '已载入';
         } catch (e) {
             if (token && repo) {
                 try {
@@ -565,15 +565,15 @@
                     const data = await res.json();
                     const remote = normalizePortfolioState(JSON.parse(decodeURIComponent(escape(atob(data.content)))));
                     applyRemoteState(remote);
-                    if (btn.querySelector('span')) btn.querySelector('span').innerText = 'Success';
-                    else btn.innerText = 'Success';
+                    if (btn.querySelector('span')) btn.querySelector('span').innerText = '已载入';
+                    else btn.innerText = '已载入';
                 } catch (apiError) {
-                    if (btn.querySelector('span')) btn.querySelector('span').innerText = 'Error';
-                    else btn.innerText = 'Error';
+                    if (btn.querySelector('span')) btn.querySelector('span').innerText = '失败';
+                    else btn.innerText = '失败';
                 }
             } else {
-                if (btn.querySelector('span')) btn.querySelector('span').innerText = 'Error';
-                else btn.innerText = 'Error';
+                if (btn.querySelector('span')) btn.querySelector('span').innerText = '失败';
+                else btn.innerText = '失败';
             }
         } finally {
             setTimeout(() => {

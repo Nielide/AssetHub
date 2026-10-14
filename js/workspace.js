@@ -14,8 +14,8 @@
         if (!['overview', 'holdings', 'drawdown', 'activity'].includes(name)) name = 'overview';
         currentPanel = name;
         document.querySelectorAll('[data-panel]').forEach(panel => { panel.hidden = panel.dataset.panel !== name; });
-        document.querySelectorAll('[data-workspace], [data-rail-workspace]').forEach(link => {
-            const active = (link.dataset.workspace || link.dataset.railWorkspace) === name;
+        document.querySelectorAll('[data-workspace]').forEach(link => {
+            const active = link.dataset.workspace === name;
             link.classList.toggle('active', active);
             if (active) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current');
         });
@@ -35,17 +35,16 @@
         editingHoldings = typeof force === 'boolean' ? force : !editingHoldings;
         el('panel-holdings').classList.toggle('is-editing', editingHoldings);
         el('edit-holdings').setAttribute('aria-pressed', String(editingHoldings));
-        el('edit-holdings').querySelector('span').textContent = editingHoldings ? 'Done editing' : 'Edit positions';
-        el('holding-edit-hint').hidden = !editingHoldings;
+        el('edit-holdings').querySelector('span').textContent = editingHoldings ? '完成' : '编辑持仓';
         document.querySelectorAll('#panel-holdings input[data-field]').forEach(input => {
             input.readOnly = !editingHoldings || (isPrivacyMode && ['shares', 'amount'].includes(input.dataset.field));
             const item = state[input.dataset.type]?.find(item => String(item.id) === input.dataset.id);
-            input.setAttribute('aria-label', `${input.dataset.field} for ${item?.ticker || 'new position'}`);
+            input.setAttribute('aria-label', `${item?.ticker || '新持仓'}${({ticker:'代码',shares:'数量',cost:'成本',price:'现价',amount:'余额'})[input.dataset.field] || input.dataset.field}`);
         });
         document.querySelectorAll('#panel-holdings .ccy-select-btn').forEach(button => { button.disabled = !editingHoldings; });
         document.querySelectorAll('#panel-holdings .delete-trigger').forEach(button => {
             button.setAttribute('role', 'button'); button.setAttribute('tabindex', editingHoldings ? '0' : '-1');
-            button.setAttribute('aria-label', 'Delete ' + button.closest('.pro-grid-row, .cash-grid-row').querySelector('input[data-field="ticker"]').value);
+            button.setAttribute('aria-label', '删除 ' + button.closest('.pro-grid-row, .cash-grid-row').querySelector('input[data-field="ticker"]').value);
             if (!button.dataset.keyboardReady) {
                 button.dataset.keyboardReady = 'true';
                 button.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); button.dispatchEvent(new MouseEvent('click', { bubbles: true })); } });
@@ -57,14 +56,14 @@
         editingReferences = typeof force === 'boolean' ? force : !editingReferences;
         el('panel-drawdown').classList.toggle('is-editing', editingReferences);
         el('edit-references').setAttribute('aria-pressed', String(editingReferences));
-        el('edit-references').querySelector('span').textContent = editingReferences ? 'Done editing' : 'Edit references';
+        el('edit-references').querySelector('span').textContent = editingReferences ? '完成' : '编辑';
         document.querySelectorAll('#drawdown-list input').forEach(input => {
             const row = state.drawdown.find(row => row.id === input.dataset.id);
             input.readOnly = !editingReferences || (input.dataset.field === 'symbol' && row?.source === 'holding');
             if (input.dataset.field === 'high' && !row?.high && !input.dataset.editShortcut) {
                 input.dataset.editShortcut = 'true';
                 input.addEventListener('click', () => { toggleReferenceEdit(true); input.focus(); });
-                input.title = 'Click to set your reference high';
+                input.title = '设置参考高点';
             }
         });
     };
@@ -84,10 +83,10 @@
         const types = ['usd', 'cn', 'sgov'];
         const positions = types.flatMap(type => state[type].filter(item => item.shares > 0).map(item => ({ ...item, type, currency: type === 'cn' ? 'CNY' : 'USD', value: item.shares * item.price, converted: item.shares * item.price * (type === 'cn' ? 1 : fx) })));
         const values = [
-            { type: 'usd', label: 'US equities', color: 'var(--allocation-us)', value: positions.filter(item => item.type === 'usd').reduce((sum, item) => sum + item.converted, 0) },
-            { type: 'cn', label: 'China equities', color: 'var(--allocation-cn)', value: positions.filter(item => item.type === 'cn').reduce((sum, item) => sum + item.converted, 0) },
-            { type: 'sgov', label: 'Treasury ETF', color: 'var(--allocation-sgov)', value: positions.filter(item => item.type === 'sgov').reduce((sum, item) => sum + item.converted, 0) },
-            { type: 'cash', label: 'Cash', color: 'var(--allocation-cash)', value: state.cash.reduce((sum, item) => sum + item.amount * (item.currency === 'USD' ? fx : item.currency === 'HKD' ? state.hkdFx || 0.93 : 1), 0) }
+            { type: 'usd', label: '美股', color: 'var(--allocation-us)', value: positions.filter(item => item.type === 'usd').reduce((sum, item) => sum + item.converted, 0) },
+            { type: 'cn', label: 'A 股', color: 'var(--allocation-cn)', value: positions.filter(item => item.type === 'cn').reduce((sum, item) => sum + item.converted, 0) },
+            { type: 'sgov', label: '国债 ETF', color: 'var(--allocation-sgov)', value: positions.filter(item => item.type === 'sgov').reduce((sum, item) => sum + item.converted, 0) },
+            { type: 'cash', label: '现金', color: 'var(--allocation-cash)', value: state.cash.reduce((sum, item) => sum + item.amount * (item.currency === 'USD' ? fx : item.currency === 'HKD' ? state.hkdFx || 0.93 : 1), 0) }
         ];
         const total = values.reduce((sum, item) => sum + item.value, 0);
         return { positions, values, total, fx };
@@ -118,31 +117,30 @@
         el('allocation-bar').innerHTML = values.map(item => `<span style="width:${total ? item.value / total * 100 : 25}%;background:${item.color}" title="${item.label}"></span>`).join('');
         el('allocation-breakdown').innerHTML = values.map(item => {
             const pct = total > 0 ? item.value / total * 100 : 0;
-            const currency = item.type === 'cn' ? 'CNY' : item.type === 'cash' ? 'Multi-currency' : 'USD';
+            const currency = item.type === 'cn' ? 'CNY' : item.type === 'cash' ? '多币种' : 'USD';
             const count = item.type === 'cash' ? state.cash.length : positions.filter(position => position.type === item.type).length;
-            return `<button class="allocation-item" data-market="${item.type}"><span class="allocation-group-label"><b>${item.label}</b><small>${count} ${item.type === 'cash' ? 'balances' : 'positions'} · ${currency}</small></span><span class="allocation-group-value"><b>${money(item.value)}</b><small>${pct.toFixed(1)}% of portfolio</small></span><span class="allocation-chevron" aria-hidden="true">›</span></button>`;
+            return `<button class="allocation-item" data-market="${item.type}"><span class="allocation-group-label"><b>${item.label}</b><small>${count} ${item.type === 'cash' ? '笔' : '只'} · ${currency}</small></span><span class="allocation-group-value"><b>${money(item.value)}</b><small>${pct.toFixed(1)}%</small></span><span class="allocation-chevron" aria-hidden="true">›</span></button>`;
         }).join('');
         el('allocation-breakdown').querySelectorAll('button').forEach(button => button.addEventListener('click', () => { navigateWorkspace('holdings'); el('holdings-search').value = ''; el('holdings-search').dispatchEvent(new Event('input')); setHoldingMarket(button.dataset.market); }));
-        el('footer-fx').textContent = 'USD/CNY ' + fx.toFixed(4);
         const stamp = Number(state.lastSavedAt);
-        el('snapshot-date').textContent = stamp > 0 ? 'As of ' + new Date(stamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Local portfolio snapshot';
+        el('snapshot-date').textContent = stamp > 0 ? '更新 ' + new Date(stamp).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }) : '本机数据';
         document.body.classList.toggle('privacy-mode', isPrivacyMode);
+        document.querySelector('.privacy-button').setAttribute('aria-pressed', String(isPrivacyMode));
     }
     renderVooQqqm = function () {
         const { positions, total } = portfolioValues();
         const returnRate = item => item.cost > 0 ? item.price / item.cost - 1 : -Infinity;
         const ranked = positionView === 'return' ? positions.filter(item => item.cost > 0).sort((a, b) => returnRate(b) - returnRate(a) || b.converted - a.converted) : positions.sort((a, b) => b.converted - a.converted);
         const top = ranked.slice(0, 5);
-        el('positions-title').textContent = positionView === 'return' ? 'Return leaders' : 'Holdings';
-        el('positions-subtitle').textContent = positionView === 'return' ? 'Unrealized return · Positions with a cost basis' : `${positions.length} invested positions · Ranked by CNY value`;
+        el('positions-title').textContent = positionView === 'return' ? '收益排行' : '持仓';
         document.querySelectorAll('[data-position-view]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.positionView === positionView)));
         el('vooqqqm-rows').innerHTML = top.map(item => {
             const cost = item.shares * (item.cost || 0), pct = cost > 0 ? (item.value / cost - 1) * 100 : 0;
             const icon = document.querySelector(`#${item.type}-inputs input[data-id="${CSS.escape(String(item.id))}"][data-field="ticker"]`)?.parentElement.querySelector('.holding-icon');
             const weight = total ? item.converted / total * 100 : 0;
             const quantity = isPrivacyMode ? '••••' : Number(item.shares).toLocaleString('en-US', { maximumFractionDigits: 2 });
-            return `<button class="position-item" data-symbol="${escapeHTML(item.ticker)}"><span class="position-symbol"><span class="position-logo">${icon?.innerHTML || escapeHTML(item.ticker.slice(0, 1))}</span><span><b>${escapeHTML(item.ticker)}</b><small>${quantity} shares · ${money(item.price, item.currency, item.type === 'cn' ? 3 : 2)}</small></span></span><span class="position-value">${money(item.value, item.currency, 2)}</span><span class="position-return ${cost > 0 ? pct < 0 ? 'negative' : 'positive' : ''}"><b>${cost > 0 ? (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%' : '—'}</b><small>${cost > 0 ? (isPrivacyMode ? '••••' : (pct >= 0 ? '+' : '−') + money(Math.abs(item.value - cost), item.currency)) : 'Cost basis needed'}</small></span><span class="position-weight"><b>${weight.toFixed(1)}%</b><span class="weight-track"><i style="width:${weight}%;"></i></span></span></button>`;
-        }).join('') || '<div class="empty-state">Add your first holding to see your portfolio here.</div>';
+            return `<button class="position-item" data-symbol="${escapeHTML(item.ticker)}"><span class="position-symbol"><span class="position-logo">${icon?.innerHTML || escapeHTML(item.ticker.slice(0, 1))}</span><span><b>${escapeHTML(item.ticker)}</b><small>${quantity} 股 · ${money(item.price, item.currency, item.type === 'cn' ? 3 : 2)}</small></span></span><span class="position-value">${money(item.value, item.currency, 2)}</span><span class="position-return ${cost > 0 ? pct < 0 ? 'negative' : 'positive' : ''}"><b>${cost > 0 ? (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%' : '—'}</b><small>${cost > 0 ? (isPrivacyMode ? '••••' : (pct >= 0 ? '+' : '−') + money(Math.abs(item.value - cost), item.currency)) : '缺少成本'}</small></span><span class="position-weight"><b>${weight.toFixed(1)}%</b><span class="weight-track"><i style="width:${weight}%;"></i></span></span></button>`;
+        }).join('') || '<div class="empty-state">暂无持仓</div>';
         el('vooqqqm-rows').querySelectorAll('button').forEach(button => button.addEventListener('click', () => openPortfolioPosition(button.dataset.symbol)));
         el('vooqqqm-rows').querySelectorAll('img').forEach(img => {
             const fallback = () => { img.closest('.position-logo').textContent = img.closest('[data-symbol]')?.dataset.symbol?.slice(0, 1) || '·'; };
@@ -156,16 +154,16 @@
         const count = ready.filter(item => item.data.drop >= 5).length;
         const pending = rows.filter(item => !item.row.high).length;
         const coverage = rows.length - pending;
-        el('risk-coverage-label').textContent = `${coverage}/${rows.length} reference highs set`;
+        el('risk-coverage-label').textContent = `高点 ${coverage}/${rows.length}`;
         el('risk-coverage-progress').style.width = (rows.length ? coverage / rows.length * 100 : 0) + '%';
-        el('alert-count').textContent = count + ' to watch';
+        el('alert-count').textContent = count + ' 项';
         el('nav-risk-count').textContent = count || '';
-        el('risk-reference-hint').textContent = pending ? `${pending} reference highs to set` : 'All reference highs set';
+        el('risk-reference-hint').textContent = pending ? `${pending} 项待设高点` : '';
         el('risk-held-count').textContent = rows.filter(item => item.row.source === 'holding').length;
         el('risk-watch-count').textContent = rows.filter(item => item.row.source === 'watchlist').length;
         el('risk-alert-count').textContent = count;
         el('risk-pending-count').textContent = pending;
-        el('dd-alert-list').innerHTML = ready.slice(0, 3).map(({ row, data }) => `<button class="risk-position" data-symbol="${escapeHTML(row.symbol)}"><span class="risk-position-top"><span><b>${escapeHTML(row.symbol)}</b><small>${row.source === 'holding' ? 'Holding' : 'Watchlist'}</small></span><strong>${data.drop > 0 ? '−' : '+'}${Math.abs(data.drop).toFixed(2)}%</strong></span><span class="risk-track"><i style="width:${Math.max(0, Math.min(100, data.drop / 30 * 100))}%"></i></span><span class="risk-level">${data.next === null ? '30% level reached' : `Next −${data.next}% level`}<b>${data.next === null ? 'Review reference' : money(data.target, row.currency, 2)}</b></span></button>`).join('') || '<div class="risk-empty">Set your reference highs to start monitoring price levels.</div>';
+        el('dd-alert-list').innerHTML = ready.slice(0, 3).map(({ row, data }) => `<button class="risk-position" data-symbol="${escapeHTML(row.symbol)}"><span class="risk-position-top"><span><b>${escapeHTML(row.symbol)}</b><small>${row.source === 'holding' ? '持仓' : '自选'}</small></span><strong>${data.drop > 0 ? '−' : '+'}${Math.abs(data.drop).toFixed(2)}%</strong></span><span class="risk-track"><i style="width:${Math.max(0, Math.min(100, data.drop / 30 * 100))}%"></i></span><span class="risk-level">${data.next === null ? '已达 −30%' : `下一档 −${data.next}%`}<b>${data.next === null ? '—' : money(data.target, row.currency, 2)}</b></span></button>`).join('') || '<div class="risk-empty">暂无回撤数据</div>';
         el('dd-alert-list').querySelectorAll('button').forEach(button => button.addEventListener('click', () => openRiskPosition(button.dataset.symbol)));
     };
 
@@ -208,13 +206,11 @@
         };
         chart.stop();
         chart.update('none');
-        const historyRecords = state.history.slice().sort((a, b) => a.date.localeCompare(b.date));
-        el('history-caption').textContent = chart.data.labels.length + ' recorded days · ' + historyRecords[historyRecords.length - 1]?.date;
     };
     const originalRange = setNwRange;
     setNwRange = function (days) {
         originalRange(days);
-        el('hero-period-label').textContent = ({ 30: '1 month', 90: '3 months', 365: '1 year', 0: 'All time' })[days];
+        el('hero-period-label').textContent = ({ 30: '近 1 月', 90: '近 3 月', 365: '近 1 年', 0: '全部记录' })[days];
         document.querySelectorAll('.nw-range-btn').forEach(button => button.setAttribute('aria-pressed', String(Number(button.dataset.range) === days)));
     };
     const originalRenderAll = renderAllRows;
@@ -242,7 +238,11 @@
         document.querySelectorAll('[data-workspace]').forEach(link => link.addEventListener('click', event => { event.preventDefault(); navigateWorkspace(link.dataset.workspace); }));
         window.addEventListener('popstate', () => navigateWorkspace(location.hash.slice(1), false));
         window.addEventListener('hashchange', () => navigateWorkspace(location.hash.slice(1), false));
-        window.addEventListener('keydown', event => { if (event.key === 'Escape') { document.activeElement?.blur(); toggleHoldingsEdit(false); toggleReferenceEdit(false); closePopover(); closeAllCcyMenus(); } });
+        window.addEventListener('keydown', event => {
+            if (event.key !== 'Escape') return;
+            document.activeElement?.blur(); toggleHoldingsEdit(false); toggleReferenceEdit(false); closePopover(); closeAllCcyMenus();
+            if (!el('sync-panel').classList.contains('hidden-panel')) toggleSyncPanel();
+        });
         navigateWorkspace(location.hash.slice(1), false);
         el('holdings-search').addEventListener('input', () => { toggleHoldingsEdit(editingHoldings); applyMarketFilter(); });
         await originalOnload();
