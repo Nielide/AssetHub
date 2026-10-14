@@ -284,21 +284,9 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
 
         let displayDate = new Date();
         let calViewMode = 0;
-        let calendarCurrency = localStorage.getItem('assethub_calendar_currency') === 'USD' ? 'USD' : 'CNY';
-        function setCalendarCurrency(currency) {
-            calendarCurrency = currency === 'USD' ? 'USD' : 'CNY';
-            localStorage.setItem('assethub_calendar_currency', calendarCurrency);
-            renderCalendar(); renderYearlySummary();
-        }
-        function calendarAmount(record, field) { return PortfolioModel.calendarAmount(record, field, calendarCurrency, document.getElementById('fx-rate').value); }
-        function calendarMoney(value, signed = false, decimals = calendarCurrency === 'USD' ? 2 : 0) {
-            return (value < 0 ? '−' : signed ? '+' : '') + (calendarCurrency === 'USD' ? '$' : '¥') + Math.abs(Number(value)).toLocaleString('en-US', { useGrouping: false, minimumFractionDigits: decimals, maximumFractionDigits: decimals });
-        }
-        function decorateCalendarCurrency() {
-            document.querySelectorAll('[data-calendar-currency]').forEach(button => {
-                const active = button.dataset.calendarCurrency === calendarCurrency;
-                button.classList.toggle('active', active); button.setAttribute('aria-pressed', String(active));
-            });
+        function calendarAmount(record, field) { return PortfolioModel.calendarAmount(record, field, 'CNY'); }
+        function calendarMoney(value, signed = false, decimals = 0) {
+            return (value < 0 ? '−' : signed ? '+' : '') + Math.abs(Number(value)).toFixed(decimals);
         }
 
         // 把当前资产数据保存到浏览器本地。
@@ -393,7 +381,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
             const totalNwEl = document.getElementById('total-nw-cny');
             if (totalNwEl) {
                 if (isPrivacyMode) { totalNwEl.innerText = '••••••••'; }
-                else { animateNumber(totalNwEl, parseFloat(totalNwEl.innerText.replace(/[¥\s,*]/g, '')) || 0, grandTotal, 500, '¥', 2); }
+                else { animateNumber(totalNwEl, parseFloat(totalNwEl.innerText.replace(/[¥\s,*]/g, '')) || 0, grandTotal, 500, '¥', 0); }
             }
 
             const totalUsdEl = document.getElementById('total-usd-assets');
@@ -1060,6 +1048,8 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
             const activeClasses = ['bg-white', 'dark:bg-darkSurface', 'shadow-sm', 'text-textPrimary', 'dark:text-darkText'];
             const inactiveClasses = ['text-textSecondary', 'dark:text-darkTextSec', 'hover:text-textPrimary', 'dark:hover:text-darkText'];
 
+            tabDaily.setAttribute('aria-pressed', String(view === 'daily'));
+            tabYearly.setAttribute('aria-pressed', String(view === 'yearly'));
             if (view === 'daily') {
                 tabDaily.classList.add(...activeClasses);
                 tabDaily.classList.remove(...inactiveClasses);
@@ -1091,6 +1081,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
 
             for (let i = 0; i <= 2; i++) {
                 const btn = document.getElementById(`view-mode-${i}`);
+                btn.setAttribute('aria-pressed', String(i === mode));
                 if (i === mode) {
                     btn.classList.add(...activeClasses);
                     btn.classList.remove(...inactiveClasses);
@@ -1125,7 +1116,6 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
 
         // 渲染当前年份 12 个月的盈亏汇总。
         function renderYearlySummary() {
-            decorateCalendarCurrency();
             const currentYear = displayDate.getFullYear();
             const yearBadge = document.getElementById('current-year-badge');
             if (yearBadge) yearBadge.innerText = currentYear;
@@ -1173,7 +1163,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                     }
 
                     return `
-                        <div data-month="${index}" data-has-record="${monthlyRecords[index] > 0}" onclick="jumpToMonth(${index})" class="py-4 md:py-6 px-2 md:px-3 min-h-[140px] md:min-h-[200px] rounded-lg ${bgClass} flex flex-col items-center justify-center cursor-pointer hover:-translate-y-1.5 transition-all duration-300">
+                        <div data-month="${index}" data-has-record="${monthlyRecords[index] > 0}" data-level="${Math.max(1, Math.ceil(Math.abs(val) / (Math.max(...monthlyData.map(Math.abs)) || 1) * 4))}" data-tone="${val > 0 ? 'gain' : val < 0 ? 'loss' : 'flat'}" onclick="jumpToMonth(${index})" class="py-4 md:py-6 px-2 md:px-3 min-h-[140px] md:min-h-[200px] rounded-lg ${bgClass} flex flex-col items-center justify-center cursor-pointer hover:-translate-y-1.5 transition-all duration-300">
                             <span class="text-xs md:text-sm font-bold text-gray-500 dark:text-darkTextSec uppercase mb-2 md:mb-3">${monthNames[index]}</span>
                             <span data-monthly-value="${val}" class="text-xl md:text-2xl font-bold font-mono tracking-tight ${colorClass}">${valText}</span>
                         </div>
@@ -1183,6 +1173,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
 
             const totalEl = document.getElementById('yearly-total');
             if (totalEl) {
+                totalEl.dataset.tone = ytdTotal > 0 ? 'gain' : ytdTotal < 0 ? 'loss' : 'flat';
                 if (isPrivacyMode) {
                     totalEl.innerText = '••••';
                     totalEl.className = 'text-2xl md:text-3xl font-bold font-mono tracking-tight text-gray-400 dark:text-gray-500';
@@ -1203,7 +1194,6 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
 
         // 根据每日历史记录渲染月历。
         function renderCalendar() {
-            decorateCalendarCurrency();
             const year = displayDate.getFullYear();
             const month = displayDate.getMonth();
             const monthNames = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
@@ -1270,7 +1260,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                             let sign = fv > 0 ? '+' : '-';
                             let fText = sign + calendarMoney(Math.abs(fv), false, 0);
                             const fColor = 'text-yellow-400 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-300 dark:border-yellow-800/50';
-                            flowHtml = `<div class="absolute top-1.5 right-1 md:top-1.5 md:right-1.5 text-[0.5rem] md:text-[0.55rem] font-bold ${fColor} px-1 rounded shadow-sm tracking-tighter leading-none h-[14px] md:h-[16px] flex items-center justify-center" title="资金流入或流出">${fText}</div>`;
+                            flowHtml = `<div class="calendar-flow absolute top-1.5 right-1 md:top-1.5 md:right-1.5 text-[0.5rem] md:text-[0.55rem] font-bold ${fColor} px-1 rounded shadow-sm tracking-tighter leading-none h-[14px] md:h-[16px] flex items-center justify-center" title="资金流入或流出">${fText}</div>`;
                         }
                     }
 
@@ -1280,9 +1270,9 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                 }
 
                 grid.innerHTML += `
-                    <div data-date="${dateStr}" data-has-record="${!!data}" class="relative flex flex-col justify-center items-center pt-3 pb-1 md:pt-0 md:pb-0 md:py-4 min-h-[50px] md:min-h-[80px] rounded-lg w-full transition-all hover:brightness-95 cursor-default ${bgClass}">
+                    <div data-date="${dateStr}" data-has-record="${!!data}" data-level="${Math.abs(data?.rate || 0) < .25 ? 1 : Math.abs(data?.rate || 0) < .75 ? 2 : Math.abs(data?.rate || 0) < 1.5 ? 3 : 4}" data-today="${isToday}" data-tone="${data?.pl > 0 ? 'gain' : data?.pl < 0 ? 'loss' : 'flat'}" class="relative flex flex-col justify-center items-center pt-3 pb-1 md:pt-0 md:pb-0 md:py-4 min-h-[50px] md:min-h-[80px] rounded-lg w-full transition-all hover:brightness-95 cursor-default ${bgClass}">
                         ${flowHtml}
-                        <span class="absolute top-1.5 left-1.5 md:static md:top-auto md:left-auto text-[0.6rem] md:text-xs font-bold text-gray-400 dark:text-gray-500 leading-none h-[14px] md:h-auto flex items-center md:mb-1">${dayText}</span>
+                        <span class="calendar-day-number absolute top-1.5 left-1.5 md:static md:top-auto md:left-auto text-[0.6rem] md:text-xs font-bold text-gray-400 dark:text-gray-500 leading-none h-[14px] md:h-auto flex items-center md:mb-1">${dayText}</span>
                         ${valHtml}
                     </div>
                 `;

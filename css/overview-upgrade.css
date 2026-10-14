@@ -1,73 +1,105 @@
-.workspace-nav { position: fixed; left: 50%; bottom: max(22px,env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 60; margin: 0; width: max-content; max-width: calc(100vw - 32px); height: auto; padding: 6px; gap: 5px; background: color-mix(in srgb,var(--bg-card) 94%,transparent); border: 1px solid var(--line); border-radius: 28px; box-shadow: 0 8px 32px rgba(35,42,23,.13); backdrop-filter: blur(16px); }
-.workspace-nav a { padding: 11px 18px; font-size: 14px; border-radius: 22px; }
-.app-shell { padding-bottom: 112px; }
-#panel-overview .folio-head .wealth-metrics { grid-template-columns: repeat(6,minmax(0,1fr)); padding: 18px 0; }
-#panel-overview .folio-head .wealth-metrics > div { padding: 0 16px; }
+/* Overview alignment, a stable floating dock and a restrained return calendar. */
+.app-shell { padding-bottom: 120px; }
+#panel-overview .folio-head { display: grid; grid-template-columns: 240px minmax(0,1fr); align-items: start; gap: 48px; }
+#panel-overview .folio-head > div:first-child { min-width: 0; }
+#panel-overview .networth-label, #panel-overview .wealth-metrics > div > span { display: block; font-size: 14px; line-height: 20px; font-weight: 500; }
+#panel-overview .wealth-value { font-size: 52px; letter-spacing: -2px; line-height: 60px; margin-top: 8px; }
+#panel-overview .folio-head .wealth-metrics { grid-template-columns: repeat(6,minmax(0,1fr)); padding: 0; margin: 0; }
+#panel-overview .folio-head .wealth-metrics > div { padding: 0 14px; min-width: 0; }
 #panel-overview .folio-head .wealth-metrics > div:first-child { padding-left: 0; }
-#panel-overview .folio-head .wealth-metrics strong { font-size: 23px !important; }
-#panel-overview .folio-head .wealth-metrics small { font-size: 11px !important; }
-#panel-overview .folio-head { gap: 30px; }
+#panel-overview .folio-head .wealth-metrics > div:last-child { padding-right: 0; }
+#panel-overview .folio-head .wealth-metrics > div > div { display: flex; flex-direction: row; flex-wrap: nowrap; gap: 6px; align-items: center; height: 60px; margin-top: 8px; }
+#panel-overview .folio-head .wealth-metrics strong { font-size: 32px !important; line-height: 1.2; letter-spacing: -.8px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+#panel-overview .folio-head .wealth-metrics small { font-size: 11px !important; white-space: nowrap; }
 .overview-paired-columns { gap: 18.67px; }
 .overview-positions { --holding-columns: 150px 80px minmax(100px,1fr) minmax(100px,1fr) minmax(130px,1.25fr) minmax(135px,1.3fr) minmax(100px,.95fr) minmax(75px,.75fr); }
 .position-risk-next small { padding: 5px 8px; border-radius: 7px; font-size: 15px; background: var(--soft); }
-.overview-comparison, .overview-calendar { margin-top: 44px; }
-.comparison-heading { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 22px; }
-.comparison-heading h2, .overview-calendar h2 { font-size: 23px; font-weight: 600; }
-.comparison-ranges { display: flex; gap: 4px; flex-wrap: wrap; }
-.comparison-ranges button { font-size: 14px; padding: 7px 13px; border-radius: 18px; color: var(--text-secondary); }
-.comparison-ranges button[aria-pressed=true] { background: var(--folio-paper); color: var(--text-primary); box-shadow: 0 2px 5px rgba(46,51,26,.06); }
-.market-chart-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px; }
-.market-chart-panel { min-width: 0; padding: 22px 24px 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--folio-paper); }
-.market-chart-panel.is-empty { background: transparent; }
-.market-chart-heading { display: flex; gap: 14px; align-items: baseline; flex-wrap: wrap; }
-.market-chart-heading h3 { font-size: 17px; font-weight: 600; }
-.market-chart-heading strong { font-size: 23px; font-family: 'Geist Mono',monospace; font-weight: 500; margin-left: auto; }
-.market-chart-heading > span { font-size: 16px; font-family: 'Geist Mono',monospace; }
-.market-chart-area { height: 235px; position: relative; margin-top: 20px; }
-.market-chart-area canvas { max-width: 100%; }
-.market-chart-empty { position: absolute; top: 45%; width: 100%; text-align: center; font-size: 14px; color: var(--text-secondary); pointer-events: none; }
-.market-record { display: block; font-size: 11px; color: var(--text-secondary); text-align: right; min-height: 16px; }
+.overview-position-table:has(.empty-state), .overview-risk-table:has(.empty-state) { background: transparent; }
+
+.workspace-nav { position: fixed; left: 50%; bottom: max(20px,env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 60; display: flex; align-items: center; justify-content: center; margin: 0; width: max-content; max-width: calc(100vw - 24px); height: 72px; padding: 8px; gap: 4px; border: 1px solid color-mix(in srgb,var(--line) 85%,transparent); border-radius: 28px; background: color-mix(in srgb,var(--bg-card) 88%,transparent); box-shadow: 0 14px 36px rgba(35,42,23,.14),0 2px 6px rgba(35,42,23,.05),inset 0 1px 0 rgba(255,255,255,.55); backdrop-filter: blur(22px) saturate(140%); isolation: isolate; }
+.workspace-nav::before { content: ''; position: absolute; left: 0; top: 8px; width: var(--nav-active-width,82px); height: 54px; border-radius: 20px; background: #343e25; box-shadow: 0 3px 8px rgba(35,42,23,.14); transform: translateX(var(--nav-active-x,8px)); transition: transform .32s cubic-bezier(.22,1,.36,1); z-index: -1; pointer-events: none; }
+.workspace-nav a, .workspace-nav a.active { position: relative; display: flex; flex-direction: column; flex: 0 0 82px; width: 82px; height: 54px; justify-content: center; align-items: center; padding: 5px 0; gap: 3px; border-radius: 20px; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--text-secondary); background: transparent; box-shadow: none; transition: color .18s ease,background-color .18s ease; -webkit-tap-highlight-color: transparent; }
+.workspace-nav a.active { color: #f6f8eb; }
+.workspace-nav a .ui-icon { display: block; width: 20px; height: 20px; flex: none; transition: transform .2s ease; }
+.workspace-nav a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.workspace-nav a:active .ui-icon { transform: scale(.94); }
+#nav-risk-count:not(:empty) { position: absolute; top: 5px; right: 17px; min-width: 14px; height: 14px; display: grid; place-items: center; padding: 0 2px; font-size: 9px; line-height: 1; border-radius: 5px; background: var(--soft); color: var(--accent); }
+html.dark .workspace-nav::before { background: #c3d296; box-shadow: 0 3px 8px rgba(0,0,0,.12); }
+html.dark .workspace-nav a.active { color: #26311e; }
+@media(hover:hover) { .workspace-nav a:hover:not(.active) { background: color-mix(in srgb,var(--accent) 8%,transparent); color: var(--text-primary); } .workspace-nav a:hover .ui-icon { transform: translateY(-2px); } }
+
+.overview-calendar { --cal-gain: #286354; --cal-loss: #a54b36; --cal-gain-fill: #66b39a; --cal-loss-fill: #d28a73; margin-top: 44px; }
+html.dark .overview-calendar { --cal-gain: #a4ddc8; --cal-loss: #f3b49e; --cal-gain-fill: #4da68a; --cal-loss-fill: #c6785f; }
+.overview-calendar h2 { font-size: 23px; font-weight: 600; }
 .overview-calendar .page-heading { padding-top: 0; margin-bottom: 20px; }
 .overview-calendar .calendar-surface { background: transparent; padding: 24px; }
-.overview-calendar [data-has-record=false] { background: transparent !important; box-shadow: none !important; }
-.overview-calendar [data-date]:has([data-calendar-value][data-amount="0"]), .overview-calendar [data-month]:has([data-monthly-value="0"]) { background: transparent !important; }
-.overview-position-table:has(.empty-state), .overview-risk-table:has(.empty-state) { background: transparent; }
-.overview-calendar .calendar-surface .font-mono { font-family: 'Geist Mono',monospace; }
-@media(max-width:1599px) {
-    #panel-overview .folio-head { flex-wrap: wrap; }
-    #panel-overview .folio-head .overview-summary { flex: 1 0 100%; }
-    #panel-overview .folio-head .wealth-metrics { padding: 6px 0; }
+.overview-calendar .calendar-tabs, .overview-calendar .calendar-modes { background: transparent; border: 1px solid var(--line); border-radius: 12px; padding: 4px; }
+.overview-calendar .calendar-tabs button, .overview-calendar .calendar-modes button { border-radius: 8px; font-weight: 500; box-shadow: none; background: transparent; color: var(--text-secondary); transition: color .18s,background-color .18s; }
+.overview-calendar .calendar-tabs button[aria-pressed=true], .overview-calendar .calendar-modes button[aria-pressed=true] { background: var(--soft); color: var(--text-primary); }
+.overview-calendar .calendar-weekday { font-size: 13px; padding: 8px 0 12px; }
+.overview-calendar [data-date], .overview-calendar [data-month] { --cal-tint: 14%; min-width: 0; border: 1px solid color-mix(in srgb,var(--line) 55%,transparent); border-radius: 10px; background: transparent; box-shadow: none; transform: none; filter: none; transition: border-color .18s,box-shadow .18s; }
+.overview-calendar [data-level='2'] { --cal-tint: 21%; }
+.overview-calendar [data-level='3'] { --cal-tint: 29%; }
+.overview-calendar [data-level='4'] { --cal-tint: 38%; }
+.overview-calendar [data-has-record=true][data-tone=gain] { background: color-mix(in srgb,var(--cal-gain-fill) var(--cal-tint),transparent); border-color: color-mix(in srgb,var(--cal-gain-fill) 28%,transparent); }
+.overview-calendar [data-has-record=true][data-tone=loss] { background: color-mix(in srgb,var(--cal-loss-fill) var(--cal-tint),transparent); border-color: color-mix(in srgb,var(--cal-loss-fill) 28%,transparent); }
+.overview-calendar [data-has-record=false], .overview-calendar [data-tone=flat] { background: transparent !important; }
+.overview-calendar [data-date] { min-height: 94px; padding: 32px 10px 20px; }
+.overview-calendar .calendar-day-number { position: absolute; left: 12px; top: 10px; color: var(--text-secondary); font-size: 12px; font-weight: 400; margin: 0; height: auto; }
+html.dark .overview-calendar .calendar-day-number { color: var(--text-secondary); }
+.overview-calendar [data-calendar-value] { font-family: 'Geist Mono',monospace; font-size: 19px; line-height: 24px; font-weight: 500; letter-spacing: -.5px; padding: 0; }
+.overview-calendar .calendar-flow { color: #806b3f; background: rgba(185,157,96,.1); border: 1px solid rgba(185,157,96,.2); box-shadow: none; font-size: 10px; font-weight: 400; letter-spacing: -.3px; }
+html.dark .overview-calendar .calendar-flow { color: #d7c69e; background: rgba(185,157,96,.12); border-color: rgba(185,157,96,.2); }
+.overview-calendar [data-month] { min-height: 154px; padding: 24px 10px; }
+.overview-calendar [data-month] > span:first-child { color: var(--text-secondary); font-weight: 400; }
+.overview-calendar [data-monthly-value] { font-size: 24px; font-family: 'Geist Mono',monospace; font-weight: 500; }
+.overview-calendar [data-tone=gain] [data-calendar-value], .overview-calendar [data-tone=gain] [data-monthly-value], .overview-calendar #yearly-total[data-tone=gain] { color: var(--cal-gain); }
+.overview-calendar [data-tone=loss] [data-calendar-value], .overview-calendar [data-tone=loss] [data-monthly-value], .overview-calendar #yearly-total[data-tone=loss] { color: var(--cal-loss); }
+.overview-calendar [data-tone=flat] [data-calendar-value] { color: var(--text-secondary); }
+.overview-calendar [data-today=true] { border-color: var(--accent); box-shadow: inset 0 0 0 1px color-mix(in srgb,var(--accent) 35%,transparent); }
+.overview-calendar [data-month]:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(35,42,23,.05); transform: none; }
+
+@media(max-width:1750px) {
+    #panel-overview .folio-head { grid-template-columns: 230px minmax(0,1fr); gap: 40px; }
+    #panel-overview .wealth-value { font-size: 48px; }
+    #panel-overview .folio-head .wealth-metrics > div { padding: 0 10px; }
+    #panel-overview .folio-head .wealth-metrics strong { font-size: 27px !important; }
+    #panel-overview .folio-head .wealth-metrics > div > div { flex-direction: column; justify-content: center; align-items: start; gap: 0; }
     .overview-positions { --holding-columns: 145px 60px minmax(78px,.85fr) minmax(78px,.85fr) minmax(112px,1.15fr) minmax(115px,1.25fr) minmax(86px,.85fr) minmax(60px,.65fr); }
     .position-risk-next small { font-size: 13px; padding: 5px 6px; }
+}
+@media(max-width:1399px) {
+    #panel-overview .folio-head { grid-template-columns: 1fr; gap: 24px; }
+    #panel-overview .folio-head .wealth-metrics > div > div { flex-direction: row; justify-content: start; align-items: center; gap: 6px; }
+    #panel-overview .folio-head .wealth-metrics strong { font-size: 25px !important; }
 }
 @media(max-width:1199px) {
     #panel-overview .folio-head .wealth-metrics { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 20px; }
     #panel-overview .folio-head .wealth-metrics > div { border: 0; padding-left: 0; }
 }
-@media(max-width:980px) {
-    .workspace-nav { order: initial; justify-content: center; }
-    .workspace-nav a { padding: 10px 14px; font-size: 13px; }
-    .position-risk-next small { font-size: 15px; }
-}
+@media(max-width:980px) { .position-risk-next small { font-size: 15px; } }
 @media(max-width:767px) {
-    .workspace-nav { gap: 1px; padding: 5px; }
-    .workspace-nav a { padding: 10px 10px; gap: 2px; font-size: 13px; }
-    #panel-overview .folio-head .wealth-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px 16px; }
+    #panel-overview .wealth-value { font-size: clamp(32px,10vw,48px); line-height: 52px; }
+    #panel-overview .folio-head .wealth-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
     #panel-overview .folio-head .wealth-metrics > div { border: 0; padding: 0; }
-    #panel-overview .folio-head .wealth-metrics strong { font-size: 22px !important; }
-    .comparison-heading { align-items: flex-start; flex-direction: column; gap: 16px; }
-    .comparison-ranges { gap: 1px; }
-    .comparison-ranges button { font-size: 13px; padding: 7px 9px; }
-    .market-chart-grid { gap: 12px; }
-    .market-chart-panel { padding: 16px 12px 10px; }
-    .market-chart-heading { gap: 8px; }
-    .market-chart-heading h3 { font-size: 16px; }
-    .market-chart-heading strong { font-size: 18px; margin: 0; }
-    .market-chart-heading > span { font-size: 13px; }
-    .market-chart-area { height: 180px; }
-    .market-chart-empty { font-size: 12px; }
-    .market-record { font-size: 10px; }
+    #panel-overview .folio-head .wealth-metrics > div > div { height: 44px; margin-top: 4px; gap: 6px; }
+    #panel-overview .folio-head .wealth-metrics strong { font-size: 24px !important; }
+    #panel-overview .folio-head .wealth-metrics small { font-size: 10px !important; }
+    .workspace-nav { bottom: max(12px,env(safe-area-inset-bottom)); height: 66px; padding: 6px; gap: 2px; border-radius: 24px; }
+    .workspace-nav::before { top: 6px; height: 52px; border-radius: 18px; }
+    .workspace-nav a, .workspace-nav a.active { flex-basis: 52px; width: 52px; height: 52px; font-size: 11px; line-height: 15px; gap: 2px; border-radius: 18px; }
+    .workspace-nav a .ui-icon { width: 19px; height: 19px; }
+    #nav-risk-count:not(:empty) { top: 4px; right: 3px; font-size: 8px; }
     .position-risk-next small { font-size: 13px; }
     .overview-calendar .calendar-surface { padding: 16px 10px; }
-    .overview-calendar .page-heading { flex-wrap: wrap; gap: 16px; }
+    .overview-calendar [data-date] { min-height: 70px; padding: 26px 2px 12px; }
+    .overview-calendar .calendar-day-number { top: 8px; left: 6px; font-size: 10px; }
+    .overview-calendar .calendar-flow { top: auto; right: auto; bottom: 4px; left: 50%; transform: translateX(-50%); max-width: calc(100% - 4px); font-size: 8px; height: 11px; padding: 0 2px; white-space: nowrap; }
+    .overview-calendar [data-date]:has(.calendar-flow) { padding-bottom: 22px; }
+    .overview-calendar [data-calendar-value] { font-size: 12px; line-height: 16px; letter-spacing: -.7px; }
+    .overview-calendar [data-month] { min-height: 120px; }
+    .overview-calendar [data-monthly-value] { font-size: 21px; }
 }
+@media(prefers-reduced-motion:reduce) { .workspace-nav::before, .workspace-nav a, .workspace-nav a .ui-icon { transition: none; } }
+
+.workspace-nav:not([data-ready])::before { transition: none; }

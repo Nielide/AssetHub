@@ -44,6 +44,7 @@
             } catch { name = 'overview'; }
         }
         if (!['overview', 'allocation', 'holdings', 'drawdown', 'activity', 'transactions', 'asset'].includes(name)) name = 'overview';
+        const previousPanel = currentPanel;
         currentPanel = name;
         document.querySelectorAll('[data-panel]').forEach(panel => { panel.hidden = panel.dataset.panel !== name; });
         document.querySelectorAll('[data-workspace]').forEach(link => {
@@ -56,7 +57,8 @@
         if (name === 'asset' && window.renderAssetDetail) renderAssetDetail();
         if (name === 'transactions' && window.renderTransactions) renderTransactions();
         closePopover(); closeAllCcyMenus();
-        if (calendarRoute) requestAnimationFrame(() => el('panel-activity').scrollIntoView({behavior: 'smooth', block: 'start'}));
+        if (calendarRoute) requestAnimationFrame(() => el('panel-activity').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start'}));
+        else if (updateHash && (previousPanel !== name || name === 'overview')) window.scrollTo({top: 0, behavior: 'instant'});
     };
     window.setHoldingMarket = value => { market = value; applyMarketFilter(); };
     function applyMarketFilter() {
