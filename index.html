@@ -13,12 +13,12 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-  <script src="js/tailwind.config.js?v=20261014-12"></script>
-  <link rel="stylesheet" href="css/app.css?v=20261014-12">
-  <link rel="stylesheet" href="css/folio.css?v=20261014-12">
-  <link rel="stylesheet" href="css/detail.css?v=20261014-12">
-  <link rel="stylesheet" href="css/overview.css?v=20261014-12">
-  <link rel="stylesheet" href="css/overview-upgrade.css?v=20261014-12">
+  <script src="js/tailwind.config.js?v=20261014-13"></script>
+  <link rel="stylesheet" href="css/app.css?v=20261014-13">
+  <link rel="stylesheet" href="css/folio.css?v=20261014-13">
+  <link rel="stylesheet" href="css/detail.css?v=20261014-13">
+  <link rel="stylesheet" href="css/overview.css?v=20261014-13">
+  <link rel="stylesheet" href="css/overview-upgrade.css?v=20261014-13">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="AssetHub">
 </head>
@@ -57,7 +57,7 @@
     <section id="panel-overview" class="workspace-panel" data-panel="overview">
       <div class="folio-head"><div><div class="networth-label"><span>总资产</span><span class="currency-label">CNY</span></div><h1 class="wealth-value" id="total-nw-cny">¥0</h1></div><div class="overview-summary"><div class="wealth-metrics"><div><span>今日盈亏</span><div><strong id="today-pl-val">—</strong><small id="today-pl-pct">—</small></div></div><div><span>美股盈亏</span><div><strong id="us-pl-value">—</strong><small id="us-pl-pct">—</small></div></div><div><span>A股盈亏</span><div><strong id="cn-pl-value">—</strong><small id="cn-pl-pct">—</small></div></div><div title="所选区间的每日盈亏汇总"><span>总盈亏</span><div><strong id="total-unrealized-pl-val">—</strong><small id="total-unrealized-pl-pct">—</small></div></div><div class="drawdown-metric" title="所选区间的资产高点到低点回落，包含资金进出的影响"><span>最大回撤</span><div><strong id="nw-max-drawdown">—</strong><small id="nw-drawdown-amount">—</small></div></div></div></div></div>
       <div class="wealth-hero"><section class="wealth-main" aria-label="资产走势"><div class="networth-chart"><canvas id="chart-networth" aria-label="资产历史走势" role="img"></canvas><div id="chart-hover" class="chart-hover" aria-live="off" hidden></div></div><p id="nw-empty-hint" class="muted"></p><div class="performance-heading"><span class="chart-label"><i></i>总资产</span><div class="range-control" role="group" aria-label="时间范围"><button class="nw-range-btn" data-range="30" onclick="setNwRange(30)">1月</button><button class="nw-range-btn" data-range="90" onclick="setNwRange(90)">3月</button><button class="nw-range-btn" data-range="180" onclick="setNwRange(180)">6月</button><button class="nw-range-btn" data-range="365" onclick="setNwRange(365)">1年</button><button class="nw-range-btn" data-range="1095" onclick="setNwRange(1095)">3年</button><button class="nw-range-btn" data-range="1825" onclick="setNwRange(1825)">5年</button><button class="nw-range-btn" data-range="3650" onclick="setNwRange(3650)">10年</button><button class="nw-range-btn" data-range="0" onclick="setNwRange(0)">全部</button></div><div class="chart-analysis" title="每日收益率标准差 × √252，用于衡量波动幅度，不代表收益高低"><span>年化波动</span><strong id="nw-volatility">—</strong></div></div><span id="nw-period-return" hidden></span></section></div>
-      <section class="positions-surface overview-positions" aria-label="持仓与回撤"><div class="overview-paired-columns"><section class="overview-holdings-panel" aria-label="持仓"><div class="paired-panel-heading position-heading-main"><h2 id="positions-title">持仓</h2><div class="segmented-control position-markets" role="group" aria-label="持仓分类"><button data-overview-market="usd" onclick="setOverviewMarket('usd')" aria-pressed="true">美股</button><button data-overview-market="cn" onclick="setOverviewMarket('cn')" aria-pressed="false">A股</button><button data-overview-market="all" onclick="setOverviewMarket('all')" aria-pressed="false">全部</button></div></div><div class="overview-position-table"><div class="positions-list-heading" aria-hidden="true"><span>资产</span><span>股数</span><span>平均成本</span><span>现价</span><span>市值</span><span>浮动盈亏</span><span>收益率</span><span>持仓占比</span></div><div id="vooqqqm-rows" aria-label="持仓明细"></div></div></section><section class="overview-risk-panel" aria-label="回撤"><div class="paired-panel-heading"><h2 class="overview-risk-title">回撤</h2></div><div class="overview-risk-table"><div class="position-risk-heading" aria-hidden="true"><span>参考高点</span><span>回撤</span><span>档位</span><span>下一档价格</span></div><div id="overview-risk-rows" aria-label="对应持仓回撤"></div></div></section></div></section>
+      <section class="positions-surface overview-positions" aria-label="持仓与回撤"><div class="overview-paired-columns"><section class="overview-holdings-panel" aria-label="持仓"><div class="paired-panel-heading position-heading-main"><h2 id="positions-title">持仓</h2><div class="segmented-control position-markets" role="group" aria-label="持仓分类"><button data-overview-market="usd" onclick="setOverviewMarket('usd')" aria-pressed="true">美股</button><button data-overview-market="cn" onclick="setOverviewMarket('cn')" aria-pressed="false">A股</button><button data-overview-market="all" onclick="setOverviewMarket('all')" aria-pressed="false">全部</button></div></div><div class="overview-position-table"><div class="positions-list-heading" aria-hidden="true"><span>资产</span><span>股数</span><span>平均成本</span><span>现价</span><span>市值</span><span>浮动盈亏</span><span>收益率</span><span>持仓占比</span></div><div id="vooqqqm-rows" aria-label="持仓明细"></div></div></section><section class="overview-risk-panel" aria-label="回撤"><div class="paired-panel-heading"><h2 class="overview-risk-title">回撤</h2></div><div class="overview-risk-table"><div class="position-risk-heading" aria-hidden="true"><span>参考高点</span><span>回撤</span><span>下一档价格</span><span>档位</span></div><div id="overview-risk-rows" aria-label="对应持仓回撤"></div></div></section></div></section>
     <section id="panel-activity" class="overview-calendar"><div class="page-heading"><div><h2>收益日历</h2></div></div>        <!-- 盈亏日历：可以在每日视图和年度视图之间切换。 -->
         <div class="calendar-surface">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-3">
@@ -178,17 +178,17 @@
     <div class="trade-total"><span>总额</span><strong id="trade-total"></strong></div><label class="trade-sync"><input id="trade-sync" type="checkbox">同步持仓</label><p id="trade-error" role="alert"></p><div class="trade-editor-actions"><button id="trade-delete" class="text-link negative" type="button" onclick="deleteCurrentTransaction()">删除</button><button type="button" class="btn-action" onclick="closeTransactionEditor()">取消</button><button type="submit" class="btn-action primary-action">保存</button></div></form>
   </dialog>
   <div id="tv-ticker-container" class="ticker-position" hidden></div>
-  <script src="js/drawdown-model.js?v=20261014-12"></script>
-  <script src="js/portfolio-model.js?v=20261014-12"></script>
-  <script src="js/performance-model.js?v=20261014-12"></script>
-  <script src="js/app.js?v=20261014-12"></script>
-  <script src="js/cloud-loader.js?v=20261014-12"></script>
-  <script src="js/dashboard.js?v=20261014-12"></script>
-  <script src="js/transactions-model.js?v=20261014-12"></script>
-  <script src="js/workspace.js?v=20261014-12"></script>
-  <script src="js/navigation-dock.js?v=20261014-12"></script>
-  <script src="js/overview-performance.js?v=20261014-12"></script>
-  <script src="js/transactions.js?v=20261014-12"></script>
-  <script src="js/asset-detail.js?v=20261014-12"></script>
+  <script src="js/drawdown-model.js?v=20261014-13"></script>
+  <script src="js/portfolio-model.js?v=20261014-13"></script>
+  <script src="js/performance-model.js?v=20261014-13"></script>
+  <script src="js/app.js?v=20261014-13"></script>
+  <script src="js/cloud-loader.js?v=20261014-13"></script>
+  <script src="js/dashboard.js?v=20261014-13"></script>
+  <script src="js/transactions-model.js?v=20261014-13"></script>
+  <script src="js/workspace.js?v=20261014-13"></script>
+  <script src="js/navigation-dock.js?v=20261014-13"></script>
+  <script src="js/overview-performance.js?v=20261014-13"></script>
+  <script src="js/transactions.js?v=20261014-13"></script>
+  <script src="js/asset-detail.js?v=20261014-13"></script>
 </body>
 </html>
