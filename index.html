@@ -13,11 +13,11 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-  <script src="js/tailwind.config.js?v=20261014-7"></script>
-  <link rel="stylesheet" href="css/app.css?v=20261014-7">
-  <link rel="stylesheet" href="css/folio.css?v=20261014-7">
-  <link rel="stylesheet" href="css/detail.css?v=20261014-7">
-  <link rel="stylesheet" href="css/overview.css?v=20261014-7">
+  <script src="js/tailwind.config.js?v=20261014-8"></script>
+  <link rel="stylesheet" href="css/app.css?v=20261014-8">
+  <link rel="stylesheet" href="css/folio.css?v=20261014-8">
+  <link rel="stylesheet" href="css/detail.css?v=20261014-8">
+  <link rel="stylesheet" href="css/overview.css?v=20261014-8">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="AssetHub">
 </head>
@@ -54,9 +54,9 @@
       <div class="settings-footer"><label class="ticker-choice"><input id="ticker-toggle" type="checkbox" onchange="toggleMarketTicker(this.checked)"> 底部行情条</label><div><button id="btn-pull" class="btn-action" onclick="pullFromGithub()"><svg  class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M6 6a8 8 0 0 1 13 2M18 18a8 8 0 0 1-13-2"/></svg><span>载入云端</span></button><button class="btn-action primary-action" onclick="saveSyncSettings()">保存</button></div></div>
     </section>
     <section id="panel-overview" class="workspace-panel" data-panel="overview">
-      <div class="folio-head"><div><div class="networth-label"><span>总资产</span><span class="currency-label">CNY</span></div><h1 class="wealth-value" id="total-nw-cny">¥0</h1><div class="folio-return-line"><strong id="nw-period-return">—</strong><span id="hero-period-label">近 3 月</span></div></div><div class="overview-summary"><div class="wealth-metrics"><div><span>今日盈亏</span><div><strong id="today-pl-val">—</strong><small id="today-pl-pct">—</small></div></div><div><span>浮动盈亏</span><div><strong id="total-unrealized-pl-val">—</strong><small id="total-unrealized-pl-pct">—</small></div></div><div class="mix-metric"><span>核心 ETF</span><div><strong id="core-weight">—</strong><small>VOO + QQQM</small></div></div><div class="mix-metric"><span>现金与国债</span><div><strong id="liquid-weight">—</strong><small>现金 + SGOV</small></div></div></div></div></div>
+      <div class="folio-head"><div><div class="networth-label"><span>总资产</span><span class="currency-label">CNY</span></div><h1 class="wealth-value" id="total-nw-cny">¥0</h1><div class="folio-return-line"><strong id="nw-period-return">—</strong><span id="hero-period-label">近 3 月</span></div></div><div class="overview-summary"><div class="wealth-metrics"><div><span>今日盈亏</span><div><strong id="today-pl-val">—</strong><small id="today-pl-pct">—</small></div></div><div><span>美股盈亏</span><div><strong id="us-pl-value">—</strong><small id="us-pl-pct">—</small></div></div><div><span>A股盈亏</span><div><strong id="cn-pl-value">—</strong><small id="cn-pl-pct">—</small></div></div><div><span>总盈亏</span><div><strong id="total-unrealized-pl-val">—</strong><small id="total-unrealized-pl-pct">—</small></div></div></div></div></div>
       <div class="wealth-hero"><section class="wealth-main" aria-label="资产走势"><div class="networth-chart"><canvas id="chart-networth" aria-label="资产历史走势" role="img"></canvas><div id="chart-hover" class="chart-hover" aria-live="off" hidden></div></div><p id="nw-empty-hint" class="muted"></p><div class="performance-heading"><span class="chart-label"><i></i>总资产</span><div class="range-control" role="group" aria-label="时间范围"><button class="nw-range-btn" data-range="30" onclick="setNwRange(30)">1月</button><button class="nw-range-btn" data-range="90" onclick="setNwRange(90)">3月</button><button class="nw-range-btn" data-range="180" onclick="setNwRange(180)">6月</button><button class="nw-range-btn" data-range="365" onclick="setNwRange(365)">1年</button><button class="nw-range-btn" data-range="1095" onclick="setNwRange(1095)">3年</button><button class="nw-range-btn" data-range="1825" onclick="setNwRange(1825)">5年</button><button class="nw-range-btn" data-range="3650" onclick="setNwRange(3650)">10年</button><button class="nw-range-btn" data-range="0" onclick="setNwRange(0)">全部</button></div></div><div class="chart-caption"><span class="as-of"><span class="snapshot-dot"></span><span id="snapshot-date">资产快照</span></span><span>最大回撤 <b id="nw-max-drawdown">—</b><span class="caption-divider">/</span>年化波动 <b id="nw-volatility">—</b></span></div></section></div>
-      <section class="positions-surface overview-positions" aria-label="持仓"><div class="surface-heading"><div class="positions-title-group"><h2 id="positions-title">持仓</h2><span id="positions-count" class="muted"></span></div><div class="segmented-control position-markets" role="group" aria-label="持仓分类"><button data-overview-market="usd" onclick="setOverviewMarket('usd')" aria-pressed="false">美股</button><button data-overview-market="cn" onclick="setOverviewMarket('cn')" aria-pressed="false">A股</button><button data-overview-market="sgov" onclick="setOverviewMarket('sgov')" aria-pressed="false">国债</button><button data-overview-market="all" onclick="setOverviewMarket('all')" aria-pressed="true">全部</button></div></div><div class="overview-position-table"><div class="positions-list-heading" aria-hidden="true"><span>资产</span><span>股数</span><span>平均成本</span><span>现价</span><span>市值</span><span>浮动盈亏</span><span>收益率</span><span>组合占比</span></div><div id="vooqqqm-rows" aria-label="持仓明细"></div></div></section>
+      <section class="positions-surface overview-positions" aria-label="持仓"><div class="surface-heading"><div class="position-heading-main"><div class="positions-title-group"><h2 id="positions-title">持仓</h2></div><div class="segmented-control position-markets" role="group" aria-label="持仓分类"><button data-overview-market="usd" onclick="setOverviewMarket('usd')" aria-pressed="false">美股</button><button data-overview-market="cn" onclick="setOverviewMarket('cn')" aria-pressed="false">A股</button><button data-overview-market="sgov" onclick="setOverviewMarket('sgov')" aria-pressed="false">国债</button><button data-overview-market="all" onclick="setOverviewMarket('all')" aria-pressed="true">全部</button></div></div><h2 class="overview-risk-title">回撤关注</h2></div><div class="overview-position-table"><div class="overview-ledger-heading"><div class="positions-list-heading" aria-hidden="true"><span>资产</span><span>股数</span><span>平均成本</span><span>现价</span><span>市值</span><span>浮动盈亏</span><span>收益率</span><span>组合占比</span></div><div class="position-risk-heading" aria-hidden="true"><span>参考高点</span><span>回撤</span><span>下一档</span></div></div><div id="vooqqqm-rows" aria-label="持仓明细"></div></div></section>
     </section>
     <section id="panel-allocation" class="workspace-panel" data-panel="allocation" hidden><div class="page-heading"><div><h1>资产分布</h1></div></div><div class="allocation-page-content"><aside class="allocation-panel" aria-label="资产分布"><div class="section-title"><h2>资产分布</h2><span class="currency-label">人民币</span></div><div class="allocation-bar" id="allocation-bar" aria-label="资产比例"></div><div id="allocation-breakdown"></div><button class="text-link allocation-link" onclick="navigateWorkspace('holdings')">查看持仓 <svg  class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button></aside><div class="currency-summary currency-footer" aria-label="币种资产"><div data-currency="USD"><span>USD</span><b id="total-usd-assets">$0</b><div class="currency-weight"><span id="currency-weight-usd">—</span><i><em></em></i></div></div><div data-currency="CNY"><span>CNY</span><b id="total-cny-assets">¥0</b><div class="currency-weight"><span id="currency-weight-cny">—</span><i><em></em></i></div></div><div data-currency="HKD"><span>HKD</span><b id="total-hkd-assets">HK$0</b><div class="currency-weight"><span id="currency-weight-hkd">—</span><i><em></em></i></div></div></div></div></section>
     <section id="panel-holdings" class="workspace-panel" data-panel="holdings" hidden>
@@ -175,14 +175,14 @@
     <div class="trade-total"><span>总额</span><strong id="trade-total"></strong></div><label class="trade-sync"><input id="trade-sync" type="checkbox">同步持仓</label><p id="trade-error" role="alert"></p><div class="trade-editor-actions"><button id="trade-delete" class="text-link negative" type="button" onclick="deleteCurrentTransaction()">删除</button><button type="button" class="btn-action" onclick="closeTransactionEditor()">取消</button><button type="submit" class="btn-action primary-action">保存</button></div></form>
   </dialog>
   <div id="tv-ticker-container" class="ticker-position" hidden></div>
-  <script src="js/drawdown-model.js?v=20261014-7"></script>
-  <script src="js/portfolio-model.js?v=20261014-7"></script>
-  <script src="js/app.js?v=20261014-7"></script>
-  <script src="js/cloud-loader.js?v=20261014-7"></script>
-  <script src="js/dashboard.js?v=20261014-7"></script>
-  <script src="js/transactions-model.js?v=20261014-7"></script>
-  <script src="js/workspace.js?v=20261014-7"></script>
-  <script src="js/transactions.js?v=20261014-7"></script>
-  <script src="js/asset-detail.js?v=20261014-7"></script>
+  <script src="js/drawdown-model.js?v=20261014-8"></script>
+  <script src="js/portfolio-model.js?v=20261014-8"></script>
+  <script src="js/app.js?v=20261014-8"></script>
+  <script src="js/cloud-loader.js?v=20261014-8"></script>
+  <script src="js/dashboard.js?v=20261014-8"></script>
+  <script src="js/transactions-model.js?v=20261014-8"></script>
+  <script src="js/workspace.js?v=20261014-8"></script>
+  <script src="js/transactions.js?v=20261014-8"></script>
+  <script src="js/asset-detail.js?v=20261014-8"></script>
 </body>
 </html>
