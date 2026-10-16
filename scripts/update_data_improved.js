@@ -1,4 +1,6 @@
 const fs = require('fs');
+const DrawdownModel = require('../js/drawdown-model.js');
+const PerformanceModel = require('../js/performance-model.js');
 
 // 读取你的数据文件
 const dataPath = './data/data.json';
@@ -13,6 +15,8 @@ if (!state.sgov) state.sgov = []; // 【修复】补充 SGOV
 if (!state.drawdown) state.drawdown = []; // 【修复】补充 Drawdown
 if (!state.fxRate) state.fxRate = 7.25;
 if (!state.hkdFx) state.hkdFx = 0.93; // 【修复】补充港币汇率
+
+DrawdownModel.sync(state);
 
 // 获取环境变量中的 Finnhub 密钥
 const FINNHUB_KEY = process.env.FINNHUB_KEY;
@@ -69,7 +73,7 @@ async function updateFinnhubData() {
     const symbolsToFetch = new Set();
     state.usd.forEach(i => { if (i.ticker && i.ticker !== 'New') symbolsToFetch.add(i.ticker); });
     state.sgov.forEach(i => { if (i.ticker && i.ticker !== 'New') symbolsToFetch.add(i.ticker); });
-    state.drawdown.forEach(i => { if (i.symbol && i.symbol !== 'NEW') symbolsToFetch.add(i.symbol); });
+    state.drawdown.forEach(i => { if (i.symbol && i.symbol !== 'NEW' && i.currency !== 'CNY') symbolsToFetch.add(i.symbol); });
 
     let successCount = 0;
     
@@ -87,7 +91,7 @@ async function updateFinnhubData() {
                 state.sgov.filter(i => i.ticker === symbol).forEach(i => i.price = price);
                 state.drawdown.filter(i => i.symbol === symbol).forEach(i => {
                     i.current = price;
-                    if (i.current === 0 && i.high > 0) i.current = i.high;
+                    i.quoteUpdatedAt = Date.now();
                 });
                 
                 console.log(`✅ 美股/标的 ${symbol} 更新成功: $${price}`);
@@ -175,6 +179,7 @@ function calculateAssets() {
 // ============ 历史记录更新 ============
 function updateHistory(assets) {
     const { grandTotal, currentTotalCost } = assets;
+    const fx = Number(state.fxRate) || 7.25;
     
     // 获取北京时间
     const bjTime = new Date(new Date().getTime() + 8 * 3600 * 1000);
@@ -212,14 +217,15 @@ function updateHistory(assets) {
         todayRecord.rate = rate;
         todayRecord.netFlow = netFlow;
         todayRecord.value = grandTotal;
+        todayRecord.fxRate = fx;
     } else {
         state.history.push({
             date: todayStr, total: grandTotal, cost: currentTotalCost,
-            pl: pl, rate: rate, netFlow: netFlow, value: grandTotal
+            pl: pl, rate: rate, netFlow: netFlow, value: grandTotal, fxRate: fx
         });
     }
 
-    if (state.history.length > 730) state.history.shift(); // 前端改成了 730天，这里对齐
+    PerformanceModel.record(state, todayStr, fx);
 
     return { todayStr, pl, rate, netFlow };
 }
@@ -245,6 +251,8 @@ async function updateData() {
 
         console.log("\n📍 步骤5: 更新历史记录...");
         const history = updateHistory(assets);
+
+        DrawdownModel.sync(state);
 
         // 【修复】防冲突核心：必须更新 lastSavedAt，告诉前端云端数据已被脚本修改
         state.lastSavedAt = Date.now();

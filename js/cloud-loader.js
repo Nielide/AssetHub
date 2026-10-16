@@ -49,16 +49,7 @@
     }
 
     function mergeHistoryLists(localHistory, remoteHistory) {
-        const byDate = new Map();
-        (Array.isArray(localHistory) ? localHistory : []).forEach(record => {
-            if (record?.date) byDate.set(record.date, record);
-        });
-        (Array.isArray(remoteHistory) ? remoteHistory : []).forEach(record => {
-            if (record?.date) byDate.set(record.date, record);
-        });
-        return Array.from(byDate.values()).sort((a, b) => {
-            return String(a.date || '').localeCompare(String(b.date || ''));
-        });
+        return PerformanceModel.mergeRecords(localHistory, remoteHistory);
     }
 
     function mergeRemoteHistory(remote) {
@@ -70,7 +61,15 @@
         let changed = false;
 
         remoteHistory.forEach(record => {
-            if (!record?.date || localByDate.has(record.date)) return;
+            if (!record?.date) return;
+            if (localByDate.has(record.date)) {
+                const local = localByDate.get(record.date);
+                if (record.markets) {
+                    const markets = {...record.markets,...local.markets};
+                    if (JSON.stringify(markets) !== JSON.stringify(local.markets)) { local.markets = markets; changed = true; }
+                }
+                return;
+            }
             state.history.push({ ...record });
             changed = true;
         });
@@ -209,222 +208,6 @@
         const style = document.createElement('style');
         style.id = 'holding-icon-styles';
         style.textContent = `
-            .pro-grid-header,
-            .pro-grid-row {
-                grid-template-columns: 24px 146px minmax(88px, .5fr) minmax(74px, .52fr) minmax(74px, .52fr) minmax(98px, .7fr) minmax(154px, 1.18fr) minmax(54px, .38fr) 30px;
-                gap: 8px;
-            }
-            .cash-grid-row {
-                grid-template-columns: 24px minmax(110px, 1.15fr) 64px minmax(94px, .8fr) minmax(104px, .9fr) 58px 32px;
-                gap: 8px;
-            }
-            #drawdown-list {
-                width: 100%;
-                min-width: 1280px;
-            }
-            .drawdown-scroll {
-                padding-top: 0;
-            }
-            .pro-grid-row,
-            .cash-grid-row {
-                min-height: 46px;
-            }
-            .dd-row {
-                min-height: 70px;
-            }
-            .dd-row .drawdown-symbol-cell {
-                width: 150px;
-            }
-            .dd-steps {
-                justify-content: flex-start;
-                gap: 10px;
-            }
-            .dd-card {
-                flex: 0 0 148px;
-                width: 148px;
-                min-width: 148px;
-                max-width: 148px;
-            }
-            .dd-current-cell {
-                width: 160px;
-                margin-left: auto;
-            }
-            .drawdown-symbol-cell .input-google {
-                flex: 0 0 7ch;
-                min-width: 7ch;
-                max-width: 7ch;
-            }
-            .pro-grid-row > div,
-            .cash-grid-row > div {
-                min-width: 0;
-            }
-            .pro-grid-row input[data-field="shares"],
-            .pro-grid-row input[data-field="cost"],
-            .pro-grid-row input[data-field="price"],
-            .cash-grid-row input[data-field="amount"] {
-                height: 30px;
-                padding: 2px 6px;
-            }
-            .pro-grid-row input[data-field="ticker"],
-            .cash-grid-row input[data-field="ticker"] {
-                height: 30px;
-                padding: 2px 4px;
-            }
-            .pro-grid-row input[data-field="ticker"] {
-                max-width: 104px;
-            }
-            .pro-grid-row input[data-field="shares"] {
-                max-width: none;
-                width: 100%;
-            }
-            .pro-grid-row [id^="val-"],
-            .pro-grid-row [id^="pl-"],
-            .pro-grid-row [id^="alloc-"],
-            .cash-grid-row [id^="val-cash-"],
-            .cash-grid-row [id^="alloc-cash-"] {
-                white-space: nowrap;
-                overflow: visible;
-            }
-            .cash-grid-row .ccy-select-btn {
-                width: auto;
-                min-width: 56px;
-                justify-content: flex-start;
-                gap: 3px;
-            }
-            .cash-grid-row input[data-field="amount"] {
-                max-width: 118px;
-                margin-left: auto;
-                font-weight: 700;
-            }
-            .cash-grid-row [id^="val-cash-"] {
-                font-weight: 700;
-            }
-            @media (max-width: 720px) {
-                .pro-grid-header,
-                .pro-grid-row {
-                    grid-template-columns: 22px 126px minmax(82px, .52fr) minmax(66px, .46fr) minmax(66px, .46fr) minmax(86px, .62fr) minmax(148px, 1.08fr) minmax(48px, .34fr) 28px;
-                    gap: 6px;
-                }
-                .cash-grid-row {
-                    grid-template-columns: 22px minmax(104px, 1.25fr) 58px minmax(86px, .78fr) minmax(96px, .85fr) 54px 30px;
-                    gap: 6px;
-                }
-                .holding-symbol-cell {
-                    gap: 6px;
-                }
-                .pro-grid-row input[data-field="ticker"] {
-                    max-width: 88px;
-                }
-                .pro-grid-row input[data-field="shares"] {
-                    max-width: none;
-                    width: 100%;
-                }
-                .holding-icon {
-                    width: 28px;
-                    height: 28px;
-                    flex-basis: 28px;
-                }
-                .holding-icon img {
-                    width: 17px;
-                    height: 17px;
-                }
-            }
-            .holding-symbol-cell {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                min-width: 0;
-            }
-            .drawdown-symbol-cell {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                min-width: 0;
-            }
-            .holding-symbol-cell .input-google {
-                flex: 0 1 auto;
-                min-width: 0;
-            }
-            .drawdown-symbol-cell .input-google {
-                flex: 0 0 7ch;
-                min-width: 7ch;
-                max-width: 7ch;
-            }
-            @media (min-width: 1440px) {
-                .dd-steps {
-                    display: grid;
-                    grid-template-columns: repeat(7, minmax(0, 1fr));
-                    min-width: 0;
-                }
-                .dd-card {
-                    width: 100%;
-                    min-width: 0;
-                    max-width: none;
-                }
-                .dd-current-cell {
-                    margin-left: 0;
-                }
-            }
-            @media (min-width: 1800px) {
-                .dd-row {
-                    display: grid;
-                    grid-template-columns: 204px minmax(0, 1fr) 185px;
-                    justify-content: stretch;
-                    align-items: center;
-                    gap: 0;
-                }
-                .dd-row .drawdown-symbol-cell {
-                    width: 204px;
-                    justify-self: start;
-                }
-                .dd-steps {
-                    width: 100%;
-                    grid-template-columns: repeat(7, 182px);
-                    justify-content: space-between;
-                    gap: 0;
-                    margin: 0;
-                }
-                .dd-card {
-                    width: 182px;
-                    min-width: 182px;
-                    max-width: 182px;
-                }
-                .dd-steps .dd-card:nth-child(1) { transform: translateX(4px); }
-                .dd-steps .dd-card:nth-child(2) { transform: translateX(-2px); }
-                .dd-steps .dd-card:nth-child(3) { transform: translateX(-4px); }
-                .dd-steps .dd-card:nth-child(4) { transform: translateX(-6px); }
-                .dd-steps .dd-card:nth-child(5) { transform: translateX(-8px); }
-                .dd-steps .dd-card:nth-child(6) { transform: translateX(-10px); }
-                .dd-steps .dd-card:nth-child(7) { transform: translateX(-12px); }
-                .dd-current-cell {
-                    width: 185px;
-                    justify-self: end;
-                }
-            }
-            @media (min-width: 1024px) {
-                #alert-card { min-height: 0; }
-                .drawdown-scroll {
-                    padding-top: 12px;
-                }
-                #dd-alert-list {
-                    flex: 1;
-                    display: grid;
-                    grid-auto-rows: minmax(84px, 1fr);
-                    align-content: stretch;
-                }
-                .dd-current-cell > .text-right {
-                    display: flex;
-                    align-items: center;
-                    margin-right: 8px;
-                }
-                .dd-current-cell > .text-right > div:first-child {
-                    display: none;
-                }
-                .dd-current-cell > .text-right > div:last-child {
-                    font-size: 1.2rem;
-                    line-height: 1;
-                }
-            }
             .holding-icon {
                 width: 30px;
                 height: 30px;
@@ -582,6 +365,12 @@
         icon.innerHTML = '';
         icon.classList.remove('logo-dev-icon');
 
+        if (['usd', 'cn', 'sgov'].includes(type)) {
+            icon.classList.add('holding-monogram');
+            icon.dataset.market = type === 'cn' ? 'cn' : 'usd';
+            icon.textContent = type === 'cn' ? 'A' : clean.slice(0, 1) || '·';
+            return;
+        }
         const preferredUrl = preferredHoldingIconUrl(clean, type);
         if (preferredUrl) {
             updateHoldingIconFromImage(icon, preferredUrl, clean);
@@ -673,13 +462,19 @@
             cell.classList.add('drawdown-symbol-cell');
             let icon = cell.querySelector('.holding-icon');
             if (!icon) {
-                icon = document.createElement('span');
-                icon.className = 'holding-icon';
-                icon.setAttribute('aria-hidden', 'true');
+                icon = document.createElement('button');
+                icon.type = 'button';
+                icon.className = 'holding-icon dd-drag-icon';
+                icon.setAttribute('aria-label', '拖动 ' + input.value + ' 排序');
+                icon.title = '拖动排序';
+                icon.addEventListener('keydown', event => {
+                    if (event.key === 'ArrowUp' || event.key === 'ArrowDown') { event.preventDefault(); moveDrawdownRow(input.dataset.id, event.key === 'ArrowUp' ? -1 : 1); }
+                });
                 cell.insertBefore(icon, input);
                 input.addEventListener('input', () => updateHoldingIcon(icon, input.value, 'drawdown'));
             }
             updateHoldingIcon(icon, input.value, 'drawdown');
+            icon.querySelectorAll('img').forEach(image => { image.draggable = false; });
         });
     }
 
@@ -715,6 +510,7 @@
         decorateCashIcons();
     };
 
+    window.decorateDrawdownIcons = decorateDrawdownIcons;
     const originalRenderDrawdown = renderDrawdown;
     renderDrawdown = function() {
         originalRenderDrawdown();
@@ -756,8 +552,8 @@
         const path = getSyncPath();
         const btn = document.getElementById('btn-pull');
         const spanText = btn.querySelector('span') ? btn.querySelector('span').innerText : btn.innerText;
-        if (btn.querySelector('span')) btn.querySelector('span').innerText = 'Syncing...';
-        else btn.innerText = 'Syncing...';
+        if (btn.querySelector('span')) btn.querySelector('span').innerText = '载入中…';
+        else btn.innerText = '载入中…';
 
         try {
             let remote = null;
@@ -767,10 +563,10 @@
                 remote = await fetchJsonWithTimeout(DEFAULT_CLOUD_DATA_URL);
             }
             remote = normalizePortfolioState(remote);
-            if (!remote) throw new Error('Invalid cloud data');
+            if (!remote) throw new Error('云端数据无效');
             applyRemoteState(remote);
-            if (btn.querySelector('span')) btn.querySelector('span').innerText = 'Success';
-            else btn.innerText = 'Success';
+            if (btn.querySelector('span')) btn.querySelector('span').innerText = '已载入';
+            else btn.innerText = '已载入';
         } catch (e) {
             if (token && repo) {
                 try {
@@ -780,15 +576,15 @@
                     const data = await res.json();
                     const remote = normalizePortfolioState(JSON.parse(decodeURIComponent(escape(atob(data.content)))));
                     applyRemoteState(remote);
-                    if (btn.querySelector('span')) btn.querySelector('span').innerText = 'Success';
-                    else btn.innerText = 'Success';
+                    if (btn.querySelector('span')) btn.querySelector('span').innerText = '已载入';
+                    else btn.innerText = '已载入';
                 } catch (apiError) {
-                    if (btn.querySelector('span')) btn.querySelector('span').innerText = 'Error';
-                    else btn.innerText = 'Error';
+                    if (btn.querySelector('span')) btn.querySelector('span').innerText = '失败';
+                    else btn.innerText = '失败';
                 }
             } else {
-                if (btn.querySelector('span')) btn.querySelector('span').innerText = 'Error';
-                else btn.innerText = 'Error';
+                if (btn.querySelector('span')) btn.querySelector('span').innerText = '失败';
+                else btn.innerText = '失败';
             }
         } finally {
             setTimeout(() => {

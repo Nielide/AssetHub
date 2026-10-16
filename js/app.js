@@ -14,7 +14,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                 if (!startTime) startTime = timestamp;
                 const progress = Math.min((timestamp - startTime) / duration, 1);
                 const current = progress * (end - start) + start;
-                element.innerText = prefix + current.toFixed(decimals);
+                element.innerText = prefix + current.toLocaleString('en-US', { useGrouping: false, minimumFractionDigits: decimals, maximumFractionDigits: decimals });
                 
                 if (progress < 1) {
                     element.animationId = window.requestAnimationFrame(step);
@@ -35,8 +35,14 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                 document.getElementById('finnhub-token').value = localStorage.getItem('finnhub_key') || '';
                 document.getElementById('hkd-rate').value = state.hkdFx || 0.93;
                 panel.classList.remove('hidden-panel');
+                panel.inert = false; panel.setAttribute('aria-hidden', 'false');
+                document.querySelector('[aria-controls="sync-panel"]').setAttribute('aria-expanded', 'true');
+                panel.querySelector('button').focus();
             } else {
                 panel.classList.add('hidden-panel');
+                panel.inert = true; panel.setAttribute('aria-hidden', 'true');
+                const settingsButton = document.querySelector('[aria-controls="sync-panel"]');
+                settingsButton.setAttribute('aria-expanded', 'false'); settingsButton.focus();
             }
         }
 
@@ -58,7 +64,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
 
             const saveBtn = document.querySelector('button[onclick="saveSyncSettings()"]');
             const originalText = saveBtn.innerText;
-            saveBtn.innerText = 'Saved';
+            saveBtn.innerText = '已保存';
 
             setTimeout(() => { saveBtn.innerText = originalText; }, 2000);
         }
@@ -71,11 +77,11 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
             const token = localStorage.getItem('gh_token');
             const repo = localStorage.getItem('gh_repo');
             const path = localStorage.getItem('gh_path');
-            if (!token || !repo) return alert('Please configure GitHub parameters in System Settings first');
+            if (!token || !repo) return alert('请先填写 GitHub 设置');
 
             const btn = document.getElementById('btn-pull');
             const spanText = btn.querySelector('span') ? btn.querySelector('span').innerText : btn.innerText;
-            if(btn.querySelector('span')) btn.querySelector('span').innerText = 'Syncing...'; else btn.innerText = 'Syncing...';
+            if(btn.querySelector('span')) btn.querySelector('span').innerText = '载入中…'; else btn.innerText = '载入中…';
 
             const url = `https://api.github.com/repos/${repo}/contents/${path}`;
             try {
@@ -96,12 +102,12 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
 
                     applyRemoteState(remote);
 
-                    if(btn.querySelector('span')) btn.querySelector('span').innerText = 'Success'; else btn.innerText = 'Success';
+                    if(btn.querySelector('span')) btn.querySelector('span').innerText = '已完成'; else btn.innerText = '已完成';
                 } else {
-                    if(btn.querySelector('span')) btn.querySelector('span').innerText = 'Failed'; else btn.innerText = 'Failed';
+                    if(btn.querySelector('span')) btn.querySelector('span').innerText = '失败'; else btn.innerText = '失败';
                 }
             } catch (e) {
-                if(btn.querySelector('span')) btn.querySelector('span').innerText = 'Error'; else btn.innerText = 'Error';
+                if(btn.querySelector('span')) btn.querySelector('span').innerText = '失败'; else btn.innerText = '失败';
             } finally {
                 setTimeout(() => {
                     if(btn.querySelector('span')) btn.querySelector('span').innerText = spanText; else btn.innerText = spanText;
@@ -134,7 +140,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
             const path = localStorage.getItem('gh_path');
 
             if (!token || !repo) {
-                if (!silent) alert('Please configure GitHub parameters in System Settings first');
+                if (!silent) alert('请先填写 GitHub 设置');
                 return;
             }
 
@@ -160,16 +166,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
         }
 
         function mergeHistoryBeforePush(remote) {
-            const byDate = new Map();
-            (Array.isArray(remote?.history) ? remote.history : []).forEach(record => {
-                if (record?.date) byDate.set(record.date, record);
-            });
-            (Array.isArray(state.history) ? state.history : []).forEach(record => {
-                if (record?.date) byDate.set(record.date, record);
-            });
-            state.history = Array.from(byDate.values()).sort((a, b) => {
-                return String(a.date || '').localeCompare(String(b.date || ''));
-            });
+            state.history = PerformanceModel.mergeRecords(remote?.history, state.history);
         }
 
         // 真正执行 GitHub 写入的函数，手动备份和自动备份都会用到。
@@ -182,7 +179,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
             if (!silent) {
                 btn = document.getElementById('btn-push');
                 spanText = btn.querySelector('span') ? btn.querySelector('span').innerText : btn.innerText;
-                if(btn.querySelector('span')) btn.querySelector('span').innerText = 'Pushing...'; else btn.innerText = 'Pushing...';
+                if(btn.querySelector('span')) btn.querySelector('span').innerText = '备份中…'; else btn.innerText = '备份中…';
             }
 
             const url = `https://api.github.com/repos/${repo}/contents/${path}`;
@@ -216,18 +213,18 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
 
                 if (!silent) {
                     if (putRes.ok) {
-                        if(btn.querySelector('span')) btn.querySelector('span').innerText = 'Success'; else btn.innerText = 'Success';
+                        if(btn.querySelector('span')) btn.querySelector('span').innerText = '已完成'; else btn.innerText = '已完成';
                         btn.classList.add('bg-googleGreen');
                         btn.classList.remove('bg-googleBlue');
                     } else {
-                        if(btn.querySelector('span')) btn.querySelector('span').innerText = 'Failed'; else btn.innerText = 'Failed';
+                        if(btn.querySelector('span')) btn.querySelector('span').innerText = '失败'; else btn.innerText = '失败';
                         btn.classList.add('bg-googleRed');
                         btn.classList.remove('bg-googleBlue');
                     }
                 }
             } catch (e) {
                 if (!silent) {
-                    if(btn.querySelector('span')) btn.querySelector('span').innerText = 'Error'; else btn.innerText = 'Error';
+                    if(btn.querySelector('span')) btn.querySelector('span').innerText = '失败'; else btn.innerText = '失败';
                 }
             } finally {
                 if (!silent) {
@@ -283,10 +280,16 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
         let isPrivacyMode = localStorage.getItem('portfolio_privacy') === 'true';
         let charts = {};
         let itemToDelete = null;
-        let nwRangeDays = 90;
+        let nwRangeDays = 0;
+        const investmentBasisKey = () => 'assethub_investment_trend_basis:' + (localStorage.getItem('gh_repo') || 'Nielide/AssetHub') + ':' + (localStorage.getItem('gh_path') || 'data/data.json');
+        let nwInvestmentBasis = ['asset-reference','investment'].includes(localStorage.getItem(investmentBasisKey())) ? localStorage.getItem(investmentBasisKey()) : 'auto';
 
         let displayDate = new Date();
         let calViewMode = 0;
+        function calendarAmount(record, field) { return PortfolioModel.calendarAmount(record, field, 'CNY'); }
+        function calendarMoney(value, signed = false, decimals = 0) {
+            return (value < 0 ? '−' : signed ? '+' : '') + Math.abs(Number(value)).toFixed(decimals);
+        }
 
         // 把当前资产数据保存到浏览器本地。
         function saveData() {
@@ -367,19 +370,20 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                 todayRecord.rate = rate;
                 todayRecord.netFlow = netFlow;
                 todayRecord.value = currentTotal;
+                todayRecord.fxRate = fx;
             } else {
                 state.history.push({
                     date: todayStr, total: currentTotal, cost: currentTotalCost,
-                    pl: pl, rate: rate, netFlow: netFlow, value: currentTotal
+                    pl: pl, rate: rate, netFlow: netFlow, value: currentTotal, fxRate: fx
                 });
             }
 
-            if (state.history.length > 730) state.history.shift();
+            PerformanceModel.record(state, todayStr, fx);
 
             const totalNwEl = document.getElementById('total-nw-cny');
             if (totalNwEl) {
                 if (isPrivacyMode) { totalNwEl.innerText = '••••••••'; }
-                else { animateNumber(totalNwEl, parseFloat(totalNwEl.innerText.replace(/[¥\s,*]/g, '')) || 0, grandTotal, 500, '¥', 2); }
+                else { animateNumber(totalNwEl, parseFloat(totalNwEl.innerText.replace(/[¥\s,*]/g, '')) || 0, grandTotal, 500, '¥', 0); }
             }
 
             const totalUsdEl = document.getElementById('total-usd-assets');
@@ -432,8 +436,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                     todayPlEl.className = `text-2xl md:text-3xl font-bold font-mono ${colorClass}`;
                 } else {
                     const startVal = parseFloat(todayPlEl.innerText.replace(/[^\d.]/g, '')) || 0;
-                    const signPrefix = pl >= 0 ? '+' : '-';
-					animateNumber(todayPlEl, startVal, Math.abs(pl), 500, signPrefix, 0);
+                    animateNumber(todayPlEl, startVal, Math.abs(pl), 500, prefixPl, 0);
                     todayPlEl.className = `text-2xl md:text-3xl font-bold font-mono ${colorClass}`;
                 }
             }
@@ -462,8 +465,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                     unPlEl.className = `text-2xl md:text-3xl font-bold font-mono ${colorClassUn}`;
                 } else {
                     const startValUn = parseFloat(unPlEl.innerText.replace(/[^\d.]/g, '')) || 0;
-                    const signUnPrefix = totalUnPl >= 0 ? '+' : '-';
-					animateNumber(unPlEl, startValUn, Math.abs(totalUnPl), 500, signUnPrefix, 0);
+                    animateNumber(unPlEl, startValUn, Math.abs(totalUnPl), 500, prefixUnPl, 0);
                     if (totalCostEl) totalCostEl.innerText = `¥${Math.round(currentTotalCost)}`;
                     if (totalValueEl) totalValueEl.innerText = `¥${Math.round(currentTotal)}`;
                     unPlEl.className = `text-2xl md:text-3xl font-bold font-mono ${colorClassUn}`;
@@ -588,7 +590,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
         // 切换净值曲线显示的时间范围。
         function setNwRange(days) {
             nwRangeDays = days;
-            document.querySelectorAll('.nw-range-btn').forEach(b => {
+            document.querySelectorAll('#portfolio-hero .nw-range-btn').forEach(b => {
                 const isActive = parseInt(b.dataset.range) === days;
                 b.classList.toggle('bg-white', isActive);
                 b.classList.toggle('dark:bg-darkSurface', isActive);
@@ -608,67 +610,29 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
             const emptyHint = document.getElementById('nw-empty-hint');
             if (!canvas) return;
 
-            let records = (state.history || []).slice().sort((a, b) => a.date.localeCompare(b.date));
-            
-            // 按真实自然日过滤，而不是简单取最近 N 条记录。
-            if (nwRangeDays > 0 && records.length > 0) {
-                const lastDateObj = new Date(records[records.length - 1].date);
-                lastDateObj.setDate(lastDateObj.getDate() - nwRangeDays);
-                const y = lastDateObj.getFullYear();
-                const m = String(lastDateObj.getMonth() + 1).padStart(2, '0');
-                const d = String(lastDateObj.getDate()).padStart(2, '0');
-                const cutoffDateStr = `${y}-${m}-${d}`;
-                
-                records = records.filter(r => r.date >= cutoffDateStr);
-            }
+            const scope = document.getElementById('panel-allocation').hidden ? 'investment' : 'asset';
+            const trend = PerformanceModel.trendSeries(state, nwRangeDays, scope, nwInvestmentBasis);
+            const records = trend.points;
+            canvas.dataset.basis = trend.basis;
+            canvas.setAttribute('aria-label', trend.basis === 'investment' ? '投资持仓市值走势' : '总资产历史走势（含现金）');
+            const basisControl = document.getElementById('nw-trend-basis');
+            basisControl.style.visibility = scope === 'asset' ? 'hidden' : 'visible';
+            basisControl.inert = scope === 'asset';
+            basisControl.setAttribute('aria-hidden', String(scope === 'asset'));
+            basisControl.querySelectorAll('button').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.investmentBasis === trend.basis)));
 
-            if (records.length < 2) {
+            if (!records.length) {
                 if (charts.networth) { charts.networth.destroy(); charts.networth = null; }
-                emptyHint.innerText = 'Keep using AssetHub for a few days to see your net worth curve here.';
-                document.getElementById('nw-period-return').innerText = '--';
-                document.getElementById('nw-max-drawdown').innerText = '--';
-                document.getElementById('nw-volatility').innerText = '--';
+                emptyHint.innerText = trend.basis === 'investment' ? '暂无投资市值记录' : '暂无资产记录';
                 return;
             }
-            emptyHint.innerText = '';
+            emptyHint.innerText = trend.basis === 'investment' && records.length === 1 ? '仅有 1 条投资快照，暂未形成曲线' : '';
 
-            const labels = records.map(r => r.date.slice(5));
-            const values = records.map(r => (r.total || r.value || 0));
-
-            let cumulative = 1;
-            for (let i = 1; i < records.length; i++) {
-                cumulative *= (1 + (records[i].rate || 0) / 100);
-            }
-            const periodReturn = (cumulative - 1) * 100;
-            const prEl = document.getElementById('nw-period-return');
-            
-            prEl.innerText = (periodReturn >= 0 ? '+' : '') + periodReturn.toFixed(2) + '%';
-            prEl.className = `text-base md:text-xl font-bold font-mono ${periodReturn >= 0 ? 'text-googleGreen' : 'text-googleRed'}`;
-
-            let peak = -Infinity, maxDD = 0;
-            records.forEach(r => {
-                const v = r.total || r.value || 0;
-                if (v > peak) peak = v;
-                if (peak > 0) {
-                    const dd = ((peak - v) / peak) * 100;
-                    if (dd > maxDD) maxDD = dd;
-                }
-            });
-            document.getElementById('nw-max-drawdown').innerText = '-' + maxDD.toFixed(2) + '%';
-
-            const rates = records.map(r => r.rate || 0).filter(r => r !== 0 || true);
-            if (rates.length > 1) {
-                const mean = rates.reduce((a, b) => a + b, 0) / rates.length;
-                const variance = rates.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / (rates.length - 1);
-                const dailyStd = Math.sqrt(variance);
-                const annualizedVol = dailyStd * Math.sqrt(252);
-                document.getElementById('nw-volatility').innerText = annualizedVol.toFixed(2) + '%';
-            } else {
-                document.getElementById('nw-volatility').innerText = '--';
-            }
+            const labels = records.map(r => r.date);
+            const values = records.map(r => r.value);
 
             const isDark = document.documentElement.classList.contains('dark');
-            const lineColor = '#1a73e8';
+            const lineColor = isDark ? '#c4d391' : '#8a9e36';
 
             if (forceRecreate && charts.networth) {
                 charts.networth.destroy();
@@ -678,6 +642,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
             if (charts.networth) {
                 charts.networth.data.labels = labels;
                 charts.networth.data.datasets[0].data = values;
+                charts.networth.data.datasets[0].pointRadius = values.length === 1 ? 4 : 0;
                 if (charts.networth.options.plugins && charts.networth.options.plugins.tooltip) {
                     charts.networth.options.plugins.tooltip.enabled = !isPrivacyMode;
                 }
@@ -697,7 +662,9 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                             borderColor: lineColor, 
                             fill: false, // 【修改点】彻底关闭下方颜色填充
                             tension: 0.3, 
-                            pointRadius: 0, 
+                            pointBackgroundColor: lineColor,
+                            pointBorderColor: lineColor,
+                            pointRadius: values.length === 1 ? 4 : 0,
                             pointHoverRadius: 4, 
                             borderWidth: 2
                         }] 
@@ -720,7 +687,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                         },
                         scales: {
                             x: { grid: { display: false }, ticks: { maxTicksLimit: 6, color: isDark ? '#9aa0a6' : '#5f6368' } },
-                            y: { grid: { color: isDark ? '#3c4043' : '#e5e7eb' }, ticks: { color: isDark ? '#9aa0a6' : '#5f6368', callback: v => isPrivacyMode ? '••••' : '¥' + v.toLocaleString() } }
+                            y: { grid: { color: isDark ? '#3c4043' : '#e5e7eb' }, ticks: { color: isDark ? '#9aa0a6' : '#5f6368', callback: v => isPrivacyMode ? '••••' : '¥' + v.toLocaleString('en-US', {useGrouping:false}) } }
                         },
                         plugins: {
                             legend: { display: false },
@@ -728,7 +695,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                                 enabled: !isPrivacyMode, 
                                 intersect: false,
                                 mode: 'index',
-                                callbacks: { label: ctx => `¥${ctx.raw.toLocaleString()}` } 
+                                callbacks: { label: ctx => `¥${ctx.raw.toLocaleString('en-US', {useGrouping:false})}` }
                             }
                         }
                     }
@@ -830,7 +797,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                     <div class="flex justify-center"><svg onclick="toggleDeletePopover(event, '${type}', '${item.id}')" class="delete-trigger icon-glass btn-icon w-4 h-4 text-gray-300 dark:text-gray-600 cursor-pointer hover:text-red-500 transition-colors" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></div>
                 </div>`;
             }).join('');
-            container.querySelectorAll('input').forEach(i => i.addEventListener('input', e => handleInput(e.target)));
+            container.querySelectorAll('input').forEach(i => i.addEventListener(i.dataset.field === 'ticker' ? 'change' : 'input', e => handleInput(e.target)));
         }
 
         // 渲染现金可编辑行，并显示币种选择器。
@@ -869,7 +836,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                     <div class="flex justify-center"><svg onclick="toggleDeletePopover(event, 'cash', '${item.id}')" class="delete-trigger icon-glass btn-icon w-4 h-4 text-gray-300 dark:text-gray-600 cursor-pointer hover:text-red-500 transition-colors" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></div>
                 </div>`;
             }).join('');
-            container.querySelectorAll('input').forEach(i => i.addEventListener('input', e => handleInput(e.target)));
+            container.querySelectorAll('input').forEach(i => i.addEventListener(i.dataset.field === 'ticker' ? 'change' : 'input', e => handleInput(e.target)));
         }
 
         // 关闭某一个浮动币种菜单。
@@ -1005,7 +972,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
 
                 row.innerHTML = `
                     <div class="drawdown-symbol-cell flex items-center gap-2 w-[150px] flex-shrink-0">
-                        <div class="drag-handle cursor-grab text-gray-300 dark:text-gray-600 hover:text-googleBlue px-1" title="Drag to reorder">
+                        <div class="drag-handle cursor-grab text-gray-300 dark:text-gray-600 hover:text-googleBlue px-1" title="拖动排序">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" /></svg>
                         </div>
                         <input type="text" maxlength="5" class="input-google w-[7ch] font-bold text-base uppercase tracking-normal" value="${stock.symbol}" data-id="${stock.id}" data-field="symbol" onchange="handleDrawdownInput(this)" placeholder="GOOGL">
@@ -1034,244 +1001,6 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                 `;
                 container.appendChild(row);
             });
-        }
-
-        // 在日历的每日视图和年度视图之间切换。
-        function switchView(view) {
-            const tabDaily = document.getElementById('tab-daily');
-            const tabYearly = document.getElementById('tab-yearly');
-            const viewDaily = document.getElementById('view-daily');
-            const viewYearly = document.getElementById('view-yearly');
-            const controlsDaily = document.getElementById('controls-daily');
-            const controlsYearly = document.getElementById('controls-yearly');
-
-            const activeClasses = ['bg-white', 'dark:bg-darkSurface', 'shadow-sm', 'text-textPrimary', 'dark:text-darkText'];
-            const inactiveClasses = ['text-textSecondary', 'dark:text-darkTextSec', 'hover:text-textPrimary', 'dark:hover:text-darkText'];
-
-            if (view === 'daily') {
-                tabDaily.classList.add(...activeClasses);
-                tabDaily.classList.remove(...inactiveClasses);
-                tabYearly.classList.add(...inactiveClasses);
-                tabYearly.classList.remove(...activeClasses);
-
-                viewDaily.classList.remove('hidden');
-                controlsDaily.classList.remove('hidden');
-                viewYearly.classList.add('hidden');
-                controlsYearly.classList.add('hidden');
-            } else {
-                tabYearly.classList.add(...activeClasses);
-                tabYearly.classList.remove(...inactiveClasses);
-                tabDaily.classList.add(...inactiveClasses);
-                tabDaily.classList.remove(...activeClasses);
-
-                viewYearly.classList.remove('hidden');
-                controlsYearly.classList.remove('hidden');
-                viewDaily.classList.add('hidden');
-                controlsDaily.classList.add('hidden');
-            }
-        }
-
-        // 日历显示模式：每日盈亏、每日百分比、总资产。
-        function setCalendarView(mode) {
-            calViewMode = mode;
-            const activeClasses = ['bg-white', 'dark:bg-darkSurface', 'shadow-sm', 'text-blue-600', 'dark:text-blue-400'];
-            const inactiveClasses = ['text-textSecondary', 'dark:text-darkTextSec', 'hover:text-textPrimary', 'dark:hover:text-darkText'];
-
-            for (let i = 0; i <= 2; i++) {
-                const btn = document.getElementById(`view-mode-${i}`);
-                if (i === mode) {
-                    btn.classList.add(...activeClasses);
-                    btn.classList.remove(...inactiveClasses);
-                } else {
-                    btn.classList.add(...inactiveClasses);
-                    btn.classList.remove(...activeClasses);
-                }
-            }
-            renderCalendar();
-        }
-
-        // 从年度汇总跳转到指定月份。
-        function jumpToMonth(monthIndex) {
-            displayDate.setMonth(monthIndex);
-            renderCalendar();
-            renderYearlySummary();
-            switchView('daily');
-        }
-
-        // 每日历按月份前后切换。
-        function changeMonth(offset) {
-            displayDate.setMonth(displayDate.getMonth() + offset);
-            renderCalendar();
-        }
-
-        // 年度汇总按年份前后切换。
-        function changeYear(offset) {
-            displayDate.setFullYear(displayDate.getFullYear() + offset);
-            renderYearlySummary();
-            renderCalendar();
-        }
-
-        // 渲染当前年份 12 个月的盈亏汇总。
-        function renderYearlySummary() {
-            const currentYear = displayDate.getFullYear();
-            const yearBadge = document.getElementById('current-year-badge');
-            if (yearBadge) yearBadge.innerText = currentYear;
-
-            const yearDisplay = document.getElementById('cal-year-display');
-            if (yearDisplay) yearDisplay.innerText = currentYear;
-
-            const monthlyData = new Array(12).fill(0);
-            let ytdTotal = 0;
-
-            state.history.forEach(record => {
-                if (!record.date) return;
-                const parts = record.date.split('-');
-                const year = parseInt(parts[0]);
-                const month = parseInt(parts[1]) - 1;
-
-                if (year === currentYear) {
-                    const pl = record.pl || 0;
-                    monthlyData[month] += pl;
-                    ytdTotal += pl;
-                }
-            });
-
-            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-            const grid = document.getElementById('monthly-grid');
-
-            if (grid) {
-                grid.innerHTML = monthlyData.map((val, index) => {
-                    const isPos = val >= 0;
-                    const valText = isPrivacyMode ? '••••' : (val === 0 ? '0.00' : (isPos ? '+' + val.toFixed(2) : val.toFixed(2)));
-
-                    let colorClass = 'text-gray-400 dark:text-gray-500';
-                    let bgClass = 'bg-gray-50 dark:bg-darkBg';
-
-                    if (!isPrivacyMode) {
-                        if (val > 0) {
-                            colorClass = 'text-stockGreen dark:text-green-300';
-                            bgClass = 'bg-stockGreenBg dark:bg-green-900/20';
-                        } else if (val < 0) {
-                            colorClass = 'text-stockRed dark:text-red-300';
-                            bgClass = 'bg-stockRedBg dark:bg-red-900/20';
-                        }
-                    }
-
-                    return `
-                        <div onclick="jumpToMonth(${index})" class="py-4 md:py-6 px-2 md:px-3 min-h-[140px] md:min-h-[200px] rounded-lg ${bgClass} flex flex-col items-center justify-center cursor-pointer hover:-translate-y-1.5 transition-all duration-300">
-                            <span class="text-xs md:text-sm font-bold text-gray-500 dark:text-darkTextSec uppercase mb-2 md:mb-3">${monthNames[index]}</span>
-                            <span class="text-xl md:text-2xl font-bold font-mono tracking-tight ${colorClass}">${valText}</span>
-                        </div>
-                    `;
-                }).join('');
-            }
-
-            const totalEl = document.getElementById('yearly-total');
-            if (totalEl) {
-                if (isPrivacyMode) {
-                    totalEl.innerText = '••••';
-                    totalEl.className = 'text-2xl md:text-3xl font-bold font-mono tracking-tight text-gray-400 dark:text-gray-500';
-                } else {
-                    const isPos = ytdTotal >= 0;
-                    totalEl.innerText = (isPos ? '+' : '') + ytdTotal.toFixed(2);
-
-                    if (ytdTotal > 0) {
-                        totalEl.className = 'text-2xl md:text-3xl font-bold font-mono tracking-tight text-stockGreen dark:text-green-300';
-                    } else if (ytdTotal < 0) {
-                        totalEl.className = 'text-2xl md:text-3xl font-bold font-mono tracking-tight text-stockRed dark:text-red-300';
-                    } else {
-                        totalEl.className = 'text-2xl md:text-3xl font-bold font-mono tracking-tight text-gray-400 dark:text-gray-500';
-                    }
-                }
-            }
-        }
-
-        // 根据每日历史记录渲染月历。
-        function renderCalendar() {
-            const year = displayDate.getFullYear();
-            const month = displayDate.getMonth();
-            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-            document.getElementById('cal-month-display').innerText = `${monthNames[month]} ${year}`;
-            const grid = document.getElementById('calendar-grid');
-            if(!grid) return;
-            grid.innerHTML = '';
-
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-            const calData = {};
-            state.history.forEach(item => {
-                calData[item.date] = {
-                    total: item.total || item.value || 0,
-                    pl: item.pl || 0,
-                    rate: item.rate || 0,
-                    netFlow: item.netFlow || 0
-                };
-            });
-
-            for (let i = 0; i < firstDay; i++) { grid.innerHTML += `<div></div>`; }
-
-            const localDate = new Date();
-            const todayStr = `${localDate.getFullYear()}-${String(localDate.getMonth()+1).padStart(2,'0')}-${String(localDate.getDate()).padStart(2,'0')}`;
-
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const data = calData[dateStr];
-                const isToday = (dateStr === todayStr);
-
-                let bgClass = "bg-gray-50 dark:bg-darkBg";
-                let textClass = "text-gray-400 dark:text-darkTextSec";
-                let dayText = day;
-                let valHtml = `<span class="text-xs md:text-sm text-transparent">0</span>`;
-                let flowHtml = '';
-
-                if (data) {
-                    const isPos = data.pl >= 0;
-                    let displayVal = '';
-
-                    if (isPrivacyMode && calViewMode !== 1) {
-                        displayVal = '••••';
-                        textClass = "text-gray-500 dark:text-darkTextSec";
-                        bgClass = "bg-gray-100 dark:bg-[#3c4043]";
-                    } else {
-                        if (calViewMode === 0) {
-                            const roundedPl = Math.round(data.pl);
-                            displayVal = isPos ? `+${roundedPl}` : `${roundedPl}`;
-                            textClass = isPos ? "text-stockGreen dark:text-green-300" : "text-stockRed dark:text-red-300";
-                            bgClass = isPos ? "bg-stockGreenBg dark:bg-green-900/20" : "bg-stockRedBg dark:bg-red-900/20";
-                        } else if (calViewMode === 1) {
-                            displayVal = isPos ? `+${data.rate.toFixed(1)}%` : `${data.rate.toFixed(1)}%`;
-                            textClass = isPos ? "text-stockGreen dark:text-green-300" : "text-stockRed dark:text-red-300";
-                            bgClass = isPos ? "bg-stockGreenBg dark:bg-green-900/20" : "bg-stockRedBg dark:bg-red-900/20";
-                        } else {
-                            displayVal = `${Math.round(data.total)}`;
-                            textClass = "text-gray-900 dark:text-gray-100";
-                            bgClass = isPos ? "bg-stockGreenBg dark:bg-green-900/20" : "bg-stockRedBg dark:bg-red-900/20";
-                        }
-
-                        if (!isPrivacyMode && data.netFlow && Math.abs(data.netFlow) > 5) {
-                            let fv = Math.round(data.netFlow);
-                            let sign = fv > 0 ? '+' : '-';
-                            let fText = `${sign}${Math.abs(fv)}`;
-                            const fColor = 'text-yellow-400 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-300 dark:border-yellow-800/50';
-                            flowHtml = `<div class="absolute top-1.5 right-1 md:top-1.5 md:right-1.5 text-[0.5rem] md:text-[0.55rem] font-bold ${fColor} px-1 rounded shadow-sm tracking-tighter leading-none h-[14px] md:h-[16px] flex items-center justify-center" title="Cash Flow">${fText}</div>`;
-                        }
-                    }
-
-                    valHtml = `<span class="text-[0.6rem] md:text-sm lg:text-base font-bold font-mono tracking-tighter leading-none text-center w-full px-0.5 ${textClass}">${displayVal}</span>`;
-                } else if (isToday) {
-                    bgClass = "bg-gray-50 dark:bg-darkBg";
-                }
-
-                grid.innerHTML += `
-                    <div class="relative flex flex-col justify-center items-center pt-3 pb-1 md:pt-0 md:pb-0 md:py-4 min-h-[50px] md:min-h-[80px] rounded-lg w-full transition-all hover:brightness-95 cursor-default ${bgClass}">
-                        ${flowHtml}
-                        <span class="absolute top-1.5 left-1.5 md:static md:top-auto md:left-auto text-[0.6rem] md:text-xs font-bold text-gray-400 dark:text-gray-500 leading-none h-[14px] md:h-auto flex items-center md:mb-1">${dayText}</span>
-                        ${valHtml}
-                    </div>
-                `;
-            }
         }
 
         // 通过腾讯行情接口更新 A 股价格。
@@ -1313,7 +1042,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
         // 通过 Finnhub 更新美股价格。
         async function updateUsStockPrices() {
             const apiKey = localStorage.getItem('finnhub_key');
-            if (!apiKey) return alert('Please configure Finnhub API Key in System Settings first');
+            if (!apiKey) return alert('请先设置 Finnhub 密钥');
 
             const icon = document.getElementById('refresh-icon');
             if(icon) icon.classList.add('animate-spin');
@@ -1324,7 +1053,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                 try {
                     const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${item.ticker}&token=${apiKey}`);
                     const data = await res.json();
-                    if (data.c) { item.price = data.c; updatedCount++; }
+                    if (data.c) { item.price = data.c; if (data.pc > 0) item.previousClose = data.pc; updatedCount++; }
                 } catch (e) { }
             }
 
@@ -1335,7 +1064,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
         // 单独更新 SGOV 价格，方便作为类现金资产显示。
         async function updateSgovPrices() {
             const apiKey = localStorage.getItem('finnhub_key');
-            if (!apiKey) return alert('Please configure Finnhub API Key in System Settings first');
+            if (!apiKey) return alert('请先设置 Finnhub 密钥');
 
             const icon = document.getElementById('refresh-icon-sgov');
             if(icon) icon.classList.add('animate-spin');
@@ -1346,7 +1075,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                 try {
                     const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${item.ticker}&token=${apiKey}`);
                     const data = await res.json();
-                    if (data.c) { item.price = data.c; updatedCount++; }
+                    if (data.c) { item.price = data.c; if (data.pc > 0) item.previousClose = data.pc; updatedCount++; }
                 } catch (e) { }
             }
 
@@ -1604,8 +1333,8 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
             script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js';
             script.async = true;
             script.innerHTML = JSON.stringify({
-                "symbols": [ { "proName": "FOREXCOM:SPXUSD", "title": "S&P 500" }, { "proName": "FOREXCOM:NSXUSD", "title": "US 100" }, { "proName": "FX_IDC:USDCNY", "title": "USD/CNY" }, { "proName": "BITSTAMP:BTCUSD", "title": "Bitcoin" }, { "description": "Gold", "proName": "TVC:GOLD" } ],
-                "showSymbolLogo": true, "colorTheme": isDark ? "dark" : "light", "isTransparent": false, "displayMode": "adaptive", "locale": "en"
+                "symbols": [ { "proName": "FOREXCOM:SPXUSD", "title": "标普 500" }, { "proName": "FOREXCOM:NSXUSD", "title": "纳斯达克 100" }, { "proName": "FX_IDC:USDCNY", "title": "美元/人民币" }, { "proName": "BITSTAMP:BTCUSD", "title": "比特币" }, { "description": "黄金", "proName": "TVC:GOLD" } ],
+                "showSymbolLogo": true, "colorTheme": isDark ? "dark" : "light", "isTransparent": false, "displayMode": "adaptive", "locale": "zh_CN"
             });
             container.appendChild(script);
         }
@@ -1631,18 +1360,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
             document.querySelectorAll('.reveal-card').forEach(el => observer.observe(el));
         }
 
-        // 页面平滑滚动引擎。
-        const lenis = new Lenis({
-            duration: 1.2,
-            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-            smooth: true
-        });
-
-        function raf(time) {
-            lenis.raf(time);
-            requestAnimationFrame(raf);
-        }
-        requestAnimationFrame(raf);
+        // Native scrolling keeps long tables, keyboard navigation and touch scrolling consistent.
 
         // 后台刷新行情和汇率，并设置冷却时间避免频繁请求。
         function autoRefreshPrices(force = false) {
@@ -1771,7 +1489,7 @@ function animateNumber(element, start, end, duration = 500, prefix = '', decimal
                 const displayDist = stock.distance.toFixed(1);
 
 html += `
-                <div class="flex flex-col gap-3 cursor-pointer ${rowClass}" title="Open ${stock.symbol} on TradingView" onclick="openTradingViewSymbol('${stock.symbol}')" style="padding: 16px 18px 22px; min-height: 74px;">
+                <div class="flex flex-col gap-3 cursor-pointer ${rowClass}" title="查看 ${stock.symbol} 行情" onclick="openTradingViewSymbol('${stock.symbol}')" style="padding: 16px 18px 22px; min-height: 74px;">
                     <div class="flex justify-between items-center text-xs text-textPrimary dark:text-darkText">
                         <div class="flex items-baseline gap-2">
                     <span class="font-bold font-mono text-xs ${stock.symbol === 'QQQM' ? 'text-gray-900 dark:text-gray-100' : ''}">
@@ -1800,12 +1518,11 @@ html += `
             loadTheme();
             renderAllRows();
             renderDrawdown();
-            setNwRange(90);
+            setNwRange(0);
             calculate();
             initSortable();
             document.getElementById('fx-rate').addEventListener('input', calculate);
             loadTradingViewTicker();
-            initScrollReveal();
             autoRefreshPrices();
             autoSmartBackup();
         };
