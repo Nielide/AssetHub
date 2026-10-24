@@ -5,22 +5,16 @@ tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['"Google Sans"', 'Roboto', 'sans-serif'],
-                        mono: ['"Roboto Mono"', 'monospace'],
+                        sans: ['Geist', 'Microsoft YaHei', 'PingFang SC', 'sans-serif'],
+                        mono: ['"Geist Mono"', 'Microsoft YaHei', 'PingFang SC', 'monospace'],
                     },
                     colors: {
-                        googleBlue: '#1a73e8', googleRed: '#ea4335', googleYellow: '#fbbc04', googleGreen: '#34a853',
+                        googleBlue: '#748b27', googleRed: '#ba543c', googleYellow: '#aa8a38', googleGreen: '#688519',
                         googlePurple: '#9334e6',
-                        darkSurface: '#303134', darkBg: '#202124', darkBorder: '#5f6368', darkText: '#e8eaed', darkTextSec: '#9aa0a6',
-                        stockRed: '#f04a4a', stockRedBg: '#fef1f1', stockGreen: '#0fa968', stockGreenBg: '#ecfdf5',
+                        darkSurface: '#21281b', darkBg: '#181c13', darkBorder: '#414b33', darkText: '#e7ecd5', darkTextSec: '#b4bca3',
+                        textPrimary: '#303429', textSecondary: '#656957',
+                        stockRed: '#ba543c', stockRedBg: '#faf0e8', stockGreen: '#688519', stockGreenBg: '#edf1dc',
                     }
                 }
             }
         };
-
-// app.js 在 body 末尾执行；DOMContentLoaded 时再插入云端数据加载补丁，确保它覆盖 app.js 的启动和同步逻辑。
-document.addEventListener('DOMContentLoaded', () => {
-    const script = document.createElement('script');
-    script.src = 'js/cloud-loader.js?v=20260722-history-preserve';
-    document.body.appendChild(script);
-});
