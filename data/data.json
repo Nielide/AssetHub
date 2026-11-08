@@ -33,7 +33,7 @@
       "ticker": "NTDOY",
       "shares": 70,
       "cost": 12.74,
-      "price": 13.65
+      "price": 13.1
     },
     {
       "id": "1791426321023",
@@ -121,7 +121,7 @@
       "currency": "USD"
     }
   ],
-  "fxRate": 6.6825,
+  "fxRate": 6.6861,
   "isDark": false,
   "theme": "light",
   "history": [
@@ -2113,6 +2113,15 @@
       "rate": 0.412645377370207,
       "netFlow": 0,
       "value": 250639
+    },
+    {
+      "date": "2026-11-08",
+      "total": 250499,
+      "cost": 252274,
+      "pl": -255,
+      "rate": -0.10173995268094749,
+      "netFlow": 115,
+      "value": 250499
     }
   ],
   "drawdown": [
@@ -2205,5 +2214,5 @@
     }
   ],
   "hkdFx": 0.93,
-  "lastSavedAt": 1794013041746
+  "lastSavedAt": 1794098525840
 }
